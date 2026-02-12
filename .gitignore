@@ -21,4 +21,5 @@ checkpoints/
 data/raw/
 data/processed/
 *.log
+*.png
 .DS_Store
