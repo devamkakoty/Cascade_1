@@ -1,108 +1,157 @@
 """
-Quick CLI demo — runs a cascade simulation and prints results.
-No dependencies on streamlit/plotly, just numpy + matplotlib.
+Quick CLI demo — runs both cascade modes and prints results.
 
 Usage:
     python run_demo.py
 """
 
 import numpy as np
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
-from cascade_predict.physics import CellParams, PackGeometry
-from cascade_predict.simulation import CascadeSimulator
 
 
-def main():
-    print("=" * 60)
-    print("  Battery Cascade Prediction — Physics Demo")
-    print("=" * 60)
+def demo_system_cascade():
+    """Demonstrate the Eviation windshield scenario."""
+    from cascade_predict.subsystems import build_electric_aircraft
+    from cascade_predict.graph import CascadeEngine
 
-    # Setup
-    params = CellParams()  # uses calibrated defaults
+    print("=" * 70)
+    print("  SYSTEM CASCADE — Eviation Windshield Scenario")
+    print("=" * 70)
+    print()
+    print("Scenario: Engineer swaps windshield to a different material.")
+    print("Thermal conductivity changes from 1.0 → 1.4 W/(m·K).")
+    print("What breaks?")
+    print()
+
+    graph, components, constraints = build_electric_aircraft()
+    engine = CascadeEngine(graph)
+
+    # Change windshield thermal conductivity
+    windshield = components["windshield"]
+    deltas = windshield.get_graph_deltas({"thermal_conductivity": 1.4})
+    trigger_node = list(deltas.keys())[0]
+    trigger_delta = list(deltas.values())[0]
+
+    result = engine.propagate(trigger_node, trigger_delta, mode="single_pass")
+    summary = result.summary()
+
+    print(f"--- CASCADE SUMMARY ---")
+    print(f"  Parameters affected:  {summary['nodes_affected']}")
+    print(f"  Subsystems hit:       {summary['subsystems_affected']}")
+    print(f"  Cross-domain hops:    {summary['cross_domain_hops']}")
+    print(f"  Cert violations:      {summary['violations']}")
+    print()
+
+    # Deduplicate steps
+    seen = {}
+    for step in result.steps:
+        if step.target_node not in seen or abs(step.delta_output) > abs(seen[step.target_node].delta_output):
+            seen[step.target_node] = step
+    unique_steps = list(seen.values())
+
+    print("--- CASCADE CHAIN ---")
+    for step in unique_steps:
+        node = graph.nodes[step.target_node]
+        baseline = result.initial_state.get(step.target_node, step.old_value)
+        pct = (step.delta_output / baseline * 100) if abs(baseline) > 1e-10 else 0
+
+        flags = []
+        if step.is_cross_domain:
+            flags.append("CROSS-DOMAIN")
+        if step.causes_violation:
+            flags.append("VIOLATION")
+        flag_str = f"  [{', '.join(flags)}]" if flags else ""
+
+        print(f"  {step.source_node:30s} → {step.target_node:30s}  "
+              f"Δ={step.delta_output:+10.4f} {node.unit:12s} ({pct:+.2f}%){flag_str}")
+
+    if result.violations:
+        print()
+        print("--- CERTIFICATION VIOLATIONS ---")
+        for v in result.violations:
+            baseline = result.initial_state[v["node_id"]]
+            print(f"  {v['regulatory_ref']:20s} | {v['node_id']:30s}")
+            print(f"    Baseline: {baseline:.4f} {v['unit']} → After: {v['value']:.4f} {v['unit']}")
+            print(f"    Limit:    {v['regulatory_limit']} {v['unit']}")
+
+            paths = graph.find_paths(result.trigger_node, v["node_id"])
+            if paths:
+                shortest = min(paths, key=len)
+                path_str = " → ".join(
+                    [result.trigger_node] + [e.target_id for e in shortest]
+                )
+                print(f"    Path:     {path_str}")
+
+    # Cleanup for next demo
+    engine.reset_to_initial(result)
+
+    # Now show a bigger change
+    print()
+    print("=" * 70)
+    print("  What if k goes to 2.0? (even worse material choice)")
+    print("=" * 70)
+    graph2, components2, _ = build_electric_aircraft()
+    engine2 = CascadeEngine(graph2)
+    ws2 = components2["windshield"]
+    deltas2 = ws2.get_graph_deltas({"thermal_conductivity": 2.0})
+    result2 = engine2.propagate(list(deltas2.keys())[0], list(deltas2.values())[0], mode="single_pass")
+    s2 = result2.summary()
+    print(f"  Parameters affected: {s2['nodes_affected']}")
+    print(f"  Violations: {s2['violations']}")
+    if result2.violations:
+        for v in result2.violations:
+            print(f"    {v['regulatory_ref']}: {v['node_id']} = {v['value']:.2f} {v['unit']} "
+                  f"(limit: {v['regulatory_limit']})")
+
+
+def demo_battery_cascade():
+    """Demonstrate cell-level thermal runaway cascade."""
+    from cascade_predict.physics import CellParams
+    from cascade_predict.simulation import CascadeSimulator
+
+    print()
+    print()
+    print("=" * 70)
+    print("  BATTERY THERMAL CASCADE — Cell-Level Propagation")
+    print("=" * 70)
+
+    params = CellParams()
     sim = CascadeSimulator(rows=4, cols=5, params=params)
     n_cells = sim.pack.n_cells
 
-    print(f"\nPack: 4×5 hex layout, {n_cells} cells")
-    print(f"Ambient: {params.t_ambient - 273.15:.0f}°C")
+    print(f"\nPack: 4x5 hex layout, {n_cells} cells")
 
-    # SOC distribution
     rng = np.random.RandomState(42)
     soc = np.clip(rng.normal(0.8, 0.1, n_cells), 0.3, 1.0)
 
-    # Trigger cell 0
-    trigger = [0]
-    print(f"Trigger cell(s): {trigger}")
-    print(f"Trigger temp: 250°C")
+    print("Trigger: Cell 0 at 250°C")
+    print("Running simulation (900s)...")
 
-    # Run simulation
-    print("\nRunning simulation (900s)...")
     result = sim.run_physics(
-        trigger_cells=trigger,
+        trigger_cells=[0],
         soc_distribution=soc,
         trigger_temp=523.15,
         dt=0.5,
         t_end=900.0,
     )
 
-    # Summary
     summary = sim.cascade_summary(result)
-    print(f"\n--- Results ---")
-    print(f"Cells affected: {summary['cells_affected']}/{summary['total_cells']}")
-    print(f"Cascade fraction: {summary['cascade_fraction']:.0%}")
-    print(f"Peak temperature: {summary['max_temperature_C']:.0f}°C")
-    print(f"Avg propagation delay: {summary['avg_propagation_delay_s']:.1f}s")
+    print(f"\n--- RESULTS ---")
+    print(f"  Cells affected:      {summary['cells_affected']}/{summary['total_cells']}")
+    print(f"  Cascade fraction:    {summary['cascade_fraction']:.0%}")
+    print(f"  Peak temperature:    {summary['max_temperature_C']:.0f}°C")
+    print(f"  Avg prop delay:      {summary['avg_propagation_delay_s']:.1f}s")
 
-    # Runaway order
     runaway_times = result["runaway_times"]
     order = np.argsort(runaway_times)
     print(f"\nRunaway order:")
     for rank, cell_id in enumerate(order):
         t = runaway_times[cell_id]
         if np.isfinite(t):
-            print(f"  {rank+1}. Cell {cell_id:2d} at t={t:6.1f}s  (SOC={soc[cell_id]:.2f})")
+            print(f"  {rank+1:2d}. Cell {cell_id:2d} at t={t:6.1f}s  (SOC={soc[cell_id]:.2f})")
         else:
             break
 
-    # Plot temperature curves
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
-
-    times = result["times"]
-    temps_c = result["temperatures"] - 273.15
-
-    for i in range(n_cells):
-        color = "red" if i in trigger else ("orange" if np.isfinite(runaway_times[i]) else "steelblue")
-        alpha = 0.9 if np.isfinite(runaway_times[i]) else 0.4
-        ax1.plot(times, temps_c[:, i], color=color, alpha=alpha, linewidth=1.5)
-
-    ax1.axhline(y=params.t_runaway - 273.15, color="red", linestyle="--", alpha=0.5, label="Runaway threshold")
-    ax1.set_xlabel("Time (s)")
-    ax1.set_ylabel("Temperature (°C)")
-    ax1.set_title("Cell Temperature Evolution")
-    ax1.legend()
-
-    # Pack heatmap at final time
-    pos = sim.pack.positions
-    final_temps = temps_c[-1]
-    scatter = ax2.scatter(
-        pos[:, 0], pos[:, 1],
-        c=final_temps, cmap="hot", s=300,
-        edgecolors="black", linewidths=1.5, vmin=0, vmax=max(final_temps),
-    )
-    for i in range(n_cells):
-        ax2.annotate(str(i), pos[i], ha="center", va="center", fontsize=8, color="white")
-    plt.colorbar(scatter, ax=ax2, label="Temperature (°C)")
-    ax2.set_title(f"Pack Temperature at t={times[-1]:.0f}s")
-    ax2.set_aspect("equal")
-    ax2.set_xticks([])
-    ax2.set_yticks([])
-
-    plt.tight_layout()
-    plt.savefig("cascade_demo.png", dpi=150)
-    print(f"\nPlot saved to cascade_demo.png")
-
 
 if __name__ == "__main__":
-    main()
+    demo_system_cascade()
+    demo_battery_cascade()
