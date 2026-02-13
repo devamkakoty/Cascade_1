@@ -24,7 +24,6 @@ Future data sources (plugged in later to calibrate sensitivities):
 
 from __future__ import annotations
 from dataclasses import dataclass, field
-from cascade_predict.graph.dependency_graph import Subsystem
 
 
 @dataclass
@@ -52,7 +51,7 @@ class Component:
     """
     component_id: str
     name: str
-    subsystem: Subsystem
+    subsystem: str
     description: str = ""
     properties: dict[str, ComponentProperty] = field(default_factory=dict)
 

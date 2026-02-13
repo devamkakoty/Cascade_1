@@ -19,7 +19,6 @@ from cascade_predict.graph.dependency_graph import (
     DependencyGraph,
     SubsystemNode,
     CouplingEdge,
-    Subsystem,
 )
 from .component import Component, CertConstraint
 
@@ -43,7 +42,7 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
 
     # --- Windshield ---
     windshield = Component(
-        "windshield", "Cockpit Windshield", Subsystem.THERMAL,
+        "windshield", "Cockpit Windshield", "thermal",
         description="Forward windshield panels (2x), polycarbonate/glass laminate",
     )
     windshield.add_property("thermal_conductivity", 1.0, "W/(m·K)",
@@ -68,7 +67,7 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
 
     # --- HVAC Unit ---
     hvac = Component(
-        "hvac_unit", "Cabin HVAC System", Subsystem.HVAC,
+        "hvac_unit", "Cabin HVAC System", "hvac",
         description="Vapor-cycle ECS with electric compressor",
     )
     hvac.add_property("cooling_capacity", 10.0, "kW",
@@ -87,7 +86,7 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
 
     # --- Battery Pack ---
     battery = Component(
-        "battery_pack", "Main Battery Pack", Subsystem.ELECTRICAL,
+        "battery_pack", "Main Battery Pack", "electrical",
         description="Li-ion NMC battery modules, floor-mounted",
     )
     battery.add_property("total_capacity", 820.0, "kWh",
@@ -106,7 +105,7 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
 
     # --- Wing Structure ---
     wing = Component(
-        "wing", "Wing Assembly", Subsystem.STRUCTURAL,
+        "wing", "Wing Assembly", "structural",
         description="Composite wing with aluminum spar caps",
     )
     wing.add_property("structural_mass", 420.0, "kg",
@@ -127,7 +126,7 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
 
     # --- Fuselage ---
     fuselage = Component(
-        "fuselage", "Fuselage", Subsystem.THERMAL,
+        "fuselage", "Fuselage", "thermal",
         description="Carbon composite fuselage barrel",
     )
     fuselage.add_property("insulation_rvalue", 2.5, "m²·K/W",
@@ -141,7 +140,7 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
 
     # --- Electric Motors ---
     motors = Component(
-        "propulsion_motors", "Electric Propulsion Motors (x2)", Subsystem.PROPULSION,
+        "propulsion_motors", "Electric Propulsion Motors (x2)", "propulsion",
         description="Twin wing-tip mounted electric motors",
     )
     motors.add_property("rated_power", 640.0, "kW",
@@ -161,85 +160,85 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
     # ================================================================
 
     # Thermal
-    g.add_node(SubsystemNode("windshield_k", Subsystem.THERMAL,
+    g.add_node(SubsystemNode("windshield_k", "thermal",
         1.0, "W/(m·K)", "Windshield thermal conductivity"))
-    g.add_node(SubsystemNode("windshield_solar_transmittance", Subsystem.THERMAL,
+    g.add_node(SubsystemNode("windshield_solar_transmittance", "thermal",
         0.35, "fraction", "Windshield solar transmittance"))
-    g.add_node(SubsystemNode("windshield_mass", Subsystem.THERMAL,
+    g.add_node(SubsystemNode("windshield_mass", "thermal",
         12.0, "kg", "Windshield mass"))
-    g.add_node(SubsystemNode("fuselage_insulation_rvalue", Subsystem.THERMAL,
+    g.add_node(SubsystemNode("fuselage_insulation_rvalue", "thermal",
         2.5, "m²·K/W", "Fuselage insulation R-value"))
-    g.add_node(SubsystemNode("cabin_heat_load", Subsystem.THERMAL,
+    g.add_node(SubsystemNode("cabin_heat_load", "thermal",
         8.5, "kW", "Total cabin thermal load"))
-    g.add_node(SubsystemNode("cabin_temperature", Subsystem.THERMAL,
+    g.add_node(SubsystemNode("cabin_temperature", "thermal",
         22.0, "°C", "Cabin steady-state temperature",
         bounds=(18.0, 27.0), regulatory_limit=27.0, regulatory_ref="FAR 25.831"))
 
     # HVAC
-    g.add_node(SubsystemNode("hvac_cooling_capacity", Subsystem.HVAC,
+    g.add_node(SubsystemNode("hvac_cooling_capacity", "hvac",
         10.0, "kW", "HVAC cooling capacity"))
-    g.add_node(SubsystemNode("hvac_power_draw", Subsystem.HVAC,
+    g.add_node(SubsystemNode("hvac_power_draw", "hvac",
         3.5, "kW", "HVAC electrical power consumption"))
-    g.add_node(SubsystemNode("hvac_mass", Subsystem.HVAC,
+    g.add_node(SubsystemNode("hvac_mass", "hvac",
         45.0, "kg", "HVAC system mass"))
-    g.add_node(SubsystemNode("hvac_cop", Subsystem.HVAC,
+    g.add_node(SubsystemNode("hvac_cop", "hvac",
         2.8, "dimensionless", "HVAC COP"))
 
     # Electrical
-    g.add_node(SubsystemNode("battery_capacity", Subsystem.ELECTRICAL,
+    g.add_node(SubsystemNode("battery_capacity", "electrical",
         820.0, "kWh", "Battery energy capacity"))
-    g.add_node(SubsystemNode("battery_mass", Subsystem.ELECTRICAL,
+    g.add_node(SubsystemNode("battery_mass", "electrical",
         3700.0, "kg", "Battery pack mass"))
-    g.add_node(SubsystemNode("battery_specific_energy", Subsystem.ELECTRICAL,
+    g.add_node(SubsystemNode("battery_specific_energy", "electrical",
         220.0, "Wh/kg", "Battery specific energy"))
-    g.add_node(SubsystemNode("mission_energy", Subsystem.ELECTRICAL,
+    g.add_node(SubsystemNode("mission_energy", "electrical",
         720.0, "kWh", "Total mission energy requirement"))
-    g.add_node(SubsystemNode("energy_reserve", Subsystem.ELECTRICAL,
+    g.add_node(SubsystemNode("energy_reserve", "electrical",
         100.0, "kWh", "Energy reserve margin",
         bounds=(30.0, 500.0)))
 
     # Mass
-    g.add_node(SubsystemNode("oew", Subsystem.MASS,
+    g.add_node(SubsystemNode("oew", "mass",
         5250.0, "kg", "Operating empty weight"))
-    g.add_node(SubsystemNode("mtow", Subsystem.MASS,
+    g.add_node(SubsystemNode("mtow", "mass",
         6350.0, "kg", "Max takeoff weight",
         regulatory_limit=6350.0, regulatory_ref="Type Certificate"))
-    g.add_node(SubsystemNode("payload_capacity", Subsystem.MASS,
+    g.add_node(SubsystemNode("payload_capacity", "mass",
         1100.0, "kg", "Payload capacity (MTOW - OEW)",
         bounds=(0.0, 3000.0)))
 
     # Aero
-    g.add_node(SubsystemNode("wing_area", Subsystem.AERODYNAMIC,
+    g.add_node(SubsystemNode("wing_area", "aerodynamic",
         28.0, "m²", "Wing reference area"))
-    g.add_node(SubsystemNode("wing_loading", Subsystem.AERODYNAMIC,
+    g.add_node(SubsystemNode("wing_loading", "aerodynamic",
         226.8, "kg/m²", "Wing loading"))
-    g.add_node(SubsystemNode("stall_speed", Subsystem.AERODYNAMIC,
+    g.add_node(SubsystemNode("stall_speed", "aerodynamic",
         55.0, "m/s", "Stall speed at MTOW",
         regulatory_limit=61.0, regulatory_ref="FAR 25.103"))
-    g.add_node(SubsystemNode("approach_speed", Subsystem.AERODYNAMIC,
+    g.add_node(SubsystemNode("approach_speed", "aerodynamic",
         71.5, "m/s", "Approach speed (1.3 Vs)",
         regulatory_limit=77.0, regulatory_ref="FAR 25.125"))
-    g.add_node(SubsystemNode("cruise_ld", Subsystem.AERODYNAMIC,
+    g.add_node(SubsystemNode("cruise_ld", "aerodynamic",
         18.0, "dimensionless", "Cruise L/D ratio"))
 
     # Structural
-    g.add_node(SubsystemNode("wing_mass", Subsystem.STRUCTURAL,
+    g.add_node(SubsystemNode("wing_mass", "structural",
         420.0, "kg", "Wing structural mass"))
-    g.add_node(SubsystemNode("wing_root_bending", Subsystem.STRUCTURAL,
+    g.add_node(SubsystemNode("wing_root_bending", "structural",
         185000.0, "N·m", "Wing root bending moment at limit load"))
-    g.add_node(SubsystemNode("wing_structural_margin", Subsystem.STRUCTURAL,
+    g.add_node(SubsystemNode("wing_structural_margin", "structural",
         0.189, "fraction", "Wing structural safety margin",
         bounds=(0.0, 1.0), regulatory_limit=None, regulatory_ref="FAR 25.303"))
-    g.add_node(SubsystemNode("landing_gear_load", Subsystem.STRUCTURAL,
+    g.add_node(SubsystemNode("landing_gear_load", "structural",
         62000.0, "N", "Max landing gear load"))
-    g.add_node(SubsystemNode("lg_margin", Subsystem.STRUCTURAL,
+    g.add_node(SubsystemNode("lg_margin", "structural",
         0.15, "fraction", "Landing gear margin",
         bounds=(0.0, 1.0), regulatory_ref="FAR 25.473"))
 
     # Propulsion
-    g.add_node(SubsystemNode("motor_power", Subsystem.PROPULSION,
+    g.add_node(SubsystemNode("motor_power", "propulsion",
         640.0, "kW", "Motor rated power (each)"))
-    g.add_node(SubsystemNode("range_nm", Subsystem.PROPULSION,
+    g.add_node(SubsystemNode("range_nm", "propulsion",
         460.0, "nm", "Design mission range",
         bounds=(100.0, 800.0)))
 

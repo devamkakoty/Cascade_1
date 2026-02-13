@@ -1,58 +1,44 @@
 """
-Cross-subsystem dependency graph.
+Cross-subsystem dependency graph — domain-agnostic core.
 
-Models an aircraft (or any complex system) as a directed graph where:
-  - Nodes represent subsystem parameters (e.g. battery_mass, hvac_power_draw,
-    wing_loading, cabin_temperature)
-  - Edges represent physics-based coupling: when one parameter changes,
-    connected parameters must change according to a transfer function
+Models any complex system as a directed graph where:
+  - Nodes represent system parameters with values, units, and constraints
+  - Edges represent physics-based couplings between parameters
+  - Subsystem labels are plain strings — defined by each domain template,
+    not hardcoded in the engine
 
-This is the core data structure for cascade prediction. A perturbation
-to any node propagates through the graph following physics constraints,
-exactly like the Eviation windshield → thermal → HVAC → battery → weight
-→ structures cascade.
+The engine doesn't know or care whether it's running on an aircraft,
+an EV battery pack, a power plant, or a submarine. The domain knowledge
+lives entirely in the template that builds the graph.
 
 Each edge carries:
   - A transfer function: delta_output = f(delta_input, system_state)
-  - Sensitivity (partial derivative ∂output/∂input at operating point)
-  - Domain crossing flag (same subsystem or cross-domain)
+  - Sensitivity (partial derivative at operating point)
+  - Domain crossing flag (auto-detected from subsystem labels)
 """
 
 from __future__ import annotations
 from dataclasses import dataclass, field
-from enum import Enum
 import numpy as np
-
-
-class Subsystem(Enum):
-    """Major aircraft subsystems."""
-    THERMAL = "thermal"
-    ELECTRICAL = "electrical"
-    STRUCTURAL = "structural"
-    AERODYNAMIC = "aerodynamic"
-    PROPULSION = "propulsion"
-    HVAC = "hvac"
-    REGULATORY = "regulatory"
-    MASS = "mass"
 
 
 @dataclass
 class SubsystemNode:
     """A parameter within a subsystem.
 
-    Example: node_id='battery_mass', subsystem=ELECTRICAL,
-             value=800.0, unit='kg', bounds=(400, 1200)
+    subsystem is a plain string — defined by the domain template.
+    Examples: "thermal", "drivetrain", "hull_structure", "grid_connection"
     """
     node_id: str
-    subsystem: Subsystem
+    subsystem: str
     value: float
     unit: str
     description: str = ""
     bounds: tuple[float, float] = (float("-inf"), float("inf"))
 
-    # Regulatory limits (if applicable)
+    # Regulatory / constraint limits
     regulatory_limit: float | None = None
-    regulatory_ref: str = ""  # e.g. "FAR 25.303"
+    regulatory_ref: str = ""  # e.g. "FAR 25.303", "UN ECE R100", "IEC 62619"
 
     def is_violated(self) -> bool:
         """Check if current value violates bounds or regulatory limits."""
@@ -106,21 +92,16 @@ class CouplingEdge:
 
 class DependencyGraph:
     """
-    Directed graph of subsystem parameter dependencies.
+    Directed graph of system parameter dependencies.
 
-    Supports:
-    - Adding nodes (parameters) and edges (couplings)
-    - Querying paths between any two parameters
-    - Sensitivity analysis (total derivative through chain rule)
-    - Cycle detection (feedback loops are real and important!)
-    - Cascade simulation from a perturbation
+    Domain-agnostic: works with any set of subsystem labels.
     """
 
     def __init__(self):
         self.nodes: dict[str, SubsystemNode] = {}
         self.edges: list[CouplingEdge] = []
-        self._adj: dict[str, list[CouplingEdge]] = {}  # forward adjacency
-        self._rev: dict[str, list[CouplingEdge]] = {}  # reverse adjacency
+        self._adj: dict[str, list[CouplingEdge]] = {}
+        self._rev: dict[str, list[CouplingEdge]] = {}
 
     def add_node(self, node: SubsystemNode) -> None:
         self.nodes[node.node_id] = node
@@ -129,7 +110,7 @@ class DependencyGraph:
             self._rev[node.node_id] = []
 
     def add_edge(self, edge: CouplingEdge) -> None:
-        # Auto-detect cross-domain
+        # Auto-detect cross-domain from subsystem labels
         if edge.source_id in self.nodes and edge.target_id in self.nodes:
             src_sub = self.nodes[edge.source_id].subsystem
             tgt_sub = self.nodes[edge.target_id].subsystem
@@ -140,11 +121,9 @@ class DependencyGraph:
         self._rev.setdefault(edge.target_id, []).append(edge)
 
     def get_downstream(self, node_id: str) -> list[CouplingEdge]:
-        """Get all edges where this node is the source."""
         return self._adj.get(node_id, [])
 
     def get_upstream(self, node_id: str) -> list[CouplingEdge]:
-        """Get all edges where this node is the target."""
         return self._rev.get(node_id, [])
 
     def find_paths(
@@ -170,7 +149,7 @@ class DependencyGraph:
         visited.remove(current)
 
     def path_sensitivity(self, path: list[CouplingEdge]) -> float:
-        """Total sensitivity along a path (chain rule: product of edge sensitivities)."""
+        """Total sensitivity along a path (chain rule: product of sensitivities)."""
         sensitivity = 1.0
         for edge in path:
             sensitivity *= edge.sensitivity
@@ -188,31 +167,30 @@ class DependencyGraph:
             paths = self.find_paths(node_id, node_id)
             for path in paths:
                 cycle = [e.source_id for e in path] + [path[-1].target_id]
-                # Normalize cycle (start from smallest node_id)
                 min_idx = cycle.index(min(cycle[:-1]))
                 normalized = cycle[min_idx:-1] + cycle[:min_idx] + [cycle[min_idx]]
                 if normalized not in cycles:
                     cycles.append(normalized)
         return cycles
 
-    def get_subsystem_nodes(self, subsystem: Subsystem) -> list[SubsystemNode]:
-        """Get all nodes belonging to a subsystem."""
+    def get_subsystem_nodes(self, subsystem: str) -> list[SubsystemNode]:
         return [n for n in self.nodes.values() if n.subsystem == subsystem]
 
     def get_cross_domain_edges(self) -> list[CouplingEdge]:
-        """Get all edges that cross subsystem boundaries."""
         return [e for e in self.edges if e.is_cross_domain]
 
     def get_violated_nodes(self) -> list[SubsystemNode]:
-        """Get all nodes that currently violate their constraints."""
         return [n for n in self.nodes.values() if n.is_violated()]
 
+    def subsystems(self) -> list[str]:
+        """All unique subsystem labels in the graph."""
+        return sorted(set(n.subsystem for n in self.nodes.values()))
+
     def summary(self) -> dict:
-        """Quick stats about the graph."""
         return {
             "n_nodes": len(self.nodes),
             "n_edges": len(self.edges),
-            "n_subsystems": len(set(n.subsystem for n in self.nodes.values())),
+            "n_subsystems": len(self.subsystems()),
             "n_cross_domain_edges": len(self.get_cross_domain_edges()),
             "n_violated": len(self.get_violated_nodes()),
         }

@@ -3,7 +3,8 @@ Cascade Prediction — Interactive Dashboard.
 
 Two modes:
   1. System Cascade: Change a component property → see the ripple effect
-     across subsystems, which cert constraints get violated
+     across subsystems, which cert constraints get violated.
+     Works with ANY template (aircraft, EV, marine, etc.)
   2. Battery Thermal: Cell-level thermal runaway cascade in a battery pack
 
 Run with: streamlit run app.py
@@ -12,7 +13,6 @@ Run with: streamlit run app.py
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 st.set_page_config(page_title="Cascade Prediction", layout="wide")
 
@@ -21,25 +21,58 @@ tab_system, tab_battery = st.tabs([
     "Battery Thermal Cascade",
 ])
 
+# Palette for auto-coloring subsystems (cycles if more than 10)
+_PALETTE = [
+    "rgba(255, 100, 100, 0.8)",  # red
+    "rgba(100, 200, 255, 0.8)",  # blue
+    "rgba(255, 200, 50, 0.8)",   # gold
+    "rgba(100, 255, 150, 0.8)",  # green
+    "rgba(200, 100, 255, 0.8)",  # purple
+    "rgba(255, 150, 50, 0.8)",   # orange
+    "rgba(180, 180, 180, 0.8)",  # gray
+    "rgba(255, 50, 50, 0.8)",    # bright red
+    "rgba(50, 200, 200, 0.8)",   # teal
+    "rgba(200, 200, 100, 0.8)",  # olive
+]
+
+
+def _subsystem_color_map(subsystems: list[str]) -> dict[str, str]:
+    """Auto-assign colors to subsystem labels."""
+    return {s: _PALETTE[i % len(_PALETTE)] for i, s in enumerate(sorted(subsystems))}
+
 
 # =====================================================================
-# TAB 1: SYSTEM CASCADE
+# TAB 1: SYSTEM CASCADE (template-agnostic)
 # =====================================================================
 with tab_system:
     st.title("Design Change Cascade Prediction")
     st.markdown(
         "**Change one component property. See everything that breaks.**  \n"
-        "Models the Eviation-style cascade: a single material swap ripples "
-        "through thermal → HVAC → electrical → mass → aero → structures → certification."
+        "Select a system template, pick a component, change a property, "
+        "and watch the cascade ripple across subsystems."
     )
 
-    from cascade_predict.subsystems import build_electric_aircraft
+    from cascade_predict.templates import list_templates, get_template
     from cascade_predict.graph import CascadeEngine
 
-    # Build system
-    graph, components, constraints = build_electric_aircraft()
+    # --- Template selector ---
+    all_templates = list_templates()
+    template_names = {t.template_id: f"{t.name} ({t.industry})" for t in all_templates}
+
+    selected_template_id = st.sidebar.selectbox(
+        "System Template",
+        list(template_names.keys()),
+        format_func=lambda x: template_names[x],
+        key="tmpl_select",
+    )
+    tmpl = get_template(selected_template_id)
+    st.sidebar.caption(tmpl.description)
+
+    # Build system from template
+    graph, components, constraints = tmpl.build()
 
     # --- Sidebar: Component selection ---
+    st.sidebar.markdown("---")
     st.sidebar.header("Component Change")
     comp_names = {cid: c.name for cid, c in components.items()}
     selected_comp_id = st.sidebar.selectbox(
@@ -89,42 +122,26 @@ with tab_system:
                 f"{pct:+.1f}%",
             )
 
-    # --- Quick scenarios ---
-    st.sidebar.markdown("---")
-    st.sidebar.header("Quick Scenarios")
-    scenario = st.sidebar.radio("Or try a preset:", [
-        "Custom (use slider above)",
-        "Eviation: Windshield k 1.0 → 1.4",
-        "Eviation: Windshield k 1.0 → 2.0",
-        "Battery upgrade: 220 → 280 Wh/kg",
-        "Insulation downgrade: R 2.5 → 1.5",
-    ])
+    # --- Quick scenarios (loaded from template presets) ---
+    if tmpl.presets:
+        st.sidebar.markdown("---")
+        st.sidebar.header("Quick Scenarios")
+        preset_names = ["Custom (use controls above)"] + [p["name"] for p in tmpl.presets]
+        scenario = st.sidebar.radio("Or try a preset:", preset_names, key="preset_radio")
 
-    if scenario.startswith("Eviation: Windshield k 1.0 → 1.4"):
-        selected_comp_id = "windshield"
-        selected_prop = "thermal_conductivity"
-        new_value = 1.4
-        comp = components[selected_comp_id]
-    elif scenario.startswith("Eviation: Windshield k 1.0 → 2.0"):
-        selected_comp_id = "windshield"
-        selected_prop = "thermal_conductivity"
-        new_value = 2.0
-        comp = components[selected_comp_id]
-    elif scenario.startswith("Battery upgrade"):
-        selected_comp_id = "battery_pack"
-        selected_prop = "specific_energy"
-        new_value = 280.0
-        comp = components[selected_comp_id]
-    elif scenario.startswith("Insulation downgrade"):
-        selected_comp_id = "fuselage"
-        selected_prop = "insulation_rvalue"
-        new_value = 1.5
-        comp = components[selected_comp_id]
+        if scenario != "Custom (use controls above)":
+            for p in tmpl.presets:
+                if p["name"] == scenario:
+                    selected_comp_id = p["component_id"]
+                    selected_prop = p["property_name"]
+                    new_value = p["new_value"]
+                    comp = components[selected_comp_id]
+                    break
 
     # --- Run cascade ---
     if st.button("Propagate Change", type="primary", use_container_width=True) and selected_prop and new_value is not None:
         # Rebuild fresh graph for each run
-        graph, components, constraints = build_electric_aircraft()
+        graph, components, constraints = tmpl.build()
         comp = components[selected_comp_id]
 
         deltas = comp.get_graph_deltas({selected_prop: new_value})
@@ -153,7 +170,7 @@ with tab_system:
             st.subheader("Cascade Waterfall")
             st.markdown(
                 "Each bar shows the change propagated to a parameter. "
-                "Red = cert violation. Dashed borders = cross-domain hop."
+                "Red = cert violation. Orange = cross-domain hop."
             )
 
             # Deduplicate: show only first (largest) delta per unique target node
@@ -197,7 +214,7 @@ with tab_system:
                     f"<b>{label}</b><br>"
                     f"Subsystem: {step.target_subsystem}<br>"
                     f"Change: {step.delta_output:+.4f} {node.unit}<br>"
-                    f"Before: {baseline:.4f} → After: {step.new_value:.4f}<br>"
+                    f"Before: {baseline:.4f} -> After: {step.new_value:.4f}<br>"
                     f"% Change: {pct:+.2f}%<br>"
                 )
                 if step.causes_violation:
@@ -237,24 +254,15 @@ with tab_system:
 
             node_idx = {nid: i for i, nid in enumerate(all_node_ids)}
 
-            SUBSYSTEM_COLORS = {
-                "thermal": "rgba(255, 100, 100, 0.8)",
-                "hvac": "rgba(100, 200, 255, 0.8)",
-                "electrical": "rgba(255, 200, 50, 0.8)",
-                "mass": "rgba(180, 180, 180, 0.8)",
-                "aerodynamic": "rgba(100, 255, 150, 0.8)",
-                "structural": "rgba(200, 100, 255, 0.8)",
-                "propulsion": "rgba(255, 150, 50, 0.8)",
-                "regulatory": "rgba(255, 50, 50, 0.8)",
-            }
+            # Auto-generate subsystem colors from the graph
+            sub_colors = _subsystem_color_map(graph.subsystems())
 
             node_colors = []
             node_labels = []
             for nid in all_node_ids:
                 node = graph.nodes.get(nid)
                 if node:
-                    sub = node.subsystem.value
-                    node_colors.append(SUBSYSTEM_COLORS.get(sub, "rgba(200,200,200,0.8)"))
+                    node_colors.append(sub_colors.get(node.subsystem, "rgba(200,200,200,0.8)"))
                     node_labels.append(nid.replace("_", " ").title())
                 else:
                     node_colors.append("rgba(200,200,200,0.8)")
@@ -306,7 +314,7 @@ with tab_system:
                     baseline = result.initial_state[v["node_id"]]
                     st.error(
                         f"**{v['regulatory_ref']}** — {v['node_id'].replace('_', ' ').title()}  \n"
-                        f"Baseline: {baseline:.4f} {v['unit']} → "
+                        f"Baseline: {baseline:.4f} {v['unit']} -> "
                         f"After cascade: **{v['value']:.4f} {v['unit']}**  \n"
                         f"Limit: {v['regulatory_limit']} {v['unit']}  \n"
                         f"Margin: **{v['margin']:.4f}** (negative = violated)"
@@ -316,7 +324,7 @@ with tab_system:
                     paths = graph.find_paths(result.trigger_node, v["node_id"])
                     if paths:
                         shortest = min(paths, key=len)
-                        path_str = " → ".join(
+                        path_str = " -> ".join(
                             [result.trigger_node.replace("_", " ")] +
                             [e.target_id.replace("_", " ") for e in shortest]
                         )
@@ -324,7 +332,7 @@ with tab_system:
 
             # --- Before/After comparison table ---
             st.divider()
-            st.subheader("Parameter Comparison (Before → After)")
+            st.subheader("Parameter Comparison (Before -> After)")
 
             table_data = []
             for step in unique_steps:
@@ -345,9 +353,13 @@ with tab_system:
 
             st.dataframe(table_data, use_container_width=True, hide_index=True)
 
-            # Legend
+            # Legend — auto-generated from subsystems in this template
+            legend_parts = []
+            for sub, color in sub_colors.items():
+                legend_parts.append(f"<span style='color:{color}'>{sub}</span>")
             st.markdown(
-                "**Color key:** "
+                "**Subsystems:** " + " · ".join(legend_parts) + "  \n"
+                "**Markers:** "
                 "<span style='color:steelblue'>Same-domain</span> · "
                 "<span style='color:darkorange'>Cross-domain hop</span> · "
                 "<span style='color:crimson'>Certification violation</span>",
