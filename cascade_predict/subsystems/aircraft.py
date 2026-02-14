@@ -20,6 +20,37 @@ from cascade_predict.graph.dependency_graph import (
     SubsystemNode,
     CouplingEdge,
 )
+from cascade_predict.physics_models import (
+    FourierConduction,
+    SolarGain,
+    InsulationResistance,
+    HeatBalanceExcess,
+    HVACSizing,
+    COPPowerDraw,
+    ThermalMassScaling,
+)
+from cascade_predict.physics_models import LinearModel
+from cascade_predict.physics_models.electrical import (
+    EnergyDuration,
+    ReservePolicy,
+    BatterySizing,
+)
+from cascade_predict.physics_models.structural import (
+    BeamBending,
+    SafetyMargin,
+    LoadFactor,
+    StructuralMassScaling,
+)
+from cascade_predict.physics_models.mass import DirectMassSum, PayloadCapacity
+from cascade_predict.physics_models.fluid import (
+    WingLoading,
+    StallSpeed,
+    ApproachSpeed,
+    LDSensitivity,
+    BreguetRange,
+    WeightToEnergy,
+    WeightToRange,
+)
 from .component import Component, CertConstraint
 
 
@@ -243,189 +274,86 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
         bounds=(100.0, 800.0)))
 
     # ================================================================
-    # COUPLINGS — physics-based edges
+    # COUPLINGS — physics models provide the equations
     # ================================================================
 
-    # -- Windshield → Cabin heat load --
-    # Q_cond = k * A * ΔT / L
-    # Baseline: 1.0 * 0.85 * 40 / 0.012 ≈ 2833 W ≈ 2.8 kW conductive component
-    # Sensitivity: ΔQ/Δk = A * ΔT / L = 0.85 * 40 / 0.012 ≈ 2833 W per W/(m·K) = 2.83 kW per unit k
-    g.add_edge(CouplingEdge(
-        "windshield_k", "cabin_heat_load",
-        sensitivity=2.83,
-        description="Conductive heat through windshield: Q = k·A·ΔT/L",
-        physics_equation="Q = k × 0.85m² × 40K / 0.012m",
-    ))
-    g.add_edge(CouplingEdge(
-        "windshield_solar_transmittance", "cabin_heat_load",
-        sensitivity=8.5,
-        description="Solar gain through windshield: Q = τ·G·A (G≈1000 W/m² peak, A=0.85, duty≈0.6)",
-        physics_equation="Q_solar = τ × 1000 × 0.85 × 0.6 / 1000 ≈ 8.5 kW per unit τ",
-    ))
-    g.add_edge(CouplingEdge(
-        "fuselage_insulation_rvalue", "cabin_heat_load",
-        sensitivity=-0.8,
-        description="Better insulation reduces fuselage heat ingress",
-        physics_equation="Q_fuse = A_fuse × ΔT / R",
-    ))
+    # -- Thermal: Windshield → Cabin heat load --
+    g.add_edge(CouplingEdge("windshield_k", "cabin_heat_load",
+        model=FourierConduction(area=0.85, thickness=0.012, delta_t=40)))
+    g.add_edge(CouplingEdge("windshield_solar_transmittance", "cabin_heat_load",
+        model=SolarGain(area=0.85, irradiance=1000.0, duty_factor=0.6)))
+    g.add_edge(CouplingEdge("fuselage_insulation_rvalue", "cabin_heat_load",
+        model=InsulationResistance(wall_area=12.0, delta_t=40.0, baseline_r=2.5)))
 
-    # -- Heat load → Cabin temperature (if HVAC is undersized) --
-    g.add_edge(CouplingEdge(
-        "cabin_heat_load", "cabin_temperature",
-        sensitivity=1.2,
-        description="Excess heat load raises cabin temperature",
-        physics_equation="ΔT_cabin ≈ (Q_load - Q_hvac) / (UA)",
-    ))
+    # -- Thermal: Heat load → Cabin temperature --
+    g.add_edge(CouplingEdge("cabin_heat_load", "cabin_temperature",
+        model=HeatBalanceExcess(ua_coefficient=0.833)))  # 1/1.2
 
-    # -- Heat load → HVAC sizing --
-    g.add_edge(CouplingEdge(
-        "cabin_heat_load", "hvac_cooling_capacity",
-        sensitivity=1.3,
-        description="HVAC sized with 30% margin above heat load",
-        physics_equation="Q_hvac = 1.3 × Q_load",
-    ))
-    g.add_edge(CouplingEdge(
-        "hvac_cooling_capacity", "hvac_power_draw",
-        sensitivity=0.357,
-        description="Electrical power = cooling / COP",
-        physics_equation="P = Q_cool / COP (COP=2.8)",
-    ))
-    g.add_edge(CouplingEdge(
-        "hvac_cooling_capacity", "hvac_mass",
-        sensitivity=3.5,
-        description="HVAC mass scales ~3.5 kg per kW cooling",
-        physics_equation="m_hvac ≈ m_base + 3.5 × Q_cool",
-    ))
+    # -- Thermal: Heat load → HVAC sizing --
+    g.add_edge(CouplingEdge("cabin_heat_load", "hvac_cooling_capacity",
+        model=HVACSizing(margin_factor=1.3)))
+    g.add_edge(CouplingEdge("hvac_cooling_capacity", "hvac_power_draw",
+        model=COPPowerDraw(cop=2.8)))
+    g.add_edge(CouplingEdge("hvac_cooling_capacity", "hvac_mass",
+        model=ThermalMassScaling(kg_per_kw=3.5)))
 
-    # -- HVAC → Mission energy --
-    g.add_edge(CouplingEdge(
-        "hvac_power_draw", "mission_energy",
-        sensitivity=2.5,
-        description="HVAC power × mission duration (~2.5 hrs)",
-        physics_equation="E_hvac = P_hvac × 2.5h",
-    ))
+    # -- Electrical: HVAC → Mission energy --
+    g.add_edge(CouplingEdge("hvac_power_draw", "mission_energy",
+        model=EnergyDuration(duration_hours=2.5)))
 
-    # -- Mission energy → Battery sizing --
-    g.add_edge(CouplingEdge(
-        "mission_energy", "battery_capacity",
-        sensitivity=1.15,
-        description="Battery = mission energy × 1.15 (15% reserve policy)",
-        physics_equation="E_bat = 1.15 × E_mission",
-    ))
-    g.add_edge(CouplingEdge(
-        "battery_capacity", "energy_reserve",
-        sensitivity=1.0,
-        description="Reserve = capacity - mission energy",
-    ))
-    g.add_edge(CouplingEdge(
-        "mission_energy", "energy_reserve",
-        sensitivity=-1.0,
-        description="More demand → less reserve",
-    ))
+    # -- Electrical: Mission energy → Battery sizing --
+    g.add_edge(CouplingEdge("mission_energy", "battery_capacity",
+        model=ReservePolicy(reserve_factor=1.15)))
+    g.add_edge(CouplingEdge("battery_capacity", "energy_reserve",
+        model=LinearModel(1.0, "Reserve = capacity - mission energy")))
+    g.add_edge(CouplingEdge("mission_energy", "energy_reserve",
+        model=LinearModel(-1.0, "More demand reduces reserve")))
 
-    # -- Battery capacity → Battery mass --
-    # mass = capacity_kWh × 1000 / specific_energy_Wh_per_kg
-    # At 220 Wh/kg: 1 kWh → 4.545 kg
-    g.add_edge(CouplingEdge(
-        "battery_capacity", "battery_mass",
-        sensitivity=4.545,
-        description="Battery mass = capacity / specific energy",
-        physics_equation="m_bat = E_bat × 1000 / 220 Wh/kg",
-    ))
+    # -- Electrical: Battery capacity → Battery mass --
+    g.add_edge(CouplingEdge("battery_capacity", "battery_mass",
+        model=BatterySizing(specific_energy_wh_per_kg=220.0)))
 
-    # -- Component masses → OEW → MTOW --
-    g.add_edge(CouplingEdge("battery_mass", "oew", sensitivity=1.0,
-        description="Battery mass → OEW (direct)"))
-    g.add_edge(CouplingEdge("hvac_mass", "oew", sensitivity=1.0,
-        description="HVAC mass → OEW (direct)"))
-    g.add_edge(CouplingEdge("wing_mass", "oew", sensitivity=1.0,
-        description="Wing mass → OEW (direct)"))
-    g.add_edge(CouplingEdge("windshield_mass", "oew", sensitivity=1.0,
-        description="Windshield mass → OEW (direct)"))
-    g.add_edge(CouplingEdge("oew", "mtow", sensitivity=1.0,
-        description="MTOW = OEW + payload (fixed payload)"))
-    g.add_edge(CouplingEdge("oew", "payload_capacity", sensitivity=-1.0,
-        description="Higher OEW → less payload at fixed MTOW cap"))
+    # -- Mass: Component masses → OEW → MTOW --
+    g.add_edge(CouplingEdge("battery_mass", "oew", model=DirectMassSum()))
+    g.add_edge(CouplingEdge("hvac_mass", "oew", model=DirectMassSum()))
+    g.add_edge(CouplingEdge("wing_mass", "oew", model=DirectMassSum()))
+    g.add_edge(CouplingEdge("windshield_mass", "oew", model=DirectMassSum()))
+    g.add_edge(CouplingEdge("oew", "mtow", model=DirectMassSum()))
+    g.add_edge(CouplingEdge("oew", "payload_capacity", model=PayloadCapacity()))
 
-    # -- MTOW → Aero --
-    g.add_edge(CouplingEdge(
-        "mtow", "wing_loading",
-        sensitivity=1.0 / 28.0,  # 1/S_ref
-        description="Wing loading = MTOW / S",
-        physics_equation="W/S = MTOW / 28 m²",
-    ))
-    g.add_edge(CouplingEdge(
-        "wing_loading", "stall_speed",
-        sensitivity=0.12,
-        description="Stall speed ∝ √(wing loading)",
-        physics_equation="Vs = √(2·W/(ρ·S·CLmax)) — linearized",
-    ))
-    g.add_edge(CouplingEdge(
-        "stall_speed", "approach_speed",
-        sensitivity=1.3,
-        description="V_approach = 1.3 × V_stall (FAR 25.125)",
-        physics_equation="V_app = 1.3 Vs",
-    ))
-    g.add_edge(CouplingEdge(
-        "wing_loading", "cruise_ld",
-        sensitivity=-0.008,
-        description="Higher wing loading → off-design cruise → lower L/D",
-    ))
+    # -- Fluid/Aero: MTOW → Aero --
+    g.add_edge(CouplingEdge("mtow", "wing_loading",
+        model=WingLoading(ref_area=28.0)))
+    g.add_edge(CouplingEdge("wing_loading", "stall_speed",
+        model=StallSpeed(rho=1.225, cl_max=2.0, baseline_wing_loading=226.8)))
+    g.add_edge(CouplingEdge("stall_speed", "approach_speed",
+        model=ApproachSpeed(factor=1.3)))
+    g.add_edge(CouplingEdge("wing_loading", "cruise_ld",
+        model=LDSensitivity(coefficient=-0.008)))
 
-    # -- MTOW → Structural loads --
-    g.add_edge(CouplingEdge(
-        "mtow", "wing_root_bending",
-        sensitivity=29.1,
-        description="Root bending ≈ n × W × b/4 (n=2.5 limit, b=13.5m)",
-        physics_equation="M = 2.5 × m × 9.81 × 13.5/4",
-    ))
-    g.add_edge(CouplingEdge(
-        "wing_root_bending", "wing_structural_margin",
-        sensitivity=-4.55e-6,
-        description="Margin = (M_ult - M_applied) / M_ult; M_ult=220kN·m",
-        physics_equation="margin = (220000 - M) / 220000",
-    ))
-    g.add_edge(CouplingEdge(
-        "mtow", "landing_gear_load",
-        sensitivity=14.72,
-        description="LG load = 1.5 × m × g (limit load factor 1.5)",
-        physics_equation="F = 1.5 × m × 9.81",
-    ))
-    g.add_edge(CouplingEdge(
-        "landing_gear_load", "lg_margin",
-        sensitivity=-1.4e-5,
-        description="Higher LG load → lower margin",
-    ))
+    # -- Structural: MTOW → Structural loads --
+    g.add_edge(CouplingEdge("mtow", "wing_root_bending",
+        model=BeamBending(load_factor=2.5, span=13.5)))
+    g.add_edge(CouplingEdge("wing_root_bending", "wing_structural_margin",
+        model=SafetyMargin(allowable=220000.0)))
+    g.add_edge(CouplingEdge("mtow", "landing_gear_load",
+        model=LoadFactor(factor=1.5)))
+    g.add_edge(CouplingEdge("landing_gear_load", "lg_margin",
+        model=SafetyMargin(allowable=71429.0)))  # baseline 62000/0.868 ≈ 71429
 
-    # -- Wing structure feedback: more load → heavier wing --
-    g.add_edge(CouplingEdge(
-        "wing_root_bending", "wing_mass",
-        sensitivity=0.0012,
-        description="Wing mass grows with bending load (sizing equation)",
-        physics_equation="m_wing ∝ M_root (simplified linear)",
-    ))
+    # -- Structural: Wing load → mass feedback --
+    g.add_edge(CouplingEdge("wing_root_bending", "wing_mass",
+        model=StructuralMassScaling(kg_per_unit_load=0.0012)))
 
-    # -- MTOW → Mission energy (heavier plane needs more energy) --
-    g.add_edge(CouplingEdge(
-        "mtow", "mission_energy",
-        sensitivity=0.065,
-        description="Breguet-like: mission energy scales with weight",
-        physics_equation="E = m·g·R / (η·L/D) — linearized",
-    ))
+    # -- Fluid: MTOW → Mission energy (heavier → more energy) --
+    g.add_edge(CouplingEdge("mtow", "mission_energy",
+        model=WeightToEnergy(kwh_per_kg=0.065)))
 
-    # -- L/D → Range --
-    g.add_edge(CouplingEdge(
-        "cruise_ld", "range_nm",
-        sensitivity=22.0,
-        description="Range ∝ L/D (Breguet)",
-        physics_equation="R = E_bat·η·(L/D) / (m·g)",
-    ))
-    # Heavier → shorter range
-    g.add_edge(CouplingEdge(
-        "mtow", "range_nm",
-        sensitivity=-0.04,
-        description="Heavier aircraft → shorter range",
-    ))
+    # -- Fluid: L/D → Range, Weight → Range --
+    g.add_edge(CouplingEdge("cruise_ld", "range_nm",
+        model=BreguetRange(range_per_ld=22.0)))
+    g.add_edge(CouplingEdge("mtow", "range_nm",
+        model=WeightToRange(sensitivity=-0.04)))
 
     # ================================================================
     # CERT CONSTRAINTS

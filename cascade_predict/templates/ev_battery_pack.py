@@ -15,6 +15,32 @@ from cascade_predict.graph.dependency_graph import (
 )
 from cascade_predict.subsystems.component import Component, CertConstraint
 from cascade_predict.templates import TemplateInfo, register_template
+from cascade_predict.physics_models import LinearModel
+from cascade_predict.physics_models.thermal import (
+    JouleHeating,
+    HeatGenScaling,
+    ThermalResistanceToTemp,
+    ConvectiveCooling,
+    HVACSizing,
+    COPPowerDraw,
+    ThermalMargin,
+)
+from cascade_predict.physics_models.electrical import (
+    CellEnergy,
+    SpecificEnergyFromMass,
+    PowerBalance,
+    ChargeTime,
+)
+from cascade_predict.physics_models.mass import (
+    DirectMassSum,
+    CountBasedMass,
+    PackLevelSpecificEnergy,
+)
+from cascade_predict.physics_models.fluid import (
+    ModuleCountScaling,
+    WeightToConsumption,
+    ConsumptionToRange,
+)
 
 
 def build_ev_battery_pack():
@@ -209,220 +235,120 @@ def build_ev_battery_pack():
                               regulatory_ref="UN ECE R100"))
 
     # ================================================================
-    # COUPLING EDGES
+    # COUPLING EDGES — physics models provide the equations
     # ================================================================
 
-    # Cell energy = V × Ah
-    g.add_edge(CouplingEdge(
-        "cell_voltage", "cell_energy", sensitivity=5.0,
-        description="Cell energy = V × Ah",
-        physics_equation="E_cell = V_nom × Q_nom",
-    ))
-    g.add_edge(CouplingEdge(
-        "cell_capacity", "cell_energy", sensitivity=3.6,
-        description="Cell energy = V × Ah",
-        physics_equation="E_cell = V_nom × Q_nom",
-    ))
+    n_cells_total = 96 * n_modules  # 12s × 8p × 44 modules = 4224 cells
 
-    # Cell resistance → heat generation: P = I²R, at 1C: I = 5A
-    g.add_edge(CouplingEdge(
-        "cell_resistance", "cell_heat_gen", sensitivity=0.025,
-        description="Joule heating: P = I²R (I=5A at 1C, ΔP/ΔR = I² = 25 × 1e-3 = 0.025 W/mOhm)",
-        physics_equation="P_heat = I² × R",
-    ))
+    # -- Electrical: Cell energy = V × Ah --
+    g.add_edge(CouplingEdge("cell_voltage", "cell_energy",
+        model=CellEnergy(other_quantity=5.0)))     # Ah
+    g.add_edge(CouplingEdge("cell_capacity", "cell_energy",
+        model=CellEnergy(other_quantity=3.6)))     # V
 
-    # Cell mass ↔ specific energy
-    g.add_edge(CouplingEdge(
-        "cell_mass", "cell_specific_energy", sensitivity=-3671.0,
-        description="Specific energy = energy / mass (linearized around operating point)",
-        physics_equation="SE = E_cell / m_cell; dSE/dm = -E/m² = -18/0.07² ≈ -3671",
-    ))
+    # -- Thermal: Cell resistance → heat generation (P = I²R) --
+    g.add_edge(CouplingEdge("cell_resistance", "cell_heat_gen",
+        model=JouleHeating(current=5.0)))          # 1C = 5A
 
-    # Module voltage = cells_series × cell_voltage
-    g.add_edge(CouplingEdge(
-        "cell_voltage", "module_voltage", sensitivity=12.0,
-        description="Module V = n_series × V_cell",
-        physics_equation="V_mod = n_s × V_cell",
-    ))
+    # -- Electrical: Cell mass → specific energy --
+    g.add_edge(CouplingEdge("cell_mass", "cell_specific_energy",
+        model=SpecificEnergyFromMass(energy_wh=18.0, baseline_mass=0.070)))
 
-    # Module capacity = cells_parallel × cell_capacity
-    g.add_edge(CouplingEdge(
-        "cell_capacity", "module_capacity", sensitivity=8.0,
-        description="Module Ah = n_parallel × Ah_cell",
-        physics_equation="Q_mod = n_p × Q_cell",
-    ))
+    # -- Module: cell → module scaling --
+    g.add_edge(CouplingEdge("cell_voltage", "module_voltage",
+        model=LinearModel(12.0, "Module V = n_series × V_cell", "V_mod = 12 × V_cell")))
+    g.add_edge(CouplingEdge("cell_capacity", "module_capacity",
+        model=LinearModel(8.0, "Module Ah = n_parallel × Ah_cell", "Q_mod = 8 × Q_cell")))
 
-    # Module energy = module_voltage × module_capacity / 1000
-    g.add_edge(CouplingEdge(
-        "module_voltage", "module_energy", sensitivity=0.040,
-        description="Module energy = V × Ah / 1000",
-        physics_equation="E_mod = V_mod × Q_mod / 1000",
-    ))
-    g.add_edge(CouplingEdge(
-        "module_capacity", "module_energy", sensitivity=0.0432,
-        description="Module energy = V × Ah / 1000",
-        physics_equation="E_mod = V_mod × Q_mod / 1000",
-    ))
+    # -- Module energy --
+    g.add_edge(CouplingEdge("module_voltage", "module_energy",
+        model=LinearModel(0.040, "Module energy = V × Ah / 1000")))
+    g.add_edge(CouplingEdge("module_capacity", "module_energy",
+        model=LinearModel(0.0432, "Module energy = V × Ah / 1000")))
 
-    # Module cell count
-    g.add_edge(CouplingEdge(
-        "module_series", "module_cell_count", sensitivity=8.0,
-        description="Total cells = series × parallel",
-    ))
-    g.add_edge(CouplingEdge(
-        "module_parallel", "module_cell_count", sensitivity=12.0,
-        description="Total cells = series × parallel",
-    ))
+    # -- Module cell count --
+    g.add_edge(CouplingEdge("module_series", "module_cell_count",
+        model=LinearModel(8.0, "Total cells = series × parallel")))
+    g.add_edge(CouplingEdge("module_parallel", "module_cell_count",
+        model=LinearModel(12.0, "Total cells = series × parallel")))
 
-    # Module mass = cell_count × cell_mass + overhead
-    g.add_edge(CouplingEdge(
-        "cell_mass", "module_mass", sensitivity=96.0,
-        description="Module mass = n_cells × m_cell + overhead",
-        physics_equation="m_mod = 96 × m_cell + m_overhead",
-    ))
-    g.add_edge(CouplingEdge(
-        "module_overhead_mass", "module_mass", sensitivity=1.0,
-        description="Module overhead directly adds to module mass",
-    ))
+    # -- Mass: Module mass --
+    g.add_edge(CouplingEdge("cell_mass", "module_mass",
+        model=CountBasedMass(count=96)))
+    g.add_edge(CouplingEdge("module_overhead_mass", "module_mass",
+        model=DirectMassSum()))
 
-    # Pack energy = n_modules × module_energy
-    g.add_edge(CouplingEdge(
-        "module_energy", "pack_energy", sensitivity=float(n_modules),
-        description=f"Pack energy = {n_modules} modules × module energy",
-        physics_equation=f"E_pack = {n_modules} × E_module",
-    ))
+    # -- Mass: Pack scaling --
+    g.add_edge(CouplingEdge("module_energy", "pack_energy",
+        model=ModuleCountScaling(module_count=n_modules)))
+    g.add_edge(CouplingEdge("module_mass", "pack_mass",
+        model=ModuleCountScaling(module_count=n_modules)))
 
-    # Pack mass = n_modules × module_mass + 75kg (pack housing, harness, BMS)
-    g.add_edge(CouplingEdge(
-        "module_mass", "pack_mass", sensitivity=float(n_modules),
-        description=f"Pack mass = {n_modules} × module mass + fixed overhead",
-        physics_equation=f"m_pack = {n_modules} × m_module + 75 kg",
-    ))
+    # -- Mass: Pack specific energy --
+    g.add_edge(CouplingEdge("pack_energy", "pack_specific_energy",
+        model=PackLevelSpecificEnergy(baseline_energy_kwh=76.0, baseline_mass_kg=450.0, source_is_energy=True)))
+    g.add_edge(CouplingEdge("pack_mass", "pack_specific_energy",
+        model=PackLevelSpecificEnergy(baseline_energy_kwh=76.0, baseline_mass_kg=450.0, source_is_energy=False)))
 
-    # Pack specific energy = pack_energy × 1000 / pack_mass
-    g.add_edge(CouplingEdge(
-        "pack_energy", "pack_specific_energy", sensitivity=1000.0 / 450.0,
-        description="Pack SE = E_pack / m_pack (linearized)",
-        physics_equation="SE_pack = E_pack × 1000 / m_pack",
-    ))
-    g.add_edge(CouplingEdge(
-        "pack_mass", "pack_specific_energy", sensitivity=-76000.0 / (450.0 ** 2),
-        description="Heavier pack → lower specific energy",
-        physics_equation="dSE/dm = -E/m²",
-    ))
+    # -- Thermal: Heat generation scales with cell count --
+    g.add_edge(CouplingEdge("cell_heat_gen", "total_heat_gen",
+        model=HeatGenScaling(n_elements=n_cells_total)))
 
-    # Heat generation scales with cell count
-    g.add_edge(CouplingEdge(
-        "cell_heat_gen", "total_heat_gen", sensitivity=96.0 * float(n_modules),
-        description="Pack heat = n_cells_total × cell heat",
-        physics_equation=f"P_total = {96 * n_modules} × P_cell",
-    ))
+    # -- Thermal: heat gen → cell temperature --
+    g.add_edge(CouplingEdge("total_heat_gen", "max_cell_temp",
+        model=LinearModel(0.012, "Heat to cell temp via thermal resistance network", "T_cell = T_amb + Q × R_eff")))
+    g.add_edge(CouplingEdge("thermal_interface_resistance", "max_cell_temp",
+        model=ThermalResistanceToTemp(heat_load=5.0)))
+    g.add_edge(CouplingEdge("coolant_flow", "max_cell_temp",
+        model=ConvectiveCooling(sensitivity=-0.8)))
 
-    # Thermal: heat gen → cell temperature
-    # ΔT = Q × R_thermal / flow_factor
-    g.add_edge(CouplingEdge(
-        "total_heat_gen", "max_cell_temp", sensitivity=0.012,
-        description="More heat → higher cell temp (via thermal resistance network)",
-        physics_equation="T_cell = T_ambient + Q × R_eff",
-    ))
-    g.add_edge(CouplingEdge(
-        "thermal_interface_resistance", "max_cell_temp", sensitivity=5.0,
-        description="Higher thermal resistance → hotter cells",
-        physics_equation="ΔT = Q × R_th",
-    ))
-    g.add_edge(CouplingEdge(
-        "coolant_flow", "max_cell_temp", sensitivity=-0.8,
-        description="More coolant flow → cooler cells",
-        physics_equation="h ∝ flow^0.8 (Dittus-Boelter)",
-    ))
+    # -- Thermal: cell temperature spread --
+    g.add_edge(CouplingEdge("total_heat_gen", "thermal_delta_t",
+        model=LinearModel(0.003, "Heat generation increases cell-to-cell spread")))
+    g.add_edge(CouplingEdge("coolant_flow", "thermal_delta_t",
+        model=ConvectiveCooling(sensitivity=-0.3)))
 
-    # Thermal delta-T (cell spread)
-    g.add_edge(CouplingEdge(
-        "total_heat_gen", "thermal_delta_t", sensitivity=0.003,
-        description="More heat → bigger temperature spread",
-    ))
-    g.add_edge(CouplingEdge(
-        "coolant_flow", "thermal_delta_t", sensitivity=-0.3,
-        description="More flow → smaller spread",
-    ))
+    # -- Thermal: Chiller sizing --
+    g.add_edge(CouplingEdge("total_heat_gen", "chiller_capacity",
+        model=HVACSizing(margin_factor=0.0015)))  # kW of chiller per W of pack heat
+    g.add_edge(CouplingEdge("chiller_capacity", "chiller_power",
+        model=COPPowerDraw(cop=3.3)))
 
-    # Chiller sizing
-    g.add_edge(CouplingEdge(
-        "total_heat_gen", "chiller_capacity", sensitivity=0.0015,
-        description="Chiller must handle pack heat + margin",
-        physics_equation="Q_chiller = 1.3 × Q_pack (30% margin)",
-    ))
-    g.add_edge(CouplingEdge(
-        "chiller_capacity", "chiller_power", sensitivity=0.30,
-        description="Chiller electrical power (COP ~3.3)",
-        physics_equation="P_chiller = Q_chiller / COP",
-    ))
+    # -- Thermal: Safety margin --
+    g.add_edge(CouplingEdge("max_cell_temp", "nail_penetration_margin",
+        model=ThermalMargin(sensitivity=-0.0065)))
+    g.add_edge(CouplingEdge("cell_tr_onset", "nail_penetration_margin",
+        model=ThermalMargin(sensitivity=0.0065)))
 
-    # Cell temperature → thermal runaway margin
-    g.add_edge(CouplingEdge(
-        "max_cell_temp", "nail_penetration_margin", sensitivity=-0.0065,
-        description="Hotter baseline → less margin to thermal runaway in abuse test",
-        physics_equation="margin ≈ (T_onset - T_cell) / T_onset",
-    ))
-    g.add_edge(CouplingEdge(
-        "cell_tr_onset", "nail_penetration_margin", sensitivity=0.0065,
-        description="Higher onset temp → more safety margin",
-    ))
+    # -- Electrical: BMS pack voltage --
+    g.add_edge(CouplingEdge("module_voltage", "pack_voltage",
+        model=ModuleCountScaling(module_count=n_modules, divisor=12.0)))
 
-    # BMS: pack voltage tracking
-    g.add_edge(CouplingEdge(
-        "module_voltage", "pack_voltage", sensitivity=float(n_modules) / 12.0,
-        description="Pack voltage = sum of modules in series/parallel config",
-    ))
+    # -- Electrical: Charge power --
+    g.add_edge(CouplingEdge("pack_voltage", "max_charge_power",
+        model=PowerBalance(other_quantity=300.0, source_is_voltage=True)))
+    g.add_edge(CouplingEdge("bms_max_current", "max_charge_power",
+        model=PowerBalance(other_quantity=403.0, source_is_voltage=False)))
 
-    # Charge power = pack_voltage × max_current / 1000
-    g.add_edge(CouplingEdge(
-        "pack_voltage", "max_charge_power", sensitivity=0.300,
-        description="Charge power = V × I_max / 1000",
-        physics_equation="P_charge = V_pack × I_max / 1000",
-    ))
-    g.add_edge(CouplingEdge(
-        "bms_max_current", "max_charge_power", sensitivity=0.403,
-        description="More current → more charge power",
-    ))
+    # -- Electrical: Charge time --
+    g.add_edge(CouplingEdge("pack_energy", "charge_time_10_80",
+        model=ChargeTime(sensitivity=0.60)))
+    g.add_edge(CouplingEdge("max_charge_power", "charge_time_10_80",
+        model=ChargeTime(sensitivity=-0.18)))
 
-    # Charge time: t = E_useful / P_charge × 60
-    g.add_edge(CouplingEdge(
-        "pack_energy", "charge_time_10_80", sensitivity=0.60,
-        description="Bigger pack → longer to charge 10-80%",
-        physics_equation="t = 0.7 × E_pack / P_charge × 60 min",
-    ))
-    g.add_edge(CouplingEdge(
-        "max_charge_power", "charge_time_10_80", sensitivity=-0.18,
-        description="More charge power → faster charging",
-    ))
+    # -- Mass/Vehicle: Pack → vehicle weight --
+    g.add_edge(CouplingEdge("pack_mass", "vehicle_curb_weight",
+        model=DirectMassSum()))
+    g.add_edge(CouplingEdge("chiller_power", "vehicle_energy_consumption",
+        model=LinearModel(0.5, "Chiller parasitic load")))
+    g.add_edge(CouplingEdge("vehicle_curb_weight", "vehicle_energy_consumption",
+        model=WeightToConsumption(kwh_per_100km_per_kg=0.005)))
 
-    # Vehicle integration
-    g.add_edge(CouplingEdge(
-        "pack_mass", "vehicle_curb_weight", sensitivity=1.0,
-        description="Pack mass directly adds to vehicle weight",
-    ))
-    g.add_edge(CouplingEdge(
-        "chiller_power", "vehicle_energy_consumption", sensitivity=0.5,
-        description="Chiller parasitic load increases consumption",
-    ))
-    g.add_edge(CouplingEdge(
-        "vehicle_curb_weight", "vehicle_energy_consumption", sensitivity=0.005,
-        description="Heavier vehicle → more consumption",
-        physics_equation="~5 Wh/100km per kg (WLTP typical)",
-    ))
-
-    # Range = pack_energy / consumption × 100
-    g.add_edge(CouplingEdge(
-        "pack_energy", "vehicle_range", sensitivity=5.26,
-        description="More energy → more range",
-        physics_equation="R = E / consumption × 100",
-    ))
-    g.add_edge(CouplingEdge(
-        "vehicle_energy_consumption", "vehicle_range", sensitivity=-22.2,
-        description="Higher consumption → less range",
-        physics_equation="R = E / consumption × 100; dR/dc = -E/c²",
-    ))
+    # -- Range --
+    g.add_edge(CouplingEdge("pack_energy", "vehicle_range",
+        model=LinearModel(5.26, "More energy → more range", "R = E / consumption × 100")))
+    g.add_edge(CouplingEdge("vehicle_energy_consumption", "vehicle_range",
+        model=ConsumptionToRange(sensitivity=-22.2)))
 
     # ================================================================
     # CERT CONSTRAINTS

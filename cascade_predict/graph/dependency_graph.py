@@ -63,19 +63,24 @@ class SubsystemNode:
 class CouplingEdge:
     """Physics-based coupling between two parameters.
 
-    The transfer function maps a change in the source parameter to
-    a change in the target parameter:
-        delta_target = sensitivity * delta_source  (linear approx)
-    Or for nonlinear:
-        new_target = transfer_fn(new_source, system_state)
+    Three ways to define the coupling (checked in order of priority):
+      1. model: a PhysicsModel instance — preferred, provides compute + metadata
+      2. transfer_fn: a callable for custom nonlinear behavior
+      3. sensitivity: a float for simple linear ∂target/∂source
+
+    When a model is attached, it auto-populates sensitivity, description,
+    and physics_equation from the model at construction time.
     """
     source_id: str
     target_id: str
-    sensitivity: float  # ∂target/∂source (linearized)
+    sensitivity: float = 0.0  # ∂target/∂source (linearized)
     description: str = ""
     physics_equation: str = ""  # human-readable physics law
 
-    # For nonlinear transfer functions (optional)
+    # Physics model — the preferred way to define couplings
+    model: object | None = None  # PhysicsModel instance
+
+    # For custom nonlinear transfer functions (optional)
     transfer_fn: callable | None = None
 
     # Metadata
@@ -83,8 +88,20 @@ class CouplingEdge:
     confidence: float = 1.0  # 0-1, how well-characterized is this coupling
     latency: float = 0.0  # time delay for this coupling to manifest [s]
 
+    def __post_init__(self):
+        if self.model is not None:
+            # Model provides defaults for metadata
+            if self.sensitivity == 0.0:
+                self.sensitivity = self.model.nominal_sensitivity()
+            if not self.description:
+                self.description = self.model.description
+            if not self.physics_equation:
+                self.physics_equation = self.model.equation
+
     def propagate(self, delta_source: float, system_state: dict | None = None) -> float:
         """Compute the change in target given a change in source."""
+        if self.model is not None and system_state is not None:
+            return self.model.compute_delta(delta_source, system_state)
         if self.transfer_fn is not None and system_state is not None:
             return self.transfer_fn(delta_source, system_state)
         return self.sensitivity * delta_source
