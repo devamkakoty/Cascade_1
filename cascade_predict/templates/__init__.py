@@ -65,3 +65,17 @@ def template_ids() -> list[str]:
 # Auto-discover and register built-in templates
 from cascade_predict.templates import electric_aircraft  # noqa: E402, F401
 from cascade_predict.templates import ev_battery_pack  # noqa: E402, F401
+
+# Global failure knowledge base (shared across all templates)
+from cascade_predict.knowledge.seed_data import build_default_failure_db  # noqa: E402
+
+_FAILURE_DB = None
+
+
+def get_failure_db():
+    """Get the global failure database (lazy-loaded)."""
+    global _FAILURE_DB
+    if _FAILURE_DB is None:
+        _FAILURE_DB = build_default_failure_db()
+    return _FAILURE_DB
+

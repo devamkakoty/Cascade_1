@@ -52,7 +52,7 @@ with tab_system:
         "and watch the cascade ripple across subsystems."
     )
 
-    from cascade_predict.templates import list_templates, get_template
+    from cascade_predict.templates import list_templates, get_template, get_failure_db
     from cascade_predict.graph import CascadeEngine
 
     # --- Template selector ---
@@ -81,6 +81,26 @@ with tab_system:
         format_func=lambda x: comp_names[x],
     )
     comp = components[selected_comp_id]
+
+    # Check failure DB for this component type
+    failure_db = get_failure_db()
+    comp_props = {p.name: p.value for p in comp.properties.values()}
+    comp_warnings = failure_db.check_component(
+        component_type=selected_comp_id,
+        subsystem=comp.subsystem,
+        properties=comp_props,
+        product_type=tmpl.industry.lower(),
+        tags=[selected_comp_id, comp.subsystem],
+    )
+    if comp_warnings:
+        for w in comp_warnings:
+            sev = w.failure.severity.value.upper()
+            st.warning(
+                f"**Historic Failure [{sev}]:** {w.failure.title}  \n"
+                f"*{w.failure.root_cause[:200]}...*  \n"
+                f"**Recommendation:** {w.recommendation}  \n"
+                f"*Source: {w.failure.source} ({w.failure.date}) — {w.failure.reference}*"
+            )
 
     # Show component properties that are linked to graph nodes
     editable_props = {
@@ -329,6 +349,29 @@ with tab_system:
                             [e.target_id.replace("_", " ") for e in shortest]
                         )
                         st.markdown(f"*Cascade path:* `{path_str}`")
+
+            # --- Historic failure warnings from cascade ---
+            cascade_warnings = failure_db.check_cascade_result(
+                affected_node_ids=result.affected_nodes,
+                violated_node_ids=[v["node_id"] for v in result.violations],
+            )
+            if cascade_warnings:
+                st.divider()
+                st.subheader("Historic Failure Warnings")
+                st.markdown(
+                    "These past failures involved the same parameters affected by this cascade."
+                )
+                for w in cascade_warnings:
+                    sev = w.failure.severity.value.upper()
+                    sev_color = {"CRITICAL": "red", "HIGH": "orange", "MEDIUM": "blue"}.get(sev, "gray")
+                    st.warning(
+                        f"**[{sev}] {w.failure.title}**  \n"
+                        f"{w.failure.root_cause[:300]}  \n\n"
+                        f"**Why this is relevant:** {w.match_reason}  \n"
+                        f"**Recommendation:** {w.recommendation}  \n"
+                        f"*Product: {w.failure.product_type} | "
+                        f"Source: {w.failure.source} ({w.failure.date})*"
+                    )
 
             # --- Before/After comparison table ---
             st.divider()
