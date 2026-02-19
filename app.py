@@ -354,6 +354,7 @@ with tab_system:
             cascade_warnings = failure_db.check_cascade_result(
                 affected_node_ids=result.affected_nodes,
                 violated_node_ids=[v["node_id"] for v in result.violations],
+                product_type=tmpl.industry.lower(),
             )
             if cascade_warnings:
                 st.divider()

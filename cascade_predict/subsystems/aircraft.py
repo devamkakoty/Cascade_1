@@ -203,7 +203,7 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
         8.5, "kW", "Total cabin thermal load"))
     g.add_node(SubsystemNode("cabin_temperature", "thermal",
         22.0, "°C", "Cabin steady-state temperature",
-        bounds=(18.0, 27.0), regulatory_limit=27.0, regulatory_ref="FAR 25.831"))
+        bounds=(18.0, 27.0), regulatory_limit=27.0, regulatory_ref="FAR 25.831 / EASA CS 25.831"))
 
     # HVAC
     g.add_node(SubsystemNode("hvac_cooling_capacity", "hvac",
@@ -233,7 +233,7 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
         5250.0, "kg", "Operating empty weight"))
     g.add_node(SubsystemNode("mtow", "mass",
         6350.0, "kg", "Max takeoff weight",
-        regulatory_limit=6350.0, regulatory_ref="Type Certificate"))
+        regulatory_limit=6350.0, regulatory_ref="FAR / EASA Type Certificate"))
     g.add_node(SubsystemNode("payload_capacity", "mass",
         1100.0, "kg", "Payload capacity (MTOW - OEW)",
         bounds=(0.0, 3000.0)))
@@ -245,10 +245,10 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
         226.8, "kg/m²", "Wing loading"))
     g.add_node(SubsystemNode("stall_speed", "aerodynamic",
         55.0, "m/s", "Stall speed at MTOW",
-        regulatory_limit=61.0, regulatory_ref="FAR 25.103"))
+        regulatory_limit=61.0, regulatory_ref="FAR 25.103 / EASA CS 25.103"))
     g.add_node(SubsystemNode("approach_speed", "aerodynamic",
         71.5, "m/s", "Approach speed (1.3 Vs)",
-        regulatory_limit=77.0, regulatory_ref="FAR 25.125"))
+        regulatory_limit=77.0, regulatory_ref="FAR 25.125 / EASA CS 25.125"))
     g.add_node(SubsystemNode("cruise_ld", "aerodynamic",
         18.0, "dimensionless", "Cruise L/D ratio"))
 
@@ -259,12 +259,12 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
         185000.0, "N·m", "Wing root bending moment at limit load"))
     g.add_node(SubsystemNode("wing_structural_margin", "structural",
         0.189, "fraction", "Wing structural safety margin",
-        bounds=(0.0, 1.0), regulatory_limit=None, regulatory_ref="FAR 25.303"))
+        bounds=(0.0, 1.0), regulatory_limit=None, regulatory_ref="FAR 25.303 / EASA CS 25.303"))
     g.add_node(SubsystemNode("landing_gear_load", "structural",
         62000.0, "N", "Max landing gear load"))
     g.add_node(SubsystemNode("lg_margin", "structural",
         0.15, "fraction", "Landing gear margin",
-        bounds=(0.0, 1.0), regulatory_ref="FAR 25.473"))
+        bounds=(0.0, 1.0), regulatory_ref="FAR 25.473 / EASA CS 25.473"))
 
     # Propulsion
     g.add_node(SubsystemNode("motor_power", "propulsion",
@@ -358,6 +358,7 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
     # ================================================================
     # CERT CONSTRAINTS
     # ================================================================
+    # --- FAA (FAR Part 25) ---
     constraints.append(CertConstraint(
         "far_25_303", "FAR", "25.303", "Factor of safety",
         "Structural safety factor of 1.5 on limit loads. "
@@ -387,6 +388,38 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
     constraints.append(CertConstraint(
         "type_cert_mtow", "FAR", "Type Certificate", "MTOW limit",
         "Maximum takeoff weight per type certificate.",
+        "mtow", 6350.0, "max", "kg",
+    ))
+
+    # --- EASA (CS-25) — European equivalents ---
+    constraints.append(CertConstraint(
+        "cs_25_303", "EASA CS", "25.303", "Factor of safety",
+        "CS 25.303: Structural safety factor of 1.5 on limit loads.",
+        "wing_structural_margin", 0.0, "min", "fraction",
+    ))
+    constraints.append(CertConstraint(
+        "cs_25_473", "EASA CS", "25.473", "Landing gear ground loads",
+        "CS 25.473: Landing gear must withstand limit loads with positive margin.",
+        "lg_margin", 0.0, "min", "fraction",
+    ))
+    constraints.append(CertConstraint(
+        "cs_25_831", "EASA CS", "25.831", "Ventilation",
+        "CS 25.831: Cabin temperature must not exceed 27°C in normal operations.",
+        "cabin_temperature", 27.0, "max", "°C",
+    ))
+    constraints.append(CertConstraint(
+        "cs_25_103", "EASA CS", "25.103", "Stall speed",
+        "CS 25.103: Stall speed must not exceed 61 m/s.",
+        "stall_speed", 61.0, "max", "m/s",
+    ))
+    constraints.append(CertConstraint(
+        "cs_25_125", "EASA CS", "25.125", "Landing distance",
+        "CS 25.125: Approach speed limit (implies landing field length).",
+        "approach_speed", 77.0, "max", "m/s",
+    ))
+    constraints.append(CertConstraint(
+        "easa_type_cert_mtow", "EASA CS", "Type Certificate", "MTOW limit",
+        "EASA type certificate maximum takeoff weight.",
         "mtow", 6350.0, "max", "kg",
     ))
 

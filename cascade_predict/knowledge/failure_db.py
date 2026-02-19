@@ -77,6 +77,24 @@ class FailureWarning:
     recommendation: str = ""            # what the engineer should consider
 
 
+# Maps product_type values to a common industry key so that filtering
+# works across templates (which use industry names) and seed records
+# (which use specific product types).
+_INDUSTRY_MAP: dict[str, str] = {
+    "two_wheeler": "automotive",
+    "ev_sedan": "automotive",
+    "ev_battery_pack": "automotive",
+    "automotive": "automotive",
+    "electric_aircraft": "aerospace",
+    "aerospace": "aerospace",
+}
+
+
+def _get_industry(product_type: str) -> str:
+    """Normalise a product_type or industry label to a common key."""
+    return _INDUSTRY_MAP.get(product_type.lower(), product_type.lower())
+
+
 class FailureDatabase:
     """
     In-memory failure knowledge base with matching.
@@ -119,6 +137,11 @@ class FailureDatabase:
         tags = tags or []
 
         for rec in self.records:
+            # Skip records from a different industry
+            if product_type and rec.product_type:
+                if _get_industry(rec.product_type) != _get_industry(product_type):
+                    continue
+
             match_reasons = []
             relevance = 0.0
 
@@ -192,6 +215,7 @@ class FailureDatabase:
         self,
         affected_node_ids: list[str],
         violated_node_ids: list[str] | None = None,
+        product_type: str = "",
     ) -> list[FailureWarning]:
         """
         Check cascade results against known failures that affected the same parameters.
@@ -199,6 +223,7 @@ class FailureDatabase:
         Args:
             affected_node_ids: graph node IDs that changed in the cascade
             violated_node_ids: nodes that hit violations
+            product_type: current product context — only show failures from same industry
 
         Returns:
             Warnings for failures that involved the same system parameters
@@ -209,6 +234,11 @@ class FailureDatabase:
         for rec in self.records:
             if not rec.affected_parameters:
                 continue
+
+            # Skip records from a different industry
+            if product_type and rec.product_type:
+                if _get_industry(rec.product_type) != _get_industry(product_type):
+                    continue
 
             overlap = set(rec.affected_parameters) & set(affected_node_ids)
             if not overlap:
