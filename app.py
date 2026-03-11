@@ -158,11 +158,65 @@ with tab_system:
                     comp = components[selected_comp_id]
                     break
 
+    # --- Constraint relaxation ---
+    if constraints:
+        st.sidebar.markdown("---")
+        with st.sidebar.expander("Relax Constraints", expanded=False):
+            st.caption(
+                "Toggle off or adjust limits for trade-study exploration. "
+                "Relaxed constraints will not flag violations."
+            )
+            # Group constraints by unique (standard, section) to avoid
+            # duplicate sliders for FAR/EASA pairs on the same parameter.
+            _seen_params = {}
+            for c in constraints:
+                key = c.parameter_node_id
+                if key not in _seen_params:
+                    _seen_params[key] = c
+            _constraint_relaxations = {}
+            for c in _seen_params.values():
+                col_toggle, col_label = st.columns([1, 4])
+                enabled = col_toggle.checkbox(
+                    "on", value=True, key=f"cst_en_{c.constraint_id}",
+                    label_visibility="collapsed",
+                )
+                col_label.markdown(
+                    f"**{c.standard} {c.section}** — {c.title}  \n"
+                    f"{c.limit_type} {c.limit_value} {c.unit}"
+                )
+                if enabled:
+                    new_limit = st.number_input(
+                        f"Limit ({c.unit})",
+                        value=c.limit_value,
+                        step=abs(c.limit_value) * 0.05 if c.limit_value != 0 else 0.1,
+                        format="%.4f",
+                        key=f"cst_val_{c.constraint_id}",
+                    )
+                    _constraint_relaxations[c.parameter_node_id] = new_limit
+                else:
+                    # Disabled → remove the limit entirely
+                    _constraint_relaxations[c.parameter_node_id] = None
+
     # --- Run cascade ---
     if st.button("Propagate Change", type="primary", use_container_width=True) and selected_prop and new_value is not None:
         # Rebuild fresh graph for each run
         graph, components, constraints = tmpl.build()
         comp = components[selected_comp_id]
+
+        # Apply constraint relaxations to graph nodes
+        if constraints and _constraint_relaxations:
+            for node_id, new_limit in _constraint_relaxations.items():
+                if node_id in graph.nodes:
+                    node = graph.nodes[node_id]
+                    if new_limit is None:
+                        # Constraint disabled — remove regulatory limit
+                        node.regulatory_limit = None
+                        node.bounds = (float("-inf"), float("inf"))
+                    else:
+                        node.regulatory_limit = new_limit
+                        # Also update bounds upper if limit was raised
+                        if node.bounds[1] != float("inf") and new_limit > node.bounds[1]:
+                            node.bounds = (node.bounds[0], new_limit)
 
         deltas = comp.get_graph_deltas({selected_prop: new_value})
         if not deltas:
