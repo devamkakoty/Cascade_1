@@ -48,6 +48,18 @@ TEMPLATE_INFO = TemplateInfo(
             "property_name": "insulation_rvalue",
             "new_value": 1.5,
         },
+        {
+            "name": "Windshield curvature increase: 0.15 -> 0.35",
+            "component_id": "windshield",
+            "property_name": "curvature",
+            "new_value": 0.35,
+        },
+        {
+            "name": "Windshield flatten: 0.15 -> 0.05",
+            "component_id": "windshield",
+            "property_name": "curvature",
+            "new_value": 0.05,
+        },
     ],
 )
 

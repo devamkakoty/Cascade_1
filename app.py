@@ -11,6 +11,7 @@ Run with: streamlit run app.py
 """
 
 import streamlit as st
+import streamlit.components.v1 as st_components
 import numpy as np
 import plotly.graph_objects as go
 
@@ -70,6 +71,21 @@ with tab_system:
 
     # Build system from template
     graph, components, constraints = tmpl.build()
+
+    # --- Onshape CAD viewer (aircraft template) ---
+    _ONSHAPE_MODELS = {
+        "electric_aircraft": {
+            "Windshield Assembly": "https://cad.onshape.com/documents/1c2b19367ffb5d8a7c3953d3/w/d61a8106b16ff9792e6ec386/e/8a4b542a1512c1034282c522",
+            "Full Aircraft Assembly": "https://cad.onshape.com/documents/aad2b820321cbbb01a2c1274/w/22c377380bdeb8d9d12abe4e/e/a5280709a215a12e106ece19",
+        },
+    }
+    if selected_template_id in _ONSHAPE_MODELS:
+        with st.expander("CAD Models (Onshape)", expanded=False):
+            cad_models = _ONSHAPE_MODELS[selected_template_id]
+            cad_tabs = st.tabs(list(cad_models.keys()))
+            for tab, (label, url) in zip(cad_tabs, cad_models.items()):
+                with tab:
+                    st_components.iframe(url, height=500, scrolling=True)
 
     # --- Sidebar: Component selection ---
     st.sidebar.markdown("---")

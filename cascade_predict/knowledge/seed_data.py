@@ -274,6 +274,54 @@ def _get_seed_records() -> list[FailureRecord]:
         ),
 
         # ============================================================
+        # AERODYNAMIC — WINDSHIELD CURVATURE
+        # ============================================================
+        FailureRecord(
+            failure_id="FAIL-AERO-001",
+            title="Windshield curvature change caused drag exceedance and range shortfall",
+            component_type="windshield",
+            failure_mode="drag_exceedance",
+            root_cause=(
+                "Windshield redesign increased panel curvature from 0.12 to 0.38 1/m "
+                "to improve bird-strike resistance. The higher-curvature panels disrupted "
+                "the forward fuselage boundary layer, increasing parasite drag by 4.2%. "
+                "Combined with the 3.6 kg mass increase from thicker edge sections, "
+                "mission range dropped 18 nm below the minimum certification requirement. "
+                "Drag increase was not predicted by panel-level CFD which used isolated "
+                "geometry without fuselage integration effects."
+            ),
+            description=(
+                "Electric aircraft development program. Windshield supplier proposed "
+                "higher-curvature design for improved structural margin. Panel-level "
+                "analysis showed benefits but full-aircraft wind tunnel test revealed "
+                "unexpected drag penalty from flow separation at windshield-fuselage "
+                "junction. Required windshield redesign and 3-month schedule slip."
+            ),
+            product_type="electric_aircraft",
+            subsystem="aerodynamic",
+            operating_conditions="cruise, M=0.28, ISA conditions",
+            environment="standard",
+            affected_parameters=["windshield_curvature", "cruise_ld", "windshield_mass",
+                                 "range_nm", "mission_energy"],
+            affected_properties=["curvature"],
+            severity=Severity.HIGH,
+            consequence="Range shortfall, windshield redesign, 3-month delay",
+            corrective_action=(
+                "Limit windshield curvature to < 0.30 1/m unless validated with "
+                "full-aircraft CFD or wind tunnel. Include fuselage junction fillet "
+                "in aero assessment. Run integrated drag audit at each design gate."
+            ),
+            source="Wind tunnel test correlation",
+            date="2024-04",
+            reference="AC-AERO-2024-005",
+            trigger_conditions={
+                "curvature": {"max": 0.30, "unit": "1/m"},
+            },
+            tags=["windshield", "curvature", "drag", "aerodynamic", "range",
+                  "boundary_layer", "flow_separation"],
+        ),
+
+        # ============================================================
         # STRUCTURAL — WEIGHT GROWTH
         # ============================================================
         FailureRecord(

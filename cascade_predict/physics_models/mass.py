@@ -18,6 +18,7 @@ __all__ = [
     "PayloadCapacity",
     "CountBasedMass",
     "PackLevelSpecificEnergy",
+    "CurvatureMassScaling",
 ]
 
 
@@ -141,3 +142,36 @@ class PackLevelSpecificEnergy(PhysicsModel):
     @property
     def description(self) -> str:
         return "Pack-level specific energy"
+
+
+class CurvatureMassScaling(PhysicsModel):
+    """Curved windshield is heavier: thicker edges + forming process.
+
+    A flat panel has uniform thickness. A curved panel requires
+    thicker edges to meet bird-strike and pressure loads, plus
+    forming tooling adds material. Mass scales roughly linearly
+    with curvature ratio within the design range.
+
+    Source: curvature ratio [1/m]
+    Target: windshield mass [kg]
+    """
+
+    discipline = "mass"
+
+    def __init__(self, kg_per_unit_curvature: float = 18.0):
+        """kg_per_unit_curvature: mass increase per unit curvature [kg / (1/m)]."""
+        self._sensitivity = kg_per_unit_curvature
+
+    def compute_delta(self, delta_source: float, system_state: dict[str, float]) -> float:
+        return self._sensitivity * delta_source
+
+    def nominal_sensitivity(self) -> float:
+        return self._sensitivity
+
+    @property
+    def equation(self) -> str:
+        return f"Δm_windshield = {self._sensitivity} kg/(1/m) × Δcurvature"
+
+    @property
+    def description(self) -> str:
+        return "Windshield mass increase from curvature (thicker edges + forming)"

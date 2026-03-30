@@ -28,6 +28,7 @@ __all__ = [
     "ConsumptionToRange",
     "WeightToConsumption",
     "ModuleCountScaling",
+    "CurvatureDragEffect",
 ]
 
 
@@ -324,3 +325,40 @@ class ModuleCountScaling(PhysicsModel):
     @property
     def description(self) -> str:
         return f"Module-to-pack scaling ({self.module_count} modules)"
+
+
+class CurvatureDragEffect(PhysicsModel):
+    """ΔCd ∝ curvature² (form drag from windshield curvature).
+
+    Increased windshield curvature disrupts the forward fuselage
+    flow field, increasing parasite drag. Effect is roughly quadratic
+    but linearized here around the baseline curvature.
+
+    Source: curvature ratio [1/m]
+    Target: L/D ratio [dimensionless]
+    """
+
+    discipline = "fluid"
+
+    def __init__(self, baseline_curvature: float, sensitivity: float = -1.8):
+        """
+        Args:
+            baseline_curvature: design-point curvature ratio [1/m]
+            sensitivity: dL/D per unit curvature change (negative: more curve → more drag → lower L/D)
+        """
+        self.baseline = baseline_curvature
+        self._sensitivity = sensitivity
+
+    def compute_delta(self, delta_source: float, system_state: dict[str, float]) -> float:
+        return self._sensitivity * delta_source
+
+    def nominal_sensitivity(self) -> float:
+        return self._sensitivity
+
+    @property
+    def equation(self) -> str:
+        return f"Δ(L/D) = {self._sensitivity} × Δcurvature (form drag)"
+
+    @property
+    def description(self) -> str:
+        return "L/D degradation from windshield curvature (form drag increase)"

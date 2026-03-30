@@ -29,6 +29,7 @@ __all__ = [
     "JouleHeating",
     "HeatGenScaling",
     "ThermalMargin",
+    "CurvatureSolarCapture",
 ]
 
 
@@ -377,3 +378,40 @@ class ThermalMargin(PhysicsModel):
     @property
     def description(self) -> str:
         return "Thermal safety margin"
+
+
+class CurvatureSolarCapture(PhysicsModel):
+    """Curved windshield changes effective solar capture area.
+
+    A curved surface reduces the projected area normal to the sun
+    (cosine effect). More curvature → lower effective solar aperture
+    → less cabin heat gain. Sensitivity is negative.
+
+    Source: curvature ratio [1/m]
+    Target: cabin heat load [kW]
+    """
+
+    discipline = "thermal"
+
+    def __init__(self, baseline_solar_kw: float = 0.18, sensitivity: float = -0.6):
+        """
+        Args:
+            baseline_solar_kw: baseline solar heat gain through windshield [kW]
+            sensitivity: Δheat / Δcurvature [kW per 1/m], negative (more curve → less heat)
+        """
+        self.baseline = baseline_solar_kw
+        self._sensitivity = sensitivity
+
+    def compute_delta(self, delta_source: float, system_state: dict[str, float]) -> float:
+        return self._sensitivity * delta_source
+
+    def nominal_sensitivity(self) -> float:
+        return self._sensitivity
+
+    @property
+    def equation(self) -> str:
+        return f"ΔQ_solar = {self._sensitivity} kW/(1/m) × Δcurvature (cosine effect)"
+
+    @property
+    def description(self) -> str:
+        return "Solar heat reduction from windshield curvature (cosine projection)"

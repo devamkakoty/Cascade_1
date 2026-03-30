@@ -18,6 +18,7 @@ __all__ = [
     "SafetyMargin",
     "LoadFactor",
     "StructuralMassScaling",
+    "CurvaturePressureStress",
 ]
 
 
@@ -136,3 +137,36 @@ class StructuralMassScaling(PhysicsModel):
     @property
     def description(self) -> str:
         return "Structural mass sizing with load"
+
+
+class CurvaturePressureStress(PhysicsModel):
+    """Curved panel converts bending stress to membrane stress.
+
+    For a pressurized cabin, a flat window resists pressure via
+    bending (σ ∝ p·a²/t²), while a curved window develops membrane
+    stress (σ ∝ p·R/t) which is more structurally efficient.
+    More curvature → lower peak stress → better margin.
+
+    Source: curvature ratio [1/m]
+    Target: windshield stress margin [fraction]
+    """
+
+    discipline = "structural"
+
+    def __init__(self, sensitivity: float = 0.8):
+        """sensitivity: dmargin/dcurvature (positive: more curvature → better margin)."""
+        self._sensitivity = sensitivity
+
+    def compute_delta(self, delta_source: float, system_state: dict[str, float]) -> float:
+        return self._sensitivity * delta_source
+
+    def nominal_sensitivity(self) -> float:
+        return self._sensitivity
+
+    @property
+    def equation(self) -> str:
+        return f"Δmargin = {self._sensitivity} × Δcurvature (bending → membrane)"
+
+    @property
+    def description(self) -> str:
+        return "Structural margin improvement from curvature (membrane vs bending stress)"

@@ -41,7 +41,7 @@ from cascade_predict.physics_models.structural import (
     LoadFactor,
     StructuralMassScaling,
 )
-from cascade_predict.physics_models.mass import DirectMassSum, PayloadCapacity
+from cascade_predict.physics_models.mass import DirectMassSum, PayloadCapacity, CurvatureMassScaling
 from cascade_predict.physics_models.fluid import (
     WingLoading,
     StallSpeed,
@@ -50,7 +50,10 @@ from cascade_predict.physics_models.fluid import (
     BreguetRange,
     WeightToEnergy,
     WeightToRange,
+    CurvatureDragEffect,
 )
+from cascade_predict.physics_models.thermal import CurvatureSolarCapture
+from cascade_predict.physics_models.structural import CurvaturePressureStress
 from .component import Component, CertConstraint
 
 
@@ -94,6 +97,10 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
     windshield.add_property("thickness", 0.012, "m",
                             description="Panel thickness",
                             source="drawing")
+    windshield.add_property("curvature", 0.15, "1/m",
+                            graph_node_id="windshield_curvature",
+                            description="Panel curvature ratio (arc height / chord length)",
+                            source="CAD model")
     components["windshield"] = windshield
 
     # --- HVAC Unit ---
@@ -197,6 +204,11 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
         0.35, "fraction", "Windshield solar transmittance"))
     g.add_node(SubsystemNode("windshield_mass", "thermal",
         12.0, "kg", "Windshield mass"))
+    g.add_node(SubsystemNode("windshield_curvature", "aerodynamic",
+        0.15, "1/m", "Windshield curvature ratio"))
+    g.add_node(SubsystemNode("windshield_stress_margin", "structural",
+        0.25, "fraction", "Windshield panel stress margin (pressure + bird-strike)",
+        bounds=(0.0, 1.0)))
     g.add_node(SubsystemNode("fuselage_insulation_rvalue", "thermal",
         2.5, "m²·K/W", "Fuselage insulation R-value"))
     g.add_node(SubsystemNode("cabin_heat_load", "thermal",
@@ -276,6 +288,16 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
     # ================================================================
     # COUPLINGS — physics models provide the equations
     # ================================================================
+
+    # -- Aerodynamic: Windshield curvature → drag, mass, solar, structural --
+    g.add_edge(CouplingEdge("windshield_curvature", "cruise_ld",
+        model=CurvatureDragEffect(baseline_curvature=0.15, sensitivity=-1.8)))
+    g.add_edge(CouplingEdge("windshield_curvature", "windshield_mass",
+        model=CurvatureMassScaling(kg_per_unit_curvature=18.0)))
+    g.add_edge(CouplingEdge("windshield_curvature", "cabin_heat_load",
+        model=CurvatureSolarCapture(baseline_solar_kw=0.18, sensitivity=-0.6)))
+    g.add_edge(CouplingEdge("windshield_curvature", "windshield_stress_margin",
+        model=CurvaturePressureStress(sensitivity=0.8)))
 
     # -- Thermal: Windshield → Cabin heat load --
     g.add_edge(CouplingEdge("windshield_k", "cabin_heat_load",
