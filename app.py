@@ -213,6 +213,20 @@ with tab_system:
                     # Disabled → remove the limit entirely
                     _constraint_relaxations[c.parameter_node_id] = None
 
+    # --- Bayesian uncertainty toggle ---
+    st.sidebar.markdown("---")
+    st.sidebar.header("Uncertainty Analysis")
+    _run_bayesian = st.sidebar.checkbox("Enable Bayesian (Monte Carlo)", value=False,
+                                         key="bayesian_toggle")
+    _mc_samples = 500
+    if _run_bayesian:
+        _mc_samples = st.sidebar.slider("MC Samples", 100, 2000, 500, step=100,
+                                         key="mc_samples")
+        st.sidebar.caption(
+            "Runs the cascade N times with sampled edge sensitivities. "
+            "Shows violation probabilities and confidence intervals."
+        )
+
     # --- Run cascade ---
     if st.button("Propagate Change", type="primary", use_container_width=True) and selected_prop and new_value is not None:
         # Rebuild fresh graph for each run
@@ -479,6 +493,151 @@ with tab_system:
                 "<span style='color:crimson'>Certification violation</span>",
                 unsafe_allow_html=True,
             )
+
+            # ==========================================================
+            # BAYESIAN UNCERTAINTY ANALYSIS
+            # ==========================================================
+            if _run_bayesian:
+                st.divider()
+                st.subheader("Bayesian Uncertainty Analysis")
+                st.markdown(
+                    f"Monte Carlo propagation with **{_mc_samples} samples**. "
+                    "Edge sensitivities are sampled from uncertainty distributions "
+                    "to quantify confidence in the cascade predictions."
+                )
+
+                from cascade_predict.bayesian import BayesianCascadeEngine
+                from cascade_predict.bayesian.uncertainty import (
+                    build_default_aircraft_uncertainty,
+                    build_default_ev_uncertainty,
+                )
+
+                _UNCERTAINTY_BUILDERS = {
+                    "electric_aircraft": build_default_aircraft_uncertainty,
+                    "ev_battery_pack": build_default_ev_uncertainty,
+                }
+                spec_builder = _UNCERTAINTY_BUILDERS.get(selected_template_id)
+                if spec_builder is None:
+                    st.info("No uncertainty spec defined for this template yet.")
+                else:
+                    spec = spec_builder()
+                    with st.spinner(f"Running {_mc_samples} Monte Carlo samples..."):
+                        bay_engine = BayesianCascadeEngine(
+                            tmpl.build, spec, n_samples=_mc_samples, seed=42,
+                        )
+                        bay_result = bay_engine.propagate(
+                            selected_comp_id, selected_prop, new_value,
+                        )
+
+                    bay_summary = bay_result.summary()
+
+                    bm1, bm2, bm3 = st.columns(3)
+                    bm1.metric("MC Samples", bay_summary["n_samples"])
+                    bm2.metric("Likely Violations (>50%)", bay_summary["likely_violations"])
+                    bm3.metric("Max P(violation)",
+                               f"{bay_summary['max_violation_probability']:.0%}")
+
+                    # --- Violation probability bars ---
+                    active_violations = [
+                        v for v in bay_result.violation_probabilities
+                        if v.probability > 0.0
+                    ]
+                    if active_violations:
+                        st.markdown("##### Violation Probabilities")
+                        vp_labels = []
+                        vp_probs = []
+                        vp_colors = []
+                        vp_hover = []
+                        for v in active_violations:
+                            label = v.node_id.replace("_", " ").title()
+                            vp_labels.append(f"{label}\n({v.regulatory_ref})")
+                            vp_probs.append(v.probability * 100)
+                            if v.probability >= 0.8:
+                                vp_colors.append("crimson")
+                            elif v.probability >= 0.5:
+                                vp_colors.append("darkorange")
+                            elif v.probability >= 0.2:
+                                vp_colors.append("gold")
+                            else:
+                                vp_colors.append("steelblue")
+                            vp_hover.append(
+                                f"<b>{label}</b><br>"
+                                f"P(violation) = {v.probability:.1%}<br>"
+                                f"Mean: {v.mean_value:.2f} {v.unit}<br>"
+                                f"95th percentile: {v.p95_value:.2f} {v.unit}<br>"
+                                f"Limit: {v.regulatory_limit} {v.unit}<br>"
+                                f"Mean margin: {v.mean_margin:+.4f}"
+                            )
+
+                        fig_vp = go.Figure(go.Bar(
+                            x=vp_probs, y=vp_labels, orientation="h",
+                            marker_color=vp_colors,
+                            hovertext=vp_hover, hoverinfo="text",
+                            text=[f"{p:.0f}%" for p in vp_probs],
+                            textposition="outside",
+                        ))
+                        fig_vp.add_vline(x=50, line_dash="dash",
+                                         line_color="gray", line_width=1,
+                                         annotation_text="50%")
+                        fig_vp.update_layout(
+                            height=max(200, 60 * len(active_violations)),
+                            xaxis_title="Probability of Violation (%)",
+                            xaxis=dict(range=[0, 110]),
+                            margin=dict(l=200, r=60, t=20, b=40),
+                        )
+                        st.plotly_chart(fig_vp, use_container_width=True)
+
+                    # --- Parameter distributions (box plots) ---
+                    st.markdown("##### Parameter Distributions (90% CI)")
+                    # Show distributions for nodes that changed meaningfully
+                    dist_items = sorted(
+                        bay_result.node_distributions.items(),
+                        key=lambda x: abs(x[1].mean_delta),
+                        reverse=True,
+                    )[:12]  # top 12 by magnitude of change
+
+                    if dist_items:
+                        fig_box = go.Figure()
+                        for nid, dist in dist_items:
+                            label = nid.replace("_", " ").title()
+                            # Normalize to % change from baseline for comparability
+                            if abs(dist.baseline) > 1e-10:
+                                pct_samples = (dist.samples - dist.baseline) / abs(dist.baseline) * 100
+                            else:
+                                pct_samples = dist.samples - dist.baseline
+                            fig_box.add_trace(go.Box(
+                                x=pct_samples, name=label,
+                                boxpoints=False,
+                                marker_color="steelblue",
+                                line_color="steelblue",
+                            ))
+
+                        fig_box.update_layout(
+                            height=max(300, 35 * len(dist_items)),
+                            xaxis_title="% Change from Baseline (distribution across MC samples)",
+                            margin=dict(l=200, r=40, t=20, b=40),
+                            showlegend=False,
+                        )
+                        fig_box.add_vline(x=0, line_color="gray", line_width=1)
+                        st.plotly_chart(fig_box, use_container_width=True)
+
+                    # --- Uncertainty table ---
+                    st.markdown("##### Detailed Uncertainty Summary")
+                    unc_table = []
+                    for nid, dist in dist_items:
+                        node = graph.nodes.get(nid)
+                        reg_limit = node.regulatory_limit if node else None
+                        unc_table.append({
+                            "Parameter": nid.replace("_", " ").title(),
+                            "Baseline": f"{dist.baseline:.4f}",
+                            "Mean": f"{dist.mean:.4f}",
+                            "Std": f"{dist.std:.4f}",
+                            "5th %ile": f"{dist.p5:.4f}",
+                            "95th %ile": f"{dist.p95:.4f}",
+                            "Unit": dist.unit,
+                            "Limit": f"{reg_limit}" if reg_limit else "",
+                        })
+                    st.dataframe(unc_table, use_container_width=True, hide_index=True)
 
 
 # =====================================================================
