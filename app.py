@@ -48,13 +48,14 @@ def _subsystem_color_map(subsystems: list[str]) -> dict[str, str]:
 with tab_system:
     st.title("Design Change Cascade Prediction")
     st.markdown(
-        "**Change one component property. See everything that breaks.**  \n"
-        "Select a system template, pick a component, change a property, "
-        "and watch the cascade ripple across subsystems."
+        "**Upload specs. Change a property. See everything that breaks.**"
     )
 
     from cascade_predict.templates import list_templates, get_template, get_failure_db
     from cascade_predict.graph import CascadeEngine
+    from cascade_predict.spec_parser import (
+        parse_csv, parse_text, parse_pdf, extract_pdf_text, ParameterOverride,
+    )
 
     # --- Template selector ---
     all_templates = list_templates()
@@ -72,24 +73,126 @@ with tab_system:
     # Build system from template
     graph, components, constraints = tmpl.build()
 
-    # --- Onshape CAD viewer (aircraft template) ---
+    # =================================================================
+    # STEP 1: Upload spec document (optional)
+    # =================================================================
+    _uploaded_overrides: list[ParameterOverride] = []
+
+    with st.expander("Step 1: Upload Spec Document (optional)", expanded=False):
+        st.markdown(
+            "Upload a component spec to override default template values. "
+            "Supports **CSV**, **PDF**, or **plain text** files."
+        )
+
+        upload_col, format_col = st.columns([2, 1])
+        with upload_col:
+            uploaded_file = st.file_uploader(
+                "Upload spec document",
+                type=["csv", "pdf", "txt", "text"],
+                key="spec_upload",
+                label_visibility="collapsed",
+            )
+        with format_col:
+            st.markdown(
+                "**CSV format:**\n"
+                "```\n"
+                "component,property,value,unit\n"
+                "windshield,curvature,0.30,1/m\n"
+                "battery_pack,mass,3800,kg\n"
+                "```"
+            )
+
+        # Onshape URL input
+        onshape_url = st.text_input(
+            "Or paste an Onshape CAD URL:",
+            placeholder="https://cad.onshape.com/documents/...",
+            key="onshape_url_input",
+        )
+
+        if uploaded_file is not None:
+            file_bytes = uploaded_file.read()
+            file_name = uploaded_file.name.lower()
+
+            if file_name.endswith(".csv"):
+                _uploaded_overrides = parse_csv(file_bytes)
+                if _uploaded_overrides:
+                    st.success(f"Parsed **{len(_uploaded_overrides)}** parameters from CSV")
+                else:
+                    st.warning("No parameters found. Check CSV format: component, property, value, unit")
+
+            elif file_name.endswith(".pdf"):
+                with st.spinner("Extracting text from PDF..."):
+                    pdf_text = extract_pdf_text(file_bytes)
+                    _uploaded_overrides = parse_pdf(file_bytes)
+                with st.expander("Extracted PDF text", expanded=False):
+                    st.text(pdf_text[:3000])
+                if _uploaded_overrides:
+                    st.success(f"Found **{len(_uploaded_overrides)}** parameters in PDF")
+                else:
+                    st.info("No auto-detected parameters. You can enter values manually in the sidebar.")
+
+            else:  # plain text
+                _uploaded_overrides = parse_text(file_bytes)
+                if _uploaded_overrides:
+                    st.success(f"Found **{len(_uploaded_overrides)}** parameters in text")
+                else:
+                    st.info("No auto-detected parameters.")
+
+            # Show extracted parameters and let user confirm/edit
+            if _uploaded_overrides:
+                st.markdown("**Extracted parameters** (matched to template components):")
+                override_data = []
+                for o in _uploaded_overrides:
+                    matched = o.component_id in components
+                    override_data.append({
+                        "Component": o.component_id,
+                        "Property": o.property_name,
+                        "Value": o.value,
+                        "Unit": o.unit,
+                        "Confidence": o.confidence,
+                        "Matched": "Yes" if matched else "No",
+                    })
+                st.dataframe(override_data, use_container_width=True, hide_index=True)
+
+    # Apply uploaded overrides to component properties
+    _overrides_applied = 0
+    for o in _uploaded_overrides:
+        if o.component_id in components:
+            comp_obj = components[o.component_id]
+            if o.property_name in comp_obj.properties:
+                comp_obj.properties[o.property_name].value = o.value
+                comp_obj.properties[o.property_name].source = f"uploaded ({o.confidence})"
+                # Also update graph node if linked
+                if o.property_name in comp_obj.property_to_node:
+                    node_id = comp_obj.property_to_node[o.property_name]
+                    if node_id in graph.nodes:
+                        graph.nodes[node_id].value = o.value
+                _overrides_applied += 1
+    if _overrides_applied > 0:
+        st.info(f"Applied **{_overrides_applied}** parameter overrides from uploaded document.")
+
+    # --- Onshape CAD viewer ---
     _ONSHAPE_MODELS = {
         "electric_aircraft": {
             "Windshield Assembly": "https://cad.onshape.com/documents/1c2b19367ffb5d8a7c3953d3/w/d61a8106b16ff9792e6ec386/e/8a4b542a1512c1034282c522",
             "Full Aircraft Assembly": "https://cad.onshape.com/documents/aad2b820321cbbb01a2c1274/w/22c377380bdeb8d9d12abe4e/e/a5280709a215a12e106ece19",
         },
     }
-    if selected_template_id in _ONSHAPE_MODELS:
+    _cad_urls = dict(_ONSHAPE_MODELS.get(selected_template_id, {}))
+    if onshape_url and "onshape.com" in onshape_url:
+        _cad_urls["Uploaded CAD Model"] = onshape_url
+    if _cad_urls:
         with st.expander("CAD Models (Onshape)", expanded=False):
-            cad_models = _ONSHAPE_MODELS[selected_template_id]
-            cad_tabs = st.tabs(list(cad_models.keys()))
-            for tab, (label, url) in zip(cad_tabs, cad_models.items()):
+            cad_tabs = st.tabs(list(_cad_urls.keys()))
+            for tab, (label, url) in zip(cad_tabs, _cad_urls.items()):
                 with tab:
                     st_components.iframe(url, height=500, scrolling=True)
 
-    # --- Sidebar: Component selection ---
+    # =================================================================
+    # STEP 2: Select component and vary parameter (sidebar)
+    # =================================================================
     st.sidebar.markdown("---")
-    st.sidebar.header("Component Change")
+    st.sidebar.header("Step 2: Vary a Parameter")
     comp_names = {cid: c.name for cid, c in components.items()}
     selected_comp_id = st.sidebar.selectbox(
         "Select Component",

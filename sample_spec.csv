@@ -1,0 +1,9 @@
+component,property,value,unit
+windshield,thermal_conductivity,1.4,W/(m·K)
+windshield,solar_transmittance,0.40,fraction
+windshield,curvature,0.25,1/m
+windshield,mass,14.0,kg
+battery_pack,total_capacity,850,kWh
+battery_pack,mass,3800,kg
+hvac_unit,cooling_capacity,12.0,kW
+fuselage,insulation_rvalue,2.2,m²·K/W
