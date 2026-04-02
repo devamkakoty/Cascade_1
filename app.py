@@ -106,10 +106,20 @@ with tab_system:
         )
 
     # --- Onshape embed ---
-    if onshape_url and onshape_url.strip().startswith("https://cad.onshape.com/"):
-        st.markdown("---")
-        st.subheader("Onshape CAD Viewer")
-        st_components.iframe(onshape_url.strip(), height=500, scrolling=True)
+    if onshape_url and onshape_url.strip():
+        url = onshape_url.strip()
+        # Accept any onshape URL variant
+        if "onshape.com" in url:
+            st.markdown("---")
+            st.subheader("Onshape CAD Viewer")
+            # Ensure https
+            if url.startswith("http://"):
+                url = "https://" + url[7:]
+            elif not url.startswith("https://"):
+                url = "https://" + url
+            st_components.iframe(url, height=550, scrolling=True)
+        else:
+            st.warning("Please paste a valid Onshape URL (must contain onshape.com).")
 
     cad_result: CADAnalysisResult | None = None
     if uploaded_cad is not None:
