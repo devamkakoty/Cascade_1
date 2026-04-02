@@ -106,18 +106,19 @@ with tab_system:
         )
 
     # --- Onshape embed ---
+    _has_onshape = False
     if onshape_url and onshape_url.strip():
         url = onshape_url.strip()
-        # Accept any onshape URL variant
         if "onshape.com" in url:
-            st.markdown("---")
-            st.subheader("Onshape CAD Viewer")
-            # Ensure https
+            _has_onshape = True
             if url.startswith("http://"):
                 url = "https://" + url[7:]
             elif not url.startswith("https://"):
                 url = "https://" + url
+            st.markdown("---")
+            st.subheader("Onshape CAD Viewer")
             st_components.iframe(url, height=550, scrolling=True)
+            st.success("Onshape model loaded. Proceed to Step 2 below to configure and run the cascade.")
         else:
             st.warning("Please paste a valid Onshape URL (must contain onshape.com).")
 
@@ -128,13 +129,11 @@ with tab_system:
 
         st.markdown("---")
         st.subheader("3D Model Preview")
-        # Render 3D viewer
         if cad_result.file_type == "stl" and cad_result.raw_stl_bytes:
             render_cad_viewer(stl_bytes=cad_result.raw_stl_bytes, height=500)
         elif cad_result.vertices is not None and len(cad_result.vertices) > 0:
             render_cad_viewer(vertices=cad_result.vertices, height=500)
 
-        # Show extracted parameters
         if cad_result.parameters:
             with st.expander(f"Extracted Geometry ({len(cad_result.parameters)} parameters)", expanded=True):
                 geo_table = []
@@ -148,7 +147,6 @@ with tab_system:
                     })
                 st.dataframe(geo_table, use_container_width=True, hide_index=True)
 
-            # Let user map CAD parameters to cascade inputs
             st.markdown("##### Map CAD Geometry to Cascade Parameters")
             st.caption("Select which extracted dimensions to feed into the cascade engine.")
             cad_param_names = [p.name for p in cad_result.parameters if p.category in ("geometry", "curvature")]
@@ -162,7 +160,7 @@ with tab_system:
                     "surface_area": ("battery", "mass_kg"),
                     "est_wall_thickness": ("windshield", "curvature"),
                 }
-                for pname in cad_param_names[:8]:  # limit display
+                for pname in cad_param_names[:8]:
                     p = next(x for x in cad_result.parameters if x.name == pname)
                     col_name, col_use = st.columns([3, 1])
                     col_name.markdown(f"**{pname.replace('_', ' ').title()}**: {p.value:.4f} {p.unit}")
@@ -176,8 +174,14 @@ with tab_system:
                             unit=p.unit,
                             source=f"CAD: {uploaded_cad.name}",
                         ))
+            st.success("CAD geometry extracted. Proceed to Step 2 below to configure and run the cascade.")
+
+    # Show guidance if nothing uploaded yet
+    if uploaded_spec is None and uploaded_cad is None and not _has_onshape:
+        st.info("Upload a spec document, a CAD file (STL/STEP), or paste an Onshape URL above to get started. You can also skip to Step 2 and select a preset scenario.")
 
     # ── STEP 2: Template & Component Selection ───────────────────────
+    st.markdown("---")
     st.header("2  Select System & Component")
 
     all_templates = list_templates()
@@ -316,6 +320,17 @@ with tab_system:
 
     # ── Propagate Button ─────────────────────────────────────────────
     st.markdown("---")
+    st.header("3  Run Cascade")
+    if selected_prop:
+        prop_obj = editable_props.get(selected_prop)
+        if prop_obj and new_value is not None and abs(new_value - prop_obj.value) > 1e-10:
+            pct_preview = ((new_value - prop_obj.value) / prop_obj.value * 100) if prop_obj.value != 0 else 0
+            st.markdown(
+                f"Ready to propagate: **{selected_prop}** on **{comp.name}** "
+                f"({prop_obj.value:.4f} -> {new_value:.4f} {prop_obj.unit}, {pct_preview:+.1f}%)"
+            )
+        else:
+            st.info("Change the property value above to see what breaks, then click Propagate.")
     run_clicked = st.button("Propagate Change", type="primary", use_container_width=True)
 
     # ═════════════════════════════════════════════════════════════════
