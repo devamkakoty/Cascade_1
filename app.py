@@ -469,11 +469,18 @@ with tab_system:
                         seen_targets[step.target_node] = step
             unique_steps = list(seen_targets.values())
 
+            # Split steps into engineering vs cost/schedule
+            _COST_SCHEDULE_NODES = {"material_cost", "manufacturing_cost", "tooling_cost",
+                                     "total_cost_delta", "manufacturing_lead_time",
+                                     "certification_time", "total_schedule_delta"}
+            eng_steps = [s for s in unique_steps if s.target_node not in _COST_SCHEDULE_NODES]
+            cost_steps = [s for s in unique_steps if s.target_node in _COST_SCHEDULE_NODES]
+
             st.divider()
             st.header("Cascade Results")
 
             # ── Result tabs ──────────────────────────────────────────
-            result_tab_names = ["Overview", "Cascade Flow", "Violations", "Comparison"]
+            result_tab_names = ["Overview", "Cascade Flow", "Violations", "Cost & Schedule", "Comparison"]
             if _run_bayesian:
                 result_tab_names.append("Uncertainty")
             result_tabs = st.tabs(result_tab_names)
@@ -493,7 +500,7 @@ with tab_system:
                 st.caption("Each bar = change propagated. Red = violation. Orange = cross-domain hop.")
 
                 labels, pct_changes, colors, hover_texts = [], [], [], []
-                for step in unique_steps:
+                for step in eng_steps:
                     baseline = result.initial_state.get(step.target_node, step.old_value)
                     pct = (step.delta_output / baseline * 100) if abs(baseline) > 1e-10 else 0
                     node = graph.nodes[step.target_node]
@@ -533,9 +540,9 @@ with tab_system:
 
             # ── TAB: Cascade Flow (Sankey) ───────────────────────────
             with result_tabs[1]:
-                st.subheader("Cascade Flow")
+                st.subheader("Cascade Flow (Engineering)")
                 all_node_ids = [result.trigger_node]
-                for step in unique_steps:
+                for step in eng_steps:
                     if step.source_node not in all_node_ids:
                         all_node_ids.append(step.source_node)
                     if step.target_node not in all_node_ids:
@@ -552,7 +559,7 @@ with tab_system:
                         node_colors.append("rgba(200,200,200,0.8)")
                         node_labels.append(nid)
                 s_src, s_tgt, s_val, s_col = [], [], [], []
-                for step in unique_steps:
+                for step in eng_steps:
                     if step.source_node in node_idx and step.target_node in node_idx:
                         s_src.append(node_idx[step.source_node])
                         s_tgt.append(node_idx[step.target_node])
@@ -615,11 +622,96 @@ with tab_system:
                             f"Source: {w.failure.source} ({w.failure.date})*"
                         )
 
-            # ── TAB: Comparison ──────────────────────────────────────
+            # ── TAB: Cost & Schedule ────────────────────────────────
             with result_tabs[3]:
+                st.subheader("Cost & Schedule Impact")
+                if cost_steps:
+                    # Separate cost vs schedule
+                    _cost_nodes = {"material_cost", "manufacturing_cost", "tooling_cost", "total_cost_delta"}
+                    _sched_nodes = {"manufacturing_lead_time", "certification_time", "total_schedule_delta"}
+                    cost_only = [s for s in cost_steps if s.target_node in _cost_nodes]
+                    sched_only = [s for s in cost_steps if s.target_node in _sched_nodes]
+
+                    # Cost summary metrics
+                    total_cost = sum(s.delta_output for s in cost_only if s.target_node == "total_cost_delta")
+                    total_weeks = sum(s.delta_output for s in sched_only if s.target_node == "total_schedule_delta")
+                    mc1, mc2 = st.columns(2)
+                    mc1.metric("Total Cost Impact", f"${total_cost:+,.0f}")
+                    mc2.metric("Total Schedule Impact", f"{total_weeks:+.1f} weeks")
+
+                    # Cost breakdown table
+                    st.markdown("##### Cost Breakdown")
+                    cost_table = []
+                    for step in cost_only:
+                        node = graph.nodes[step.target_node]
+                        cost_table.append({
+                            "Item": step.target_node.replace("_", " ").title(),
+                            "Change": f"${step.delta_output:+,.0f}",
+                            "After": f"${step.new_value:,.0f}",
+                            "Description": node.description,
+                        })
+                    if cost_table:
+                        st.dataframe(cost_table, use_container_width=True, hide_index=True)
+
+                    # Cost bar chart
+                    if cost_only:
+                        cost_labels = [s.target_node.replace("_", " ").title() for s in cost_only]
+                        cost_values = [s.delta_output for s in cost_only]
+                        cost_colors = ["#e74c3c" if v > 0 else "#2ecc71" for v in cost_values]
+                        fig_cost = go.Figure(go.Bar(
+                            x=cost_values, y=cost_labels, orientation="h",
+                            marker_color=cost_colors,
+                            text=[f"${v:+,.0f}" for v in cost_values],
+                            textposition="outside",
+                        ))
+                        fig_cost.update_layout(
+                            height=max(200, 50 * len(cost_labels)),
+                            xaxis_title="Cost Change ($)",
+                            margin=dict(l=200, r=80, t=20, b=40),
+                        )
+                        fig_cost.add_vline(x=0, line_color="gray", line_width=1)
+                        st.plotly_chart(fig_cost, use_container_width=True)
+
+                    # Schedule breakdown
+                    st.markdown("##### Schedule Breakdown")
+                    sched_table = []
+                    for step in sched_only:
+                        node = graph.nodes[step.target_node]
+                        sched_table.append({
+                            "Item": step.target_node.replace("_", " ").title(),
+                            "Change": f"{step.delta_output:+.1f} weeks",
+                            "After": f"{step.new_value:.1f} weeks",
+                            "Description": node.description,
+                        })
+                    if sched_table:
+                        st.dataframe(sched_table, use_container_width=True, hide_index=True)
+
+                    # Schedule bar chart
+                    if sched_only:
+                        sched_labels = [s.target_node.replace("_", " ").title() for s in sched_only]
+                        sched_values = [s.delta_output for s in sched_only]
+                        sched_colors = ["#e74c3c" if v > 0 else "#2ecc71" for v in sched_values]
+                        fig_sched = go.Figure(go.Bar(
+                            x=sched_values, y=sched_labels, orientation="h",
+                            marker_color=sched_colors,
+                            text=[f"{v:+.1f}w" for v in sched_values],
+                            textposition="outside",
+                        ))
+                        fig_sched.update_layout(
+                            height=max(200, 50 * len(sched_labels)),
+                            xaxis_title="Schedule Change (weeks)",
+                            margin=dict(l=200, r=80, t=20, b=40),
+                        )
+                        fig_sched.add_vline(x=0, line_color="gray", line_width=1)
+                        st.plotly_chart(fig_sched, use_container_width=True)
+                else:
+                    st.info("No cost/schedule impact detected for this change.")
+
+            # ── TAB: Comparison ──────────────────────────────────────
+            with result_tabs[4]:
                 st.subheader("Parameter Comparison (Before -> After)")
                 table_data = []
-                for step in unique_steps:
+                for step in eng_steps:
                     node = graph.nodes[step.target_node]
                     baseline = result.initial_state.get(step.target_node, step.old_value)
                     pct = (step.delta_output / baseline * 100) if abs(baseline) > 1e-10 else 0
@@ -649,7 +741,7 @@ with tab_system:
 
             # ── TAB: Uncertainty (Bayesian) ──────────────────────────
             if _run_bayesian:
-                with result_tabs[4]:
+                with result_tabs[5]:
                     st.subheader("Bayesian Uncertainty Analysis")
                     st.markdown(
                         f"Monte Carlo propagation with **{_mc_samples} samples**. "
