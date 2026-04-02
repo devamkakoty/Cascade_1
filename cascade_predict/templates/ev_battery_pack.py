@@ -41,6 +41,7 @@ from cascade_predict.physics_models.fluid import (
     WeightToConsumption,
     ConsumptionToRange,
 )
+from cascade_predict.subsystems.cost_schedule import inject_cost_schedule_nodes
 
 
 def build_ev_battery_pack():
@@ -368,6 +369,9 @@ def build_ev_battery_pack():
         "Vehicle must achieve minimum 350 km WLTP range.",
         "vehicle_range", 350.0, "min", "km",
     ))
+
+    # ── Cost & Schedule cascade ─────────────────────────────────────
+    inject_cost_schedule_nodes(g, "automotive", mass_node_id="pack_mass", power_node_id="chiller_power")
 
     return g, components, constraints
 

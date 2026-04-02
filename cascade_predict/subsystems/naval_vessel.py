@@ -23,6 +23,7 @@ from cascade_predict.physics_models.thermal import (
     COPPowerDraw,
 )
 from .component import Component, CertConstraint
+from .cost_schedule import inject_cost_schedule_nodes
 
 
 def build_naval_vessel():
@@ -439,5 +440,9 @@ def build_naval_vessel():
             limit_value=800.0, limit_type="min", unit="nm",
         ),
     ]
+
+    # ── Cost & Schedule cascade ─────────────────────────────────────
+    inject_cost_schedule_nodes(graph, "naval", mass_node_id="displacement",
+                                power_node_id="propulsion_power")
 
     return graph, components, constraints

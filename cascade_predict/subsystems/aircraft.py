@@ -55,6 +55,7 @@ from cascade_predict.physics_models.fluid import (
 from cascade_predict.physics_models.thermal import CurvatureSolarCapture
 from cascade_predict.physics_models.structural import CurvaturePressureStress
 from .component import Component, CertConstraint
+from .cost_schedule import inject_cost_schedule_nodes
 
 
 def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], list[CertConstraint]]:
@@ -444,5 +445,8 @@ def build_electric_aircraft() -> tuple[DependencyGraph, dict[str, Component], li
         "EASA type certificate maximum takeoff weight.",
         "mtow", 6350.0, "max", "kg",
     ))
+
+    # ── Cost & Schedule cascade ─────────────────────────────────────
+    inject_cost_schedule_nodes(g, "aerospace", mass_node_id="mtow", power_node_id="hvac_power")
 
     return g, components, constraints

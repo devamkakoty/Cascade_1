@@ -462,6 +462,13 @@ def build_custom_part_profile(
     if not physics:
         physics.append("No specific physics auto-detected — select parameters manually below")
 
+    # Always add cost & schedule physics (every part affects these)
+    physics.append("--- Cost & Schedule ---")
+    physics.append("Material cost — scales with mass change ($/kg)")
+    physics.append("Manufacturing cost — scales with mass and complexity")
+    physics.append("Lead time — heavier/complex parts take longer")
+    physics.append("Certification time — constraint changes add review cycles")
+
     return PartProfile(
         part_type="custom",
         part_label=part_name or "Custom Part",
