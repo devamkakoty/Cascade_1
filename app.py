@@ -58,7 +58,8 @@ with tab_system:
     from cascade_predict.cad_parser import parse_cad_file, CADAnalysisResult
     from cascade_predict.components.cad_viewer import render_cad_viewer
     from cascade_predict.part_identifier import (
-        SECTORS, get_sectors, get_parts_for_sector, get_part_profile, auto_suggest_part,
+        SECTORS, get_sectors, get_parts_for_sector, get_part_profile,
+        auto_suggest_part, build_custom_part_profile,
     )
 
     # ── STEP 1: Upload Documents ─────────────────────────────────────
@@ -182,6 +183,8 @@ with tab_system:
         )
 
     part_options = get_parts_for_sector(selected_sector)
+    # Add "Other" option to every sector
+    part_options_with_other = part_options + [("_other", "Other / Not Listed (describe below)")]
     default_part_idx = 0
     if _suggestion and _suggestion[0] == selected_sector:
         for i, (k, _) in enumerate(part_options):
@@ -192,16 +195,37 @@ with tab_system:
     with col_part:
         selected_part = st.selectbox(
             "Part Type",
-            [k for k, _ in part_options],
-            format_func=lambda x: dict(part_options)[x],
+            [k for k, _ in part_options_with_other],
+            format_func=lambda x: dict(part_options_with_other)[x],
             index=default_part_idx,
             key="part_select",
         )
 
-    part_profile = get_part_profile(selected_sector, selected_part)
+    # Handle custom / other part
+    part_profile = None
+    if selected_part == "_other":
+        st.markdown("##### Describe Your Part")
+        col_cname, col_cdesc = st.columns(2)
+        with col_cname:
+            custom_part_name = st.text_input("Part name", placeholder="e.g. Radar Mast, Keel Bracket...", key="custom_part_name")
+        with col_cdesc:
+            custom_part_desc = st.text_input("Brief description", placeholder="e.g. Welded steel bracket supporting the sonar dome", key="custom_part_desc")
 
-    if _suggestion and _suggestion[0] == selected_sector and _suggestion[1] == selected_part:
-        st.success(f"Auto-detected: **{part_profile.part_label}** (confidence: {_suggestion[2]:.0%})")
+        if cad_result and cad_result.parameters:
+            part_profile = build_custom_part_profile(
+                selected_sector, custom_part_name, custom_part_desc, cad_result.parameters,
+            )
+            st.info(f"Physics auto-inferred from geometry features for **{part_profile.part_label}**")
+        elif custom_part_name:
+            # No CAD uploaded, build minimal profile
+            part_profile = build_custom_part_profile(
+                selected_sector, custom_part_name, custom_part_desc, [],
+            )
+            st.info("Upload a CAD file in Step 1 for automatic physics inference, or configure manually in Step 3.")
+    else:
+        part_profile = get_part_profile(selected_sector, selected_part)
+        if _suggestion and _suggestion[0] == selected_sector and _suggestion[1] == selected_part:
+            st.success(f"Auto-detected: **{part_profile.part_label}** (confidence: {_suggestion[2]:.0%})")
 
     # Show part info and physics
     if part_profile:

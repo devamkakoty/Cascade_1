@@ -239,7 +239,239 @@ SECTORS = {
             ),
         },
     },
+    "naval": {
+        "label": "Naval / Maritime",
+        "icon": "ship",
+        "template_id": "naval_vessel",
+        "parts": {
+            "hull_plate": PartProfile(
+                part_type="hull_plate",
+                part_label="Hull Plating / Shell Panel",
+                sector="Naval / Maritime",
+                template_id="naval_vessel",
+                component_id="hull_plating",
+                description="Steel plate forming the hull shell — AH36 or equivalent marine grade.",
+                mappings=[
+                    PhysicsMapping("est_wall_thickness", "hull_plating", "plate_thickness", 1.0,
+                                   "Plate thickness directly drives hull mass and structural capacity"),
+                    PhysicsMapping("surface_area", "hull_plating", "plate_thickness", 0.000001,
+                                   "Plate area contributes to wetted surface and drag"),
+                ],
+                physics_models=[
+                    "LinearModel — hull mass scales with plate thickness (dm = rho * A * dt)",
+                    "DirectMassSum — hull mass change affects displacement",
+                    "Froude scaling — displacement drives hull resistance",
+                    "SafetyMargin — section modulus must exceed DNV minimum",
+                    "S-N Fatigue — thicker plates extend fatigue life",
+                ],
+            ),
+            "propeller": PartProfile(
+                part_type="propeller",
+                part_label="Propeller / Thruster",
+                sector="Naval / Maritime",
+                template_id="naval_vessel",
+                component_id="propulsion",
+                description="Fixed or controllable pitch propeller for main propulsion.",
+                mappings=[
+                    PhysicsMapping("length", "propulsion", "rated_power", 0.8,
+                                   "Propeller diameter relates to power absorption"),
+                    PhysicsMapping("volume", "propulsion", "rated_power", 0.001,
+                                   "Blade volume relates to thrust capability"),
+                ],
+                physics_models=[
+                    "Power-speed — P = R * V / eta_prop",
+                    "Fuel consumption — SFOC scaling from power",
+                    "Range — fuel capacity / consumption rate",
+                    "Shaft torque — T = P / (2*pi*n)",
+                ],
+            ),
+            "rudder": PartProfile(
+                part_type="rudder",
+                part_label="Rudder / Steering Gear",
+                sector="Naval / Maritime",
+                template_id="naval_vessel",
+                component_id="hull_plating",
+                description="Rudder blade and steering mechanism.",
+                mappings=[
+                    PhysicsMapping("surface_area", "hull_plating", "plate_thickness", 0.00001,
+                                   "Rudder area adds to appendage drag"),
+                    PhysicsMapping("est_wall_thickness", "hull_plating", "plate_thickness", 0.8,
+                                   "Rudder plate thickness for structural sizing"),
+                ],
+                physics_models=[
+                    "Appendage drag — rudder area adds to total resistance",
+                    "Structural — rudder stock bending from hydrodynamic force",
+                    "Stability — rudder effectiveness affects maneuverability",
+                ],
+            ),
+            "deck_structure": PartProfile(
+                part_type="deck_structure",
+                part_label="Deck Plating / Bulkhead",
+                sector="Naval / Maritime",
+                template_id="naval_vessel",
+                component_id="hull_plating",
+                description="Internal deck or bulkhead structural panel.",
+                mappings=[
+                    PhysicsMapping("est_wall_thickness", "hull_plating", "plate_thickness", 0.9,
+                                   "Deck plate thickness contributes to structural weight"),
+                    PhysicsMapping("surface_area", "hull_plating", "plate_thickness", 0.0000005,
+                                   "Deck area contributes to total steel weight"),
+                ],
+                physics_models=[
+                    "DirectMassSum — deck mass adds to displacement",
+                    "Section modulus — deck plating contributes to hull girder strength",
+                    "Stability — weight distribution affects GM",
+                ],
+            ),
+            "heat_exchanger": PartProfile(
+                part_type="heat_exchanger",
+                part_label="Heat Exchanger / Cooler",
+                sector="Naval / Maritime",
+                template_id="naval_vessel",
+                component_id="cooling",
+                description="Seawater or freshwater heat exchanger for engine/HVAC cooling.",
+                mappings=[
+                    PhysicsMapping("surface_area", "cooling", "cooling_capacity", 0.05,
+                                   "Heat transfer area determines cooling capacity"),
+                    PhysicsMapping("est_wall_thickness", "cooling", "cooling_capacity", 10.0,
+                                   "Tube/plate thickness affects thermal resistance"),
+                ],
+                physics_models=[
+                    "HVACSizing — cooling system sized above waste heat",
+                    "FourierConduction — heat transfer through exchanger walls",
+                    "COPPowerDraw — electrical power for cooling pumps",
+                ],
+            ),
+            "generic": PartProfile(
+                part_type="generic",
+                part_label="Generic Naval Component",
+                sector="Naval / Maritime",
+                template_id="naval_vessel",
+                component_id="hull_plating",
+                description="Unspecified naval component — map parameters manually.",
+                mappings=[
+                    PhysicsMapping("est_wall_thickness", "hull_plating", "plate_thickness", 1.0, "Thickness-based"),
+                    PhysicsMapping("volume", "hull_plating", "plate_thickness", 0.0001, "Volume-based"),
+                ],
+                physics_models=["Select parameters manually below"],
+            ),
+        },
+    },
 }
+
+
+# ── Custom / Other part (not in any dropdown) ──────────────────────
+
+def build_custom_part_profile(
+    sector_key,
+    part_name,
+    part_description,
+    geometry_params,
+):
+    """
+    Build a PartProfile on-the-fly for a part type not in the dropdown.
+    Uses geometry features to infer which physics are relevant.
+
+    Args:
+        sector_key: which sector the user picked
+        part_name: user-typed name for the part
+        part_description: user-typed description
+        geometry_params: list of GeometryParameter from CAD parser
+
+    Returns:
+        PartProfile with auto-generated mappings
+    """
+    params = {p.name: p for p in geometry_params}
+    sector_info = SECTORS.get(sector_key, {})
+    template_id = sector_info.get("template_id", "electric_aircraft")
+
+    # Pick the first available component in the template as default
+    _DEFAULT_COMPONENTS = {
+        "aerospace": "windshield",
+        "automotive_ev": "battery_cell",
+        "naval": "hull_plating",
+    }
+    default_comp = _DEFAULT_COMPONENTS.get(sector_key, "windshield")
+
+    mappings = []
+    physics = []
+
+    # ── Auto-detect relevant physics from geometry features ──────
+
+    # Thickness detected → structural / mass physics
+    if "est_wall_thickness" in params:
+        t = params["est_wall_thickness"].value
+        if sector_key == "naval":
+            mappings.append(PhysicsMapping("est_wall_thickness", "hull_plating", "plate_thickness", 1.0,
+                                           f"Wall thickness {t:.2f}mm → plate thickness"))
+            physics.append("LinearModel — mass scales with thickness")
+            physics.append("SafetyMargin — structural capacity check")
+        elif sector_key == "aerospace":
+            mappings.append(PhysicsMapping("est_wall_thickness", "windshield", "thermal_conductivity", 0.5,
+                                           f"Wall thickness {t:.2f}mm → thermal conductivity scaling"))
+            physics.append("FourierConduction — heat transfer through wall")
+        elif sector_key == "automotive_ev":
+            mappings.append(PhysicsMapping("est_wall_thickness", "cooling_system", "interface_resistance", 2.0,
+                                           f"Wall thickness {t:.2f}mm → thermal interface resistance"))
+            physics.append("ThermalResistanceToTemp — temperature through wall")
+
+    # Curvature detected → aero/hydro physics
+    if "est_curvature" in params or "max_curvature" in params:
+        curv_key = "est_curvature" if "est_curvature" in params else "max_curvature"
+        if sector_key == "aerospace":
+            mappings.append(PhysicsMapping(curv_key, "windshield", "curvature", 1.0,
+                                           "Curvature drives aero drag and structural stress"))
+            physics.append("CurvatureDragEffect — form drag from curvature")
+            physics.append("CurvaturePressureStress — membrane vs bending stress")
+        else:
+            physics.append("Curvature detected — may affect hydrodynamic or structural behavior")
+
+    # Volume detected → sizing / capacity physics
+    if "volume" in params:
+        v = params["volume"].value
+        if sector_key == "automotive_ev":
+            mappings.append(PhysicsMapping("volume", "battery_cell", "nominal_capacity", 0.00018,
+                                           f"Volume {v:.0f}mm³ → capacity estimate"))
+            physics.append("CellEnergy — energy from voltage × capacity")
+        elif sector_key == "aerospace":
+            mappings.append(PhysicsMapping("volume", "battery_pack", "specific_energy", 0.0001,
+                                           f"Volume {v:.0f}mm³ → battery sizing"))
+            physics.append("BatterySizing — mass from capacity and specific energy")
+        elif sector_key == "naval":
+            mappings.append(PhysicsMapping("volume", "hull_plating", "plate_thickness", 0.0001,
+                                           f"Volume {v:.0f}mm³ → structural contribution"))
+
+    # Surface area → thermal physics
+    if "surface_area" in params:
+        sa = params["surface_area"].value
+        if sector_key == "naval":
+            mappings.append(PhysicsMapping("surface_area", "cooling", "cooling_capacity", 0.05,
+                                           f"Surface area {sa:.0f}mm² → heat transfer area"))
+            physics.append("HVACSizing — cooling capacity from heat transfer area")
+        else:
+            physics.append(f"Surface area {sa:.0f}mm² — relevant for thermal analysis")
+
+    # Aspect ratio → structural form
+    if "aspect_ratio" in params:
+        ar = params["aspect_ratio"].value
+        if ar > 5:
+            physics.append(f"High aspect ratio ({ar:.1f}) — beam-like behavior, check bending")
+        elif ar < 1.5:
+            physics.append(f"Low aspect ratio ({ar:.1f}) — plate/shell behavior, check buckling")
+
+    if not physics:
+        physics.append("No specific physics auto-detected — select parameters manually below")
+
+    return PartProfile(
+        part_type="custom",
+        part_label=part_name or "Custom Part",
+        sector=sector_info.get("label", "Unknown"),
+        template_id=template_id,
+        component_id=default_comp,
+        mappings=mappings,
+        physics_models=physics,
+        description=part_description or "Custom part — physics inferred from extracted geometry features.",
+    )
 
 
 def get_sectors():
@@ -283,6 +515,15 @@ def auto_suggest_part(geometry_params, sector_key=None):
     if params.get("est_wall_thickness", 0) < 5 and params.get("surface_area", 0) > 10000:
         if aspect < 3:
             suggestions.append(("automotive_ev", "cooling_plate", 0.5))
+
+    # Thick flat plate → hull plating
+    thickness = params.get("est_wall_thickness", 0)
+    if 5 < thickness < 30 and params.get("surface_area", 0) > 50000:
+        suggestions.append(("naval", "hull_plate", 0.55))
+
+    # Large volume, low aspect → hull section / enclosure
+    if vol > 500000 and aspect < 3:
+        suggestions.append(("naval", "deck_structure", 0.4))
 
     # Long thin shape → wing spar
     if aspect > 8 and vol > 100000:
