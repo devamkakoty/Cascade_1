@@ -122,7 +122,7 @@ with tab_system:
         else:
             st.warning("Please paste a valid Onshape URL (must contain onshape.com).")
 
-    cad_result: CADAnalysisResult | None = None
+    cad_result = None  # type: CADAnalysisResult | None
     if uploaded_cad is not None:
         cad_raw = uploaded_cad.read()
         cad_result = parse_cad_file(uploaded_cad.name, cad_raw)
