@@ -57,6 +57,9 @@ with tab_system:
     from cascade_predict.spec_parser import parse_csv, parse_pdf, parse_text, extract_pdf_text
     from cascade_predict.cad_parser import parse_cad_file, CADAnalysisResult
     from cascade_predict.components.cad_viewer import render_cad_viewer
+    from cascade_predict.part_identifier import (
+        SECTORS, get_sectors, get_parts_for_sector, get_part_profile, auto_suggest_part,
+    )
 
     # ── STEP 1: Upload Documents ─────────────────────────────────────
     st.header("1  Upload Spec / CAD File")
@@ -147,45 +150,105 @@ with tab_system:
                     })
                 st.dataframe(geo_table, use_container_width=True, hide_index=True)
 
-            st.markdown("##### Map CAD Geometry to Cascade Parameters")
-            st.caption("Select which extracted dimensions to feed into the cascade engine.")
-            cad_param_names = [p.name for p in cad_result.parameters if p.category in ("geometry", "curvature")]
-            if cad_param_names:
-                _CAD_TO_CASCADE = {
-                    "length": ("windshield", "curvature"),
-                    "width": ("windshield", "curvature"),
-                    "est_curvature": ("windshield", "curvature"),
-                    "max_curvature": ("windshield", "curvature"),
-                    "volume": ("battery", "capacity_kwh"),
-                    "surface_area": ("battery", "mass_kg"),
-                    "est_wall_thickness": ("windshield", "curvature"),
-                }
-                for pname in cad_param_names[:8]:
-                    p = next(x for x in cad_result.parameters if x.name == pname)
-                    col_name, col_use = st.columns([3, 1])
-                    col_name.markdown(f"**{pname.replace('_', ' ').title()}**: {p.value:.4f} {p.unit}")
-                    if col_use.checkbox("Use", key=f"cad_map_{pname}", value=False):
-                        from cascade_predict.spec_parser import ParameterOverride
-                        default = _CAD_TO_CASCADE.get(pname, ("", ""))
-                        doc_overrides.append(ParameterOverride(
-                            component_id=default[0] or "custom",
-                            property_name=default[1] or pname,
-                            value=p.value,
-                            unit=p.unit,
-                            source=f"CAD: {uploaded_cad.name}",
-                        ))
-            st.success("CAD geometry extracted. Proceed to Step 2 below to configure and run the cascade.")
-
     # Show guidance if nothing uploaded yet
     if uploaded_spec is None and uploaded_cad is None and not _has_onshape:
-        st.info("Upload a spec document, a CAD file (STL/STEP), or paste an Onshape URL above to get started. You can also skip to Step 2 and select a preset scenario.")
+        st.info("Upload a spec document, a CAD file (STL/STEP), or paste an Onshape URL above to get started. You can also skip directly to Step 3.")
 
-    # ── STEP 2: Template & Component Selection ───────────────────────
+    # ── STEP 2: Identify Part ────────────────────────────────────────
     st.markdown("---")
-    st.header("2  Select System & Component")
+    st.header("2  Identify Your Part")
+
+    # Auto-suggest if CAD was uploaded
+    _suggestion = None
+    if cad_result and cad_result.parameters:
+        _suggestion = auto_suggest_part(cad_result.parameters)
+
+    sector_options = get_sectors()
+    default_sector_idx = 0
+    if _suggestion:
+        for i, (k, _) in enumerate(sector_options):
+            if k == _suggestion[0]:
+                default_sector_idx = i
+                break
+
+    col_sector, col_part = st.columns(2)
+    with col_sector:
+        selected_sector = st.selectbox(
+            "Sector / Industry",
+            [k for k, _ in sector_options],
+            format_func=lambda x: dict(sector_options)[x],
+            index=default_sector_idx,
+            key="sector_select",
+        )
+
+    part_options = get_parts_for_sector(selected_sector)
+    default_part_idx = 0
+    if _suggestion and _suggestion[0] == selected_sector:
+        for i, (k, _) in enumerate(part_options):
+            if k == _suggestion[1]:
+                default_part_idx = i
+                break
+
+    with col_part:
+        selected_part = st.selectbox(
+            "Part Type",
+            [k for k, _ in part_options],
+            format_func=lambda x: dict(part_options)[x],
+            index=default_part_idx,
+            key="part_select",
+        )
+
+    part_profile = get_part_profile(selected_sector, selected_part)
+
+    if _suggestion and _suggestion[0] == selected_sector and _suggestion[1] == selected_part:
+        st.success(f"Auto-detected: **{part_profile.part_label}** (confidence: {_suggestion[2]:.0%})")
+
+    # Show part info and physics
+    if part_profile:
+        st.markdown(f"*{part_profile.description}*")
+
+        with st.expander("Physics Models Triggered", expanded=True):
+            for pm in part_profile.physics_models:
+                st.markdown(f"- {pm}")
+
+        # Map CAD geometry → cascade parameters
+        if cad_result and cad_result.parameters and part_profile.mappings:
+            st.markdown("##### Geometry to Cascade Mapping")
+            cad_params = {p.name: p for p in cad_result.parameters}
+            for mapping in part_profile.mappings:
+                if mapping.cad_param in cad_params:
+                    p = cad_params[mapping.cad_param]
+                    mapped_value = p.value * mapping.unit_conversion
+                    col_info, col_use = st.columns([4, 1])
+                    col_info.markdown(
+                        f"**{mapping.cad_param.replace('_', ' ').title()}** "
+                        f"({p.value:.4f} {p.unit}) → "
+                        f"`{mapping.component_id}.{mapping.property_name}` = **{mapped_value:.4f}**  \n"
+                        f"_{mapping.description}_"
+                    )
+                    if col_use.checkbox("Use", key=f"partmap_{mapping.cad_param}", value=True):
+                        from cascade_predict.spec_parser import ParameterOverride
+                        doc_overrides.append(ParameterOverride(
+                            component_id=mapping.component_id,
+                            property_name=mapping.property_name,
+                            value=mapped_value,
+                            unit="",
+                            source=f"CAD: {mapping.cad_param}",
+                        ))
+
+    # ── STEP 3: Template & Component Selection ───────────────────────
+    st.markdown("---")
+    st.header("3  Configure Cascade")
 
     all_templates = list_templates()
     template_names = {t.template_id: f"{t.name} ({t.industry})" for t in all_templates}
+
+    # Auto-select template from part profile
+    default_tmpl_idx = 0
+    if part_profile:
+        tmpl_keys = list(template_names.keys())
+        if part_profile.template_id in tmpl_keys:
+            default_tmpl_idx = tmpl_keys.index(part_profile.template_id)
 
     col_tmpl, col_comp = st.columns(2)
     with col_tmpl:
@@ -193,17 +256,25 @@ with tab_system:
             "System Template",
             list(template_names.keys()),
             format_func=lambda x: template_names[x],
+            index=default_tmpl_idx,
             key="tmpl_select",
         )
     tmpl = get_template(selected_template_id)
     graph, components, constraints = tmpl.build()
 
+    # Auto-select component from part profile
+    comp_names = {cid: c.name for cid, c in components.items()}
+    default_comp_idx = 0
+    if part_profile and part_profile.component_id in comp_names:
+        comp_keys = list(comp_names.keys())
+        default_comp_idx = comp_keys.index(part_profile.component_id)
+
     with col_comp:
-        comp_names = {cid: c.name for cid, c in components.items()}
         selected_comp_id = st.selectbox(
             "Component",
             list(comp_names.keys()),
             format_func=lambda x: comp_names[x],
+            index=default_comp_idx,
         )
     comp = components[selected_comp_id]
 
@@ -320,7 +391,7 @@ with tab_system:
 
     # ── Propagate Button ─────────────────────────────────────────────
     st.markdown("---")
-    st.header("3  Run Cascade")
+    st.header("4  Run Cascade")
     if selected_prop:
         prop_obj = editable_props.get(selected_prop)
         if prop_obj and new_value is not None and abs(new_value - prop_obj.value) > 1e-10:
