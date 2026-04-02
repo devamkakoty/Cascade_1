@@ -2,16 +2,13 @@
 Spec document parser — extract component parameters from uploaded files.
 
 Supports:
-  - CSV: structured component specs (component, property, value, unit)
-  - PDF: text extraction with regex-based parameter detection
-  - Plain text: same regex extraction as PDF
-  - Onshape URL: stores link for CAD viewer embedding
-
-The parser returns a list of ParameterOverride objects that can be
-applied to any template's component properties before cascade analysis.
+  - CSV: structured table with component/property/value columns
+  - PDF: text extraction → regex-based parameter detection
+  - Plain text: regex-based parameter detection
 """
 
 from __future__ import annotations
+
 import csv
 import io
 import re
@@ -20,164 +17,110 @@ from dataclasses import dataclass
 
 @dataclass
 class ParameterOverride:
-    """A single parameter value extracted from an uploaded document."""
-
+    """A single parameter extracted from an uploaded document."""
     component_id: str
     property_name: str
     value: float
     unit: str = ""
     source: str = "uploaded document"
-    confidence: str = "high"  # high (CSV exact), medium (PDF regex), low (guessed)
 
 
-def parse_csv(content: str | bytes) -> list[ParameterOverride]:
-    """Parse a CSV file with columns: component, property, value, unit.
+# ── Known parameter patterns for free-text / PDF extraction ──────────
+# Maps regex pattern → (component_id, property_name)
+_KNOWN_PARAMS: list[tuple[str, str, str]] = [
+    # Aircraft
+    (r"battery\s+capacity[\s:=]+([0-9.]+)\s*(kWh|kwh)?", "battery", "capacity_kwh"),
+    (r"battery\s+mass[\s:=]+([0-9.]+)\s*(kg)?", "battery", "mass_kg"),
+    (r"battery\s+c[\s_-]?rate[\s:=]+([0-9.]+)", "battery", "c_rate"),
+    (r"windshield\s+curvature[\s:=]+([0-9.]+)\s*(1/m|m\^-1)?", "windshield", "curvature"),
+    (r"cabin\s+temp(?:erature)?[\s:=]+([0-9.]+)\s*(K|°?C)?", "cabin", "temperature"),
+    (r"cruise\s+(?:l/d|lift.to.drag)[\s:=]+([0-9.]+)", "wing", "cruise_ld"),
+    (r"mtow[\s:=]+([0-9.]+)\s*(kg)?", "airframe", "mtow_kg"),
+    (r"range[\s:=]+([0-9.]+)\s*(km|nm)?", "mission", "range_km"),
+    # EV / Battery
+    (r"cell\s+capacity[\s:=]+([0-9.]+)\s*(Ah|ah)?", "cell", "capacity_ah"),
+    (r"cell\s+resistance[\s:=]+([0-9.]+)\s*(mOhm|mohm|ohm)?", "cell", "internal_resistance"),
+    (r"pack\s+voltage[\s:=]+([0-9.]+)\s*(V|v)?", "pack", "voltage"),
+    (r"coolant\s+flow[\s:=]+([0-9.]+)\s*(L/min|l/min)?", "cooling", "flow_rate"),
+]
 
-    Accepts flexible column names (case-insensitive, partial match).
-    """
-    if isinstance(content, bytes):
-        content = content.decode("utf-8", errors="replace")
 
-    overrides = []
-    reader = csv.DictReader(io.StringIO(content))
+def parse_csv(file_content: bytes | str) -> list[ParameterOverride]:
+    """Parse a CSV with flexible column matching."""
+    if isinstance(file_content, bytes):
+        file_content = file_content.decode("utf-8", errors="replace")
 
+    reader = csv.DictReader(io.StringIO(file_content))
     if reader.fieldnames is None:
-        return overrides
+        return []
 
-    # Flexible column mapping
+    # Normalize column names for flexible matching
     col_map = {}
     for col in reader.fieldnames:
-        cl = col.strip().lower()
-        if "component" in cl or "part" in cl:
+        lower = col.strip().lower()
+        if lower in ("component", "component_id", "part", "subsystem"):
             col_map["component"] = col
-        elif "property" in cl or "param" in cl or "name" in cl:
+        elif lower in ("property", "property_name", "param", "parameter", "name"):
             col_map["property"] = col
-        elif "value" in cl or "val" in cl:
+        elif lower in ("value", "val", "amount"):
             col_map["value"] = col
-        elif "unit" in cl:
+        elif lower in ("unit", "units", "uom"):
             col_map["unit"] = col
 
-    if "component" not in col_map or "value" not in col_map:
-        return overrides
+    if not all(k in col_map for k in ("component", "property", "value")):
+        return []
 
+    overrides = []
     for row in reader:
         try:
             comp = row[col_map["component"]].strip()
-            prop = row.get(col_map.get("property", ""), comp).strip()
+            prop = row[col_map["property"]].strip()
             val = float(row[col_map["value"]].strip())
-            unit = row.get(col_map.get("unit", ""), "").strip()
-            if comp and prop:
-                overrides.append(ParameterOverride(
-                    component_id=comp,
-                    property_name=prop,
-                    value=val,
-                    unit=unit,
-                    source="CSV upload",
-                    confidence="high",
-                ))
+            unit = row.get(col_map.get("unit", ""), "").strip() if "unit" in col_map else ""
+            overrides.append(ParameterOverride(
+                component_id=comp, property_name=prop, value=val, unit=unit,
+                source="CSV upload",
+            ))
         except (ValueError, KeyError):
             continue
 
     return overrides
 
 
-def parse_text(content: str | bytes) -> list[ParameterOverride]:
-    """Extract parameter values from plain text or PDF text.
-
-    Uses regex patterns to find lines like:
-      - "thermal_conductivity: 1.4 W/(m·K)"
-      - "mass = 12.0 kg"
-      - "curvature 0.25 1/m"
-      - "MTOW: 6350 kg"
-    """
-    if isinstance(content, bytes):
-        content = content.decode("utf-8", errors="replace")
-
+def parse_text(text: str) -> list[ParameterOverride]:
+    """Extract parameters from free-form text using regex patterns."""
     overrides = []
-
-    # Known parameter patterns (property_name → component mapping)
-    _KNOWN_PARAMS = {
-        "thermal_conductivity": "windshield",
-        "solar_transmittance": "windshield",
-        "curvature": "windshield",
-        "windshield_mass": "windshield",
-        "cooling_capacity": "hvac_unit",
-        "cop": "hvac_unit",
-        "total_capacity": "battery_pack",
-        "specific_energy": "battery_pack",
-        "battery_mass": "battery_pack",
-        "structural_mass": "wing",
-        "wing_area": "wing",
-        "insulation_rvalue": "fuselage",
-        "rated_power": "propulsion_motors",
-        # EV battery
-        "nominal_capacity": "battery_cell",
-        "internal_resistance": "battery_cell",
-        "thermal_runaway_onset": "battery_cell",
-        "interface_resistance": "cooling_system",
-        "chiller_capacity": "cooling_system",
-    }
-
-    # Regex: "property_name" followed by separator then number and optional unit
-    pattern = re.compile(
-        r'(?P<name>[a-z][a-z0-9_]*(?:\s+[a-z]+)*)'
-        r'\s*[:=]\s*'
-        r'(?P<value>[-+]?\d+\.?\d*(?:[eE][-+]?\d+)?)'
-        r'\s*(?P<unit>[^\n,;]*)',
-        re.IGNORECASE
-    )
-
-    for match in pattern.finditer(content):
-        name_raw = match.group("name").strip().lower().replace(" ", "_")
-        try:
-            val = float(match.group("value"))
-        except ValueError:
-            continue
-        unit = match.group("unit").strip().rstrip(".,;")
-
-        # Try to match to a known parameter
-        comp_id = _KNOWN_PARAMS.get(name_raw, "")
-        if not comp_id:
-            # Fuzzy match: check if any known param is a substring
-            for known, comp in _KNOWN_PARAMS.items():
-                if known in name_raw or name_raw in known:
-                    comp_id = comp
-                    name_raw = known
-                    break
-
-        if comp_id:
-            overrides.append(ParameterOverride(
-                component_id=comp_id,
-                property_name=name_raw,
-                value=val,
-                unit=unit,
-                source="text extraction",
-                confidence="medium",
-            ))
-
+    for pattern, comp_id, prop_name in _KNOWN_PARAMS:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            try:
+                val = float(match.group(1))
+                unit = match.group(2) if match.lastindex >= 2 and match.group(2) else ""
+                overrides.append(ParameterOverride(
+                    component_id=comp_id, property_name=prop_name,
+                    value=val, unit=unit or "", source="text extraction",
+                ))
+            except (ValueError, IndexError):
+                continue
     return overrides
 
 
-def parse_pdf(file_bytes: bytes) -> list[ParameterOverride]:
-    """Extract text from a PDF and parse parameters."""
-    try:
-        from pypdf import PdfReader
-        reader = PdfReader(io.BytesIO(file_bytes))
-        text = "\n".join(page.extract_text() or "" for page in reader.pages)
-        return parse_text(text)
-    except ImportError:
-        return []
-    except Exception:
-        return []
+def parse_pdf(file_content: bytes) -> list[ParameterOverride]:
+    """Extract text from PDF then parse for parameters."""
+    text = extract_pdf_text(file_content)
+    return parse_text(text)
 
 
-def extract_pdf_text(file_bytes: bytes) -> str:
-    """Extract raw text from PDF for display."""
+def extract_pdf_text(file_content: bytes) -> str:
+    """Raw text extraction from PDF bytes."""
     try:
         from pypdf import PdfReader
-        reader = PdfReader(io.BytesIO(file_bytes))
-        return "\n\n".join(page.extract_text() or "" for page in reader.pages)
+        reader = PdfReader(io.BytesIO(file_content))
+        pages = []
+        for page in reader.pages:
+            pages.append(page.extract_text() or "")
+        return "\n".join(pages)
     except ImportError:
-        return "(pypdf not installed — run: pip install pypdf)"
+        return "[pypdf not installed — install with: pip install pypdf]"
     except Exception as e:
-        return f"(PDF extraction failed: {e})"
+        return f"[PDF read error: {e}]"
