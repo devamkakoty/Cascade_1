@@ -99,6 +99,17 @@ with tab_system:
             type=["stl", "step", "stp"],
             key="cad_upload",
         )
+        onshape_url = st.text_input(
+            "Or paste an Onshape URL",
+            placeholder="https://cad.onshape.com/documents/...",
+            key="onshape_url_input",
+        )
+
+    # --- Onshape embed ---
+    if onshape_url and onshape_url.strip().startswith("https://cad.onshape.com/"):
+        st.markdown("---")
+        st.subheader("Onshape CAD Viewer")
+        st_components.iframe(onshape_url.strip(), height=500, scrolling=True)
 
     cad_result: CADAnalysisResult | None = None
     if uploaded_cad is not None:
