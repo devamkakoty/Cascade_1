@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin: 0; overflow: hidden; background: #1a1a2e; }
+  #canvas-container { width: 100%; height: 100vh; }
+  #info-overlay {
+    position: absolute; top: 10px; left: 10px;
+    color: #ccc; font-family: monospace; font-size: 12px;
+    background: rgba(0,0,0,0.6); padding: 8px 12px; border-radius: 6px;
+    pointer-events: none;
+  }
+  #controls {
+    position: absolute; bottom: 10px; left: 10px;
+    display: flex; gap: 8px;
+  }
+  #controls button {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    color: #fff; padding: 6px 14px; border-radius: 4px; cursor: pointer;
+    font-size: 12px;
+  }
+  #controls button:hover { background: rgba(255,255,255,0.25); }
+</style>
+</head>
+<body>
+<div id="canvas-container"></div>
+<div id="info-overlay">Drag to rotate | Scroll to zoom | Right-drag to pan</div>
+<div id="controls">
+  <button onclick="resetCamera()">Reset View</button>
+  <button onclick="toggleWireframe()">Wireframe</button>
+  <button onclick="toggleAxes()">Axes</button>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+
+let scene, camera, renderer, controls, mesh, wireframeMode = false, axesHelper;
+
+function init() {
+  const container = document.getElementById('canvas-container');
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x1a1a2e);
+
+  camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 10000);
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  container.appendChild(renderer.domElement);
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0x404060, 1.5);
+  scene.add(ambient);
+  const dir1 = new THREE.DirectionalLight(0xffffff, 1.2);
+  dir1.position.set(5, 10, 7);
+  scene.add(dir1);
+  const dir2 = new THREE.DirectionalLight(0x8888ff, 0.6);
+  dir2.position.set(-5, -3, -5);
+  scene.add(dir2);
+
+  // Grid
+  const grid = new THREE.GridHelper(200, 20, 0x444466, 0x333355);
+  scene.add(grid);
+
+  // Axes (hidden by default)
+  axesHelper = new THREE.AxesHelper(50);
+  axesHelper.visible = false;
+  scene.add(axesHelper);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+
+  window.addEventListener('resize', onResize);
+  animate();
+  listenForData();
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+function onResize() {
+  const container = document.getElementById('canvas-container');
+  camera.aspect = container.clientWidth / container.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(container.clientWidth, container.clientHeight);
+}
+
+function loadSTLFromArrayBuffer(buffer) {
+  if (mesh) scene.remove(mesh);
+
+  const loader = new STLLoader();
+  const geometry = loader.parse(buffer);
+  geometry.computeVertexNormals();
+
+  const material = new THREE.MeshPhongMaterial({
+    color: 0x4488cc,
+    specular: 0x222244,
+    shininess: 60,
+    flatShading: false,
+    side: THREE.DoubleSide,
+  });
+
+  mesh = new THREE.Mesh(geometry, material);
+  scene.add(mesh);
+
+  // Center and fit
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox;
+  const center = new THREE.Vector3();
+  box.getCenter(center);
+  mesh.position.sub(center);
+
+  const size = new THREE.Vector3();
+  box.getSize(size);
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const dist = maxDim * 1.8;
+  camera.position.set(dist * 0.7, dist * 0.5, dist * 0.7);
+  controls.target.set(0, 0, 0);
+  controls.update();
+
+  // Update info
+  const info = document.getElementById('info-overlay');
+  const nTris = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
+  info.textContent = `Triangles: ${Math.round(nTris).toLocaleString()} | ` +
+    `Size: ${size.x.toFixed(1)} x ${size.y.toFixed(1)} x ${size.z.toFixed(1)} mm | ` +
+    `Drag to rotate | Scroll to zoom`;
+}
+
+function loadPointCloud(points) {
+  if (mesh) scene.remove(mesh);
+
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(points.flat());
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+  const material = new THREE.PointsMaterial({ color: 0x44aaff, size: 2, sizeAttenuation: true });
+  mesh = new THREE.Points(geometry, material);
+  scene.add(mesh);
+
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox;
+  const center = new THREE.Vector3();
+  box.getCenter(center);
+  mesh.position.sub(center);
+
+  const size = new THREE.Vector3();
+  box.getSize(size);
+  const maxDim = Math.max(size.x, size.y, size.z);
+  camera.position.set(maxDim, maxDim * 0.7, maxDim);
+  controls.target.set(0, 0, 0);
+  controls.update();
+
+  const info = document.getElementById('info-overlay');
+  info.textContent = `Points: ${(points.length).toLocaleString()} | ` +
+    `Size: ${size.x.toFixed(1)} x ${size.y.toFixed(1)} x ${size.z.toFixed(1)} mm`;
+}
+
+function listenForData() {
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (!data) return;
+
+    if (data.type === 'stl_data') {
+      // Base64-encoded STL binary
+      const binary = atob(data.payload);
+      const buffer = new ArrayBuffer(binary.length);
+      const view = new Uint8Array(buffer);
+      for (let i = 0; i < binary.length; i++) view[i] = binary.charCodeAt(i);
+      loadSTLFromArrayBuffer(buffer);
+    } else if (data.type === 'point_cloud') {
+      loadPointCloud(data.points);
+    }
+  });
+
+  // Also check for data passed via Streamlit component
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'viewer_ready' }, '*');
+  }
+}
+
+// Global controls
+window.resetCamera = function() {
+  if (mesh && mesh.geometry.boundingBox) {
+    const size = new THREE.Vector3();
+    mesh.geometry.boundingBox.getSize(size);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    camera.position.set(maxDim * 0.7, maxDim * 0.5, maxDim * 0.7);
+    controls.target.set(0, 0, 0);
+    controls.update();
+  }
+};
+
+window.toggleWireframe = function() {
+  if (mesh && mesh.material) {
+    wireframeMode = !wireframeMode;
+    mesh.material.wireframe = wireframeMode;
+  }
+};
+
+window.toggleAxes = function() {
+  if (axesHelper) axesHelper.visible = !axesHelper.visible;
+};
+
+init();
+</script>
+</body>
+</html>

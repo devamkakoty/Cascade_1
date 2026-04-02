@@ -55,18 +55,26 @@ with tab_system:
     from cascade_predict.templates import list_templates, get_template, get_failure_db
     from cascade_predict.graph import CascadeEngine
     from cascade_predict.spec_parser import parse_csv, parse_pdf, parse_text, extract_pdf_text
+    from cascade_predict.cad_parser import parse_cad_file, CADAnalysisResult
+    from cascade_predict.components.cad_viewer import render_cad_viewer
 
     # ── STEP 1: Upload Documents ─────────────────────────────────────
-    st.header("1  Upload Spec Document")
-    uploaded_file = st.file_uploader(
-        "Drop a CSV, PDF, or text file with component specs",
-        type=["csv", "pdf", "txt", "text"],
-        key="spec_upload",
-    )
+    st.header("1  Upload Spec / CAD File")
+
+    upload_col1, upload_col2 = st.columns(2)
+
+    # --- Spec document upload ---
+    with upload_col1:
+        st.subheader("Spec Document")
+        uploaded_spec = st.file_uploader(
+            "CSV, PDF, or text with component specs",
+            type=["csv", "pdf", "txt", "text"],
+            key="spec_upload",
+        )
     doc_overrides = []
-    if uploaded_file is not None:
-        raw = uploaded_file.read()
-        fname = uploaded_file.name.lower()
+    if uploaded_spec is not None:
+        raw = uploaded_spec.read()
+        fname = uploaded_spec.name.lower()
         if fname.endswith(".csv"):
             doc_overrides = parse_csv(raw)
         elif fname.endswith(".pdf"):
@@ -77,11 +85,76 @@ with tab_system:
             doc_overrides = parse_text(raw.decode("utf-8", errors="replace"))
 
         if doc_overrides:
-            st.success(f"Extracted **{len(doc_overrides)}** parameter(s) from uploaded file.")
+            st.success(f"Extracted **{len(doc_overrides)}** parameter(s) from spec file.")
             for ov in doc_overrides:
                 st.markdown(f"- `{ov.component_id}.{ov.property_name}` = **{ov.value}** {ov.unit}")
         else:
-            st.warning("No parameters detected. Check file format.")
+            st.info("No parameters auto-detected from spec. You can still select manually below.")
+
+    # --- CAD file upload ---
+    with upload_col2:
+        st.subheader("CAD / 3D Model")
+        uploaded_cad = st.file_uploader(
+            "STL or STEP/STP file",
+            type=["stl", "step", "stp"],
+            key="cad_upload",
+        )
+
+    cad_result: CADAnalysisResult | None = None
+    if uploaded_cad is not None:
+        cad_raw = uploaded_cad.read()
+        cad_result = parse_cad_file(uploaded_cad.name, cad_raw)
+
+        st.markdown("---")
+        st.subheader("3D Model Preview")
+        # Render 3D viewer
+        if cad_result.file_type == "stl" and cad_result.raw_stl_bytes:
+            render_cad_viewer(stl_bytes=cad_result.raw_stl_bytes, height=500)
+        elif cad_result.vertices is not None and len(cad_result.vertices) > 0:
+            render_cad_viewer(vertices=cad_result.vertices, height=500)
+
+        # Show extracted parameters
+        if cad_result.parameters:
+            with st.expander(f"Extracted Geometry ({len(cad_result.parameters)} parameters)", expanded=True):
+                geo_table = []
+                for p in cad_result.parameters:
+                    geo_table.append({
+                        "Parameter": p.name.replace("_", " ").title(),
+                        "Value": f"{p.value:.4f}" if isinstance(p.value, float) and p.value != int(p.value) else f"{p.value:.1f}",
+                        "Unit": p.unit,
+                        "Category": p.category,
+                        "Description": p.description,
+                    })
+                st.dataframe(geo_table, use_container_width=True, hide_index=True)
+
+            # Let user map CAD parameters to cascade inputs
+            st.markdown("##### Map CAD Geometry to Cascade Parameters")
+            st.caption("Select which extracted dimensions to feed into the cascade engine.")
+            cad_param_names = [p.name for p in cad_result.parameters if p.category in ("geometry", "curvature")]
+            if cad_param_names:
+                _CAD_TO_CASCADE = {
+                    "length": ("windshield", "curvature"),
+                    "width": ("windshield", "curvature"),
+                    "est_curvature": ("windshield", "curvature"),
+                    "max_curvature": ("windshield", "curvature"),
+                    "volume": ("battery", "capacity_kwh"),
+                    "surface_area": ("battery", "mass_kg"),
+                    "est_wall_thickness": ("windshield", "curvature"),
+                }
+                for pname in cad_param_names[:8]:  # limit display
+                    p = next(x for x in cad_result.parameters if x.name == pname)
+                    col_name, col_use = st.columns([3, 1])
+                    col_name.markdown(f"**{pname.replace('_', ' ').title()}**: {p.value:.4f} {p.unit}")
+                    if col_use.checkbox("Use", key=f"cad_map_{pname}", value=False):
+                        from cascade_predict.spec_parser import ParameterOverride
+                        default = _CAD_TO_CASCADE.get(pname, ("", ""))
+                        doc_overrides.append(ParameterOverride(
+                            component_id=default[0] or "custom",
+                            property_name=default[1] or pname,
+                            value=p.value,
+                            unit=p.unit,
+                            source=f"CAD: {uploaded_cad.name}",
+                        ))
 
     # ── STEP 2: Template & Component Selection ───────────────────────
     st.header("2  Select System & Component")
