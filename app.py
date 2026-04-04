@@ -288,19 +288,69 @@ with tab_system:
 
     # Auto-select component from part profile
     comp_names = {cid: c.name for cid, c in components.items()}
+    # Add "Unknown / Custom" option
+    comp_names_with_custom = dict(comp_names)
+    comp_names_with_custom["_custom"] = "Unknown / Custom Component"
     default_comp_idx = 0
     if part_profile and part_profile.component_id in comp_names:
-        comp_keys = list(comp_names.keys())
+        comp_keys = list(comp_names_with_custom.keys())
         default_comp_idx = comp_keys.index(part_profile.component_id)
 
     with col_comp:
         selected_comp_id = st.selectbox(
             "Component",
-            list(comp_names.keys()),
-            format_func=lambda x: comp_names[x],
+            list(comp_names_with_custom.keys()),
+            format_func=lambda x: comp_names_with_custom[x],
             index=default_comp_idx,
         )
-    comp = components[selected_comp_id]
+
+    # Handle custom component
+    if selected_comp_id == "_custom":
+        from cascade_predict.subsystems.component import Component as CompClass, ComponentProperty
+        st.markdown("##### Define Custom Component")
+        col_ccomp_name, col_ccomp_sub = st.columns(2)
+        with col_ccomp_name:
+            custom_comp_name = st.text_input("Component name", placeholder="e.g. Sonar Dome", key="custom_comp_name")
+        with col_ccomp_sub:
+            # Let user pick which subsystem/graph node to attach to
+            graph_node_ids = sorted([nid for nid in graph.nodes.keys()
+                                      if nid not in {"material_cost", "manufacturing_cost", "tooling_cost",
+                                                      "total_cost_delta", "manufacturing_lead_time",
+                                                      "certification_time", "total_schedule_delta"}])
+            target_node = st.selectbox(
+                "Drives which system parameter?",
+                graph_node_ids,
+                format_func=lambda x: f"{x.replace('_', ' ').title()} ({graph.nodes[x].value:.2f} {graph.nodes[x].unit})",
+                key="custom_target_node",
+            )
+
+        # Build a temporary component with a single editable property
+        node = graph.nodes[target_node]
+        comp = CompClass(
+            component_id="_custom",
+            name=custom_comp_name or "Custom Component",
+            subsystem=node.subsystem,
+            description="User-defined component",
+        )
+        comp.add_property(
+            target_node, node.value, node.unit,
+            graph_node_id=target_node,
+            description=node.description,
+            source="custom",
+        )
+        # Also add any doc_overrides as extra properties
+        for ov in doc_overrides:
+            if ov.property_name in [n for n in graph.nodes]:
+                ovnode = graph.nodes[ov.property_name]
+                comp.add_property(
+                    ov.property_name, ov.value, ov.unit or ovnode.unit,
+                    graph_node_id=ov.property_name,
+                    description=f"From {ov.source}",
+                    source=ov.source,
+                )
+        selected_comp_id = "_custom"
+    else:
+        comp = components[selected_comp_id]
 
     # Failure DB warnings
     failure_db = get_failure_db()
@@ -434,7 +484,19 @@ with tab_system:
     if run_clicked and selected_prop and new_value is not None:
         # Rebuild fresh graph
         graph, components, constraints = tmpl.build()
-        comp = components[selected_comp_id]
+        if selected_comp_id == "_custom":
+            # Rebuild the custom component against the fresh graph
+            node = graph.nodes[target_node]
+            from cascade_predict.subsystems.component import Component as CompClass
+            comp = CompClass("_custom", custom_comp_name or "Custom Component", node.subsystem)
+            comp.add_property(target_node, node.value, node.unit, graph_node_id=target_node, source="custom")
+            for ov in doc_overrides:
+                if ov.property_name in graph.nodes:
+                    ovn = graph.nodes[ov.property_name]
+                    comp.add_property(ov.property_name, ov.value, ov.unit or ovn.unit,
+                                      graph_node_id=ov.property_name, source=ov.source)
+        else:
+            comp = components[selected_comp_id]
 
         # Apply constraint relaxations
         if constraints and _constraint_relaxations:
