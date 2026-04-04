@@ -61,11 +61,12 @@ with tab_system:
         SECTORS, get_sectors, get_parts_for_sector, get_part_profile,
         auto_suggest_part, build_custom_part_profile,
     )
+    from cascade_predict.drawing_reader.parser import parse_drawing, DrawingParseResult
 
     # ── STEP 1: Upload Documents ─────────────────────────────────────
-    st.header("1  Upload Spec / CAD File")
+    st.header("1  Upload Spec / CAD / Drawing")
 
-    upload_col1, upload_col2 = st.columns(2)
+    upload_col1, upload_col2, upload_col3 = st.columns(3)
 
     # --- Spec document upload ---
     with upload_col1:
@@ -108,6 +109,58 @@ with tab_system:
             placeholder="https://cad.onshape.com/documents/...",
             key="onshape_url_input",
         )
+
+    # --- 2D Drawing upload ---
+    with upload_col3:
+        st.subheader("2D Drawing")
+        uploaded_drawing = st.file_uploader(
+            "PNG, JPEG, or PDF engineering drawing",
+            type=["png", "jpg", "jpeg", "tiff", "tif", "bmp", "pdf"],
+            key="drawing_upload",
+        )
+
+    # --- Process 2D Drawing ---
+    drawing_result = None  # type: DrawingParseResult | None
+    if uploaded_drawing is not None:
+        drawing_raw = uploaded_drawing.read()
+        drawing_result = parse_drawing(drawing_raw, uploaded_drawing.name)
+
+        st.markdown("---")
+        st.subheader("2D Drawing Analysis")
+
+        # Show the uploaded image
+        if not uploaded_drawing.name.lower().endswith(".pdf"):
+            st.image(drawing_raw, caption=uploaded_drawing.name, use_container_width=True)
+
+        if drawing_result.dimensions:
+            st.success(f"Extracted **{len(drawing_result.dimensions)}** dimension(s) from drawing.")
+            dim_table = []
+            for d in drawing_result.dimensions:
+                tol_str = ""
+                if d.tolerance_plus != 0 or d.tolerance_minus != 0:
+                    tol_str = f"+{d.tolerance_plus}/{d.tolerance_minus}"
+                dim_table.append({
+                    "Type": d.dim_type.title(),
+                    "Value": d.value,
+                    "Unit": d.unit,
+                    "Tolerance": tol_str,
+                    "Label": d.label.replace("_", " ").title() if d.label else "",
+                    "Confidence": f"{d.confidence:.0%}",
+                })
+            st.dataframe(dim_table, use_container_width=True, hide_index=True)
+        else:
+            st.info("No dimensions auto-detected. Ensure the drawing has clear dimension callouts.")
+
+        if drawing_result.notes:
+            with st.expander(f"Drawing Notes ({len(drawing_result.notes)})"):
+                for n in drawing_result.notes:
+                    st.markdown(f"- **[{n.category}]** {n.value or n.text} (conf: {n.confidence:.0%})")
+
+        if drawing_result.material:
+            st.info(f"Detected material: **{drawing_result.material}**")
+
+        if not drawing_result.ocr_available:
+            st.warning("OCR (Tesseract) not available. Install `tesseract-ocr` and `pytesseract` for better results.")
 
     # --- Onshape embed ---
     _has_onshape = False
@@ -152,8 +205,8 @@ with tab_system:
                 st.dataframe(geo_table, use_container_width=True, hide_index=True)
 
     # Show guidance if nothing uploaded yet
-    if uploaded_spec is None and uploaded_cad is None and not _has_onshape:
-        st.info("Upload a spec document, a CAD file (STL/STEP), or paste an Onshape URL above to get started. You can also skip directly to Step 3.")
+    if uploaded_spec is None and uploaded_cad is None and uploaded_drawing is None and not _has_onshape:
+        st.info("Upload a spec document, a CAD file (STL/STEP), a 2D drawing, or paste an Onshape URL above to get started. You can also skip directly to Step 3.")
 
     # ── STEP 2: Identify Part ────────────────────────────────────────
     st.markdown("---")
@@ -164,11 +217,21 @@ with tab_system:
     if cad_result and cad_result.parameters:
         _suggestion = auto_suggest_part(cad_result.parameters)
 
+    # Use 2D drawing sector as fallback hint
+    _drawing_sector = None
+    if drawing_result and drawing_result.sector:
+        _drawing_sector = drawing_result.sector
+
     sector_options = get_sectors()
     default_sector_idx = 0
     if _suggestion:
         for i, (k, _) in enumerate(sector_options):
             if k == _suggestion[0]:
+                default_sector_idx = i
+                break
+    elif _drawing_sector:
+        for i, (k, _) in enumerate(sector_options):
+            if k == _drawing_sector:
                 default_sector_idx = i
                 break
 
