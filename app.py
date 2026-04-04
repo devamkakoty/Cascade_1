@@ -327,12 +327,26 @@ with tab_system:
     st.markdown("---")
     st.header("3  Configure Cascade")
 
+    from cascade_predict.graph_assembler import (
+        assemble_graph as auto_assemble_graph,
+        PartGeometry,
+        geometry_from_cad_params,
+        geometry_from_drawing,
+    )
+    from cascade_predict.physics_models.universal import list_materials, lookup_material
+
     all_templates = list_templates()
     template_names = {t.template_id: f"{t.name} ({t.industry})" for t in all_templates}
+    # Add auto-assemble option
+    template_names["_auto"] = "Auto-Assemble from Geometry (no template needed)"
 
-    # Auto-select template from part profile
+    # Auto-select template from part profile, or auto-assemble if geometry available
     default_tmpl_idx = 0
-    if part_profile:
+    _has_geometry = (cad_result and cad_result.parameters) or (drawing_result and drawing_result.dimensions)
+    if _has_geometry and not part_profile:
+        # Default to auto-assemble when we have geometry but no known part
+        default_tmpl_idx = list(template_names.keys()).index("_auto")
+    elif part_profile:
         tmpl_keys = list(template_names.keys())
         if part_profile.template_id in tmpl_keys:
             default_tmpl_idx = tmpl_keys.index(part_profile.template_id)
@@ -346,86 +360,167 @@ with tab_system:
             index=default_tmpl_idx,
             key="tmpl_select",
         )
-    tmpl = get_template(selected_template_id)
-    graph, components, constraints = tmpl.build()
 
-    # Auto-select component from part profile
-    comp_names = {cid: c.name for cid, c in components.items()}
-    # Add "Unknown / Custom" option
-    comp_names_with_custom = dict(comp_names)
-    comp_names_with_custom["_custom"] = "Unknown / Custom Component"
-    default_comp_idx = 0
-    if part_profile and part_profile.component_id in comp_names:
-        comp_keys = list(comp_names_with_custom.keys())
-        default_comp_idx = comp_keys.index(part_profile.component_id)
+    # ── AUTO-ASSEMBLE path ──────────────────────────────────────────
+    _using_auto = selected_template_id == "_auto"
+    if _using_auto:
+        st.info("Auto-assembling cascade graph from geometry + material. No hand-coded template needed.")
 
-    with col_comp:
-        selected_comp_id = st.selectbox(
-            "Component",
-            list(comp_names_with_custom.keys()),
-            format_func=lambda x: comp_names_with_custom[x],
-            index=default_comp_idx,
-        )
+        # Determine geometry
+        _geo = PartGeometry()
+        if cad_result and cad_result.parameters:
+            _geo = geometry_from_cad_params(cad_result.parameters)
+        elif drawing_result and drawing_result.dimensions:
+            _geo = geometry_from_drawing(drawing_result.dimensions)
 
-    # Handle custom component
-    if selected_comp_id == "_custom":
-        from cascade_predict.subsystems.component import Component as CompClass, ComponentProperty
-        st.markdown("##### Define Custom Component")
-        col_ccomp_name, col_ccomp_sub = st.columns(2)
-        with col_ccomp_name:
-            custom_comp_name = st.text_input("Component name", placeholder="e.g. Sonar Dome", key="custom_comp_name")
-        with col_ccomp_sub:
-            # Let user pick which subsystem/graph node to attach to
-            graph_node_ids = sorted([nid for nid in graph.nodes.keys()
-                                      if nid not in {"material_cost", "manufacturing_cost", "tooling_cost",
-                                                      "total_cost_delta", "manufacturing_lead_time",
-                                                      "certification_time", "total_schedule_delta"}])
-            target_node = st.selectbox(
-                "Drives which system parameter?",
-                graph_node_ids,
-                format_func=lambda x: f"{x.replace('_', ' ').title()} ({graph.nodes[x].value:.2f} {graph.nodes[x].unit})",
-                key="custom_target_node",
+        # Material selection
+        _materials = list_materials()
+        _mat_names = {k: f"{display} (ρ={dens} kg/m³)" for k, display, dens in _materials}
+
+        # Try to auto-detect material from drawing
+        _default_mat_idx = 0
+        if drawing_result and drawing_result.material:
+            _detected_mat = lookup_material(drawing_result.material)
+            if _detected_mat:
+                for i, (k, _, _) in enumerate(_materials):
+                    if lookup_material(k) == _detected_mat:
+                        _default_mat_idx = i
+                        break
+
+        col_mat, col_perf = st.columns(2)
+        with col_mat:
+            _sel_mat = st.selectbox(
+                "Material",
+                list(_mat_names.keys()),
+                format_func=lambda x: _mat_names[x],
+                index=_default_mat_idx,
+                key="auto_material",
+            )
+        with col_perf:
+            _part_name = st.text_input(
+                "Part name",
+                value=part_profile.part_label if part_profile else "Part",
+                key="auto_part_name",
             )
 
-        # Build a temporary component with a single editable property
-        node = graph.nodes[target_node]
-        comp = CompClass(
-            component_id="_custom",
-            name=custom_comp_name or "Custom Component",
-            subsystem=node.subsystem,
-            description="User-defined component",
-        )
-        comp.add_property(
-            target_node, node.value, node.unit,
-            graph_node_id=target_node,
-            description=node.description,
-            source="custom",
-        )
-        # Also add any doc_overrides as extra properties
-        for ov in doc_overrides:
-            if ov.property_name in [n for n in graph.nodes]:
-                ovnode = graph.nodes[ov.property_name]
-                comp.add_property(
-                    ov.property_name, ov.value, ov.unit or ovnode.unit,
-                    graph_node_id=ov.property_name,
-                    description=f"From {ov.source}",
-                    source=ov.source,
-                )
-        selected_comp_id = "_custom"
-    else:
-        comp = components[selected_comp_id]
+        # Optional: power/range context
+        with st.expander("Performance Context (optional)", expanded=False):
+            _col_pw, _col_sp, _col_rg = st.columns(3)
+            with _col_pw:
+                _power_kw = st.number_input("System power (kW)", value=0.0, min_value=0.0, key="auto_power")
+            with _col_sp:
+                _speed_ms = st.number_input("Operating speed (m/s)", value=0.0, min_value=0.0, key="auto_speed")
+            with _col_rg:
+                _range_km = st.number_input("Baseline range (km)", value=0.0, min_value=0.0, key="auto_range")
 
-    # Failure DB warnings
-    failure_db = get_failure_db()
-    comp_props = {p.name: p.value for p in comp.properties.values()}
-    comp_warnings = failure_db.check_component(
-        component_type=selected_comp_id,
-        subsystem=comp.subsystem,
-        properties=comp_props,
-        product_type=tmpl.industry.lower(),
-        tags=[selected_comp_id, comp.subsystem],
-    )
-    if comp_warnings:
+        # Assemble
+        _assembled = auto_assemble_graph(
+            geometry=_geo,
+            material_key=_sel_mat,
+            sector=selected_sector,
+            part_name=_part_name,
+            has_power_system=_power_kw > 0,
+            power_kw=_power_kw,
+            speed_m_s=_speed_ms,
+            baseline_range=_range_km,
+        )
+        graph = _assembled.graph
+        components = {c.component_id: c for c in _assembled.components}
+        constraints = _assembled.constraints
+
+        with st.expander("Auto-Assembled Graph Summary", expanded=True):
+            st.text(_assembled.summary)
+            st.markdown(f"**Subsystems:** {', '.join(graph.subsystems())}")
+            st.markdown(f"**Nodes:** {len(graph.nodes)} | **Edges:** {len(graph.edges)}")
+
+        # Skip to property selection (no component/template choice needed)
+        comp = _assembled.components[0]
+        selected_comp_id = comp.component_id
+        tmpl = None  # no template object for auto-assembled
+
+    else:
+        # ── TEMPLATE path (existing behavior) ──────────────────────
+        tmpl = get_template(selected_template_id)
+        graph, components, constraints = tmpl.build()
+
+    if not _using_auto:
+      # Auto-select component from part profile
+      comp_names = {cid: c.name for cid, c in components.items()}
+      # Add "Unknown / Custom" option
+      comp_names_with_custom = dict(comp_names)
+      comp_names_with_custom["_custom"] = "Unknown / Custom Component"
+      default_comp_idx = 0
+      if part_profile and part_profile.component_id in comp_names:
+          comp_keys = list(comp_names_with_custom.keys())
+          default_comp_idx = comp_keys.index(part_profile.component_id)
+
+      with col_comp:
+          selected_comp_id = st.selectbox(
+              "Component",
+              list(comp_names_with_custom.keys()),
+              format_func=lambda x: comp_names_with_custom[x],
+              index=default_comp_idx,
+          )
+
+      # Handle custom component
+      if selected_comp_id == "_custom":
+          from cascade_predict.subsystems.component import Component as CompClass, ComponentProperty
+          st.markdown("##### Define Custom Component")
+          col_ccomp_name, col_ccomp_sub = st.columns(2)
+          with col_ccomp_name:
+              custom_comp_name = st.text_input("Component name", placeholder="e.g. Sonar Dome", key="custom_comp_name")
+          with col_ccomp_sub:
+              # Let user pick which subsystem/graph node to attach to
+              graph_node_ids = sorted([nid for nid in graph.nodes.keys()
+                                        if nid not in {"material_cost", "manufacturing_cost", "tooling_cost",
+                                                        "total_cost_delta", "manufacturing_lead_time",
+                                                        "certification_time", "total_schedule_delta"}])
+              target_node = st.selectbox(
+                  "Drives which system parameter?",
+                  graph_node_ids,
+                  format_func=lambda x: f"{x.replace('_', ' ').title()} ({graph.nodes[x].value:.2f} {graph.nodes[x].unit})",
+                  key="custom_target_node",
+              )
+
+          # Build a temporary component with a single editable property
+          node = graph.nodes[target_node]
+          comp = CompClass(
+              component_id="_custom",
+              name=custom_comp_name or "Custom Component",
+              subsystem=node.subsystem,
+              description="User-defined component",
+          )
+          comp.add_property(
+              target_node, node.value, node.unit,
+              graph_node_id=target_node,
+              description=node.description,
+              source="custom",
+          )
+          # Also add any doc_overrides as extra properties
+          for ov in doc_overrides:
+              if ov.property_name in [n for n in graph.nodes]:
+                  ovnode = graph.nodes[ov.property_name]
+                  comp.add_property(
+                      ov.property_name, ov.value, ov.unit or ovnode.unit,
+                      graph_node_id=ov.property_name,
+                      description=f"From {ov.source}",
+                      source=ov.source,
+                  )
+          selected_comp_id = "_custom"
+      else:
+          comp = components[selected_comp_id]
+
+      # Failure DB warnings
+      failure_db = get_failure_db()
+      comp_props = {p.name: p.value for p in comp.properties.values()}
+      comp_warnings = failure_db.check_component(
+          component_type=selected_comp_id,
+          subsystem=comp.subsystem,
+          properties=comp_props,
+          product_type=tmpl.industry.lower(),
+          tags=[selected_comp_id, comp.subsystem],
+      )
+      if comp_warnings:
         for w in comp_warnings:
             sev = w.failure.severity.value.upper()
             st.warning(
@@ -475,7 +570,7 @@ with tab_system:
                     st_components.iframe(url, height=500, scrolling=True)
 
     # ── Quick Scenarios ──────────────────────────────────────────────
-    if tmpl.presets:
+    if tmpl and tmpl.presets:
         with st.expander("Quick Scenarios", expanded=False):
             preset_names = ["Custom (use controls above)"] + [p["name"] for p in tmpl.presets]
             scenario = st.radio("Try a preset:", preset_names, key="preset_radio")
@@ -546,8 +641,19 @@ with tab_system:
     # ═════════════════════════════════════════════════════════════════
     if run_clicked and selected_prop and new_value is not None:
         # Rebuild fresh graph
-        graph, components, constraints = tmpl.build()
-        if selected_comp_id == "_custom":
+        if _using_auto:
+            _assembled = auto_assemble_graph(
+                geometry=_geo, material_key=_sel_mat, sector=selected_sector,
+                part_name=_part_name, has_power_system=_power_kw > 0,
+                power_kw=_power_kw, speed_m_s=_speed_ms, baseline_range=_range_km,
+            )
+            graph = _assembled.graph
+            components = {c.component_id: c for c in _assembled.components}
+            constraints = _assembled.constraints
+            comp = _assembled.components[0]
+        else:
+            graph, components, constraints = tmpl.build()
+        if not _using_auto and selected_comp_id == "_custom":
             # Rebuild the custom component against the fresh graph
             node = graph.nodes[target_node]
             from cascade_predict.subsystems.component import Component as CompClass
@@ -731,7 +837,7 @@ with tab_system:
                 cascade_warnings = failure_db.check_cascade_result(
                     affected_node_ids=result.affected_nodes,
                     violated_node_ids=[v["node_id"] for v in result.violations],
-                    product_type=tmpl.industry.lower(),
+                    product_type=tmpl.industry.lower() if tmpl else selected_sector,
                 )
                 if cascade_warnings:
                     st.subheader("Historic Failure Warnings")
