@@ -357,6 +357,93 @@ SECTORS = {
             ),
         },
     },
+    "robotics": {
+        "label": "Robotics / Automation",
+        "icon": "robot",
+        "template_id": "robotic_arm",
+        "parts": {
+            "arm_link": PartProfile(
+                part_type="arm_link",
+                part_label="Robot Arm Link",
+                sector="Robotics",
+                template_id="robotic_arm",
+                component_id="arm_link",
+                description="Structural arm link — connects joints, carries payload loads. Length and cross-section drive mass, deflection, and natural frequency.",
+                mappings=[
+                    PhysicsMapping("bbox_length", "arm_link", "link1_length", 1.0, "Link length from bounding box"),
+                    PhysicsMapping("est_wall_thickness", "arm_link", "link1_length", 1.0, "Wall thickness for tube section"),
+                ],
+                physics_models=[
+                    "ThicknessToMass — link mass from tube geometry",
+                    "BeamBending — tip deflection (δ ∝ L³/EI)",
+                    "NaturalFrequency — f ∝ √(EI/mL⁴)",
+                    "MassToWeight — gravitational load on joints",
+                ],
+            ),
+            "joint_actuator": PartProfile(
+                part_type="joint_actuator",
+                part_label="Joint Actuator / Servo Motor",
+                sector="Robotics",
+                template_id="robotic_arm",
+                component_id="joint_actuator",
+                description="Servo motor with harmonic drive reducer. Torque capacity drives motor sizing, power consumption, and thermal load.",
+                mappings=[
+                    PhysicsMapping("volume", "joint_actuator", "joint1_rated_torque", 0.001, "Torque estimated from actuator volume"),
+                ],
+                physics_models=[
+                    "TorquePower — P = τ × ω",
+                    "JouleHeating — motor I²R losses",
+                    "ThermalResistance — motor temperature rise",
+                    "MassScaling — motor mass ∝ torque capacity",
+                ],
+            ),
+            "end_effector": PartProfile(
+                part_type="end_effector",
+                part_label="End Effector / Gripper",
+                sector="Robotics",
+                template_id="robotic_arm",
+                component_id="end_effector",
+                description="Gripper or tool at the arm tip. Grip force determines grippable mass and adds to arm payload.",
+                mappings=[
+                    PhysicsMapping("bbox_length", "end_effector", "grip_force", 0.5, "Grip force from size"),
+                ],
+                physics_models=[
+                    "FrictionGrip — m_grip = μ × F / g",
+                    "MassScaling — gripper mass ∝ force",
+                    "PayloadReduction — gripper mass reduces net payload",
+                ],
+            ),
+            "sensor_mount": PartProfile(
+                part_type="sensor_mount",
+                part_label="Sensor / Camera Mount",
+                sector="Robotics",
+                template_id="robotic_arm",
+                component_id="arm_link",
+                description="Sensor or camera bracket mounted on arm. Adds mass at end of arm, affecting deflection and accuracy.",
+                mappings=[
+                    PhysicsMapping("volume", "arm_link", "link2_length", 0.001, "Mount size affects link loading"),
+                ],
+                physics_models=[
+                    "DirectMassSum — added mass at end effector",
+                    "DeflectionScaling — payload deflection",
+                    "AccuracyDegradation — vibration from added mass",
+                ],
+            ),
+            "generic": PartProfile(
+                part_type="generic",
+                part_label="Generic Robotic Component",
+                sector="Robotics",
+                template_id="robotic_arm",
+                component_id="arm_link",
+                description="Unspecified robotic component — map parameters manually.",
+                mappings=[
+                    PhysicsMapping("bbox_length", "arm_link", "link1_length", 1.0, "Length-based"),
+                    PhysicsMapping("volume", "arm_link", "link1_length", 0.001, "Volume-based"),
+                ],
+                physics_models=["Select parameters manually below"],
+            ),
+        },
+    },
 }
 
 
@@ -390,6 +477,7 @@ def build_custom_part_profile(
         "aerospace": "windshield",
         "automotive_ev": "battery_cell",
         "naval": "hull_plating",
+        "robotics": "arm_link",
     }
     default_comp = _DEFAULT_COMPONENTS.get(sector_key, "windshield")
 
@@ -535,6 +623,17 @@ def auto_suggest_part(geometry_params, sector_key=None):
     # Long thin shape → wing spar
     if aspect > 8 and vol > 100000:
         suggestions.append(("aerospace", "wing_spar", 0.5))
+
+    # Small, long cylindrical → robot arm link or actuator
+    if 50 < vol < 500000 and aspect > 3:
+        if thickness and thickness < 5:
+            suggestions.append(("robotics", "arm_link", 0.45))
+        else:
+            suggestions.append(("robotics", "joint_actuator", 0.4))
+
+    # Compact, low volume → gripper / end effector
+    if vol < 50000 and aspect < 2:
+        suggestions.append(("robotics", "end_effector", 0.35))
 
     # Filter by sector if specified
     if sector_key:

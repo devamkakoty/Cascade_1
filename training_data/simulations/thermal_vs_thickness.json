@@ -1,0 +1,818 @@
+{
+  "name": "thermal_vs_thickness",
+  "description": "CFD parametric sweep: temperature rise vs plate thickness and heat load",
+  "source": "synthetic",
+  "input_params": [
+    "thickness_mm",
+    "conductivity",
+    "heat_load_w"
+  ],
+  "output_params": [
+    "temperature_rise_c",
+    "heat_flux_w_m2",
+    "thermal_resistance_k_w"
+  ],
+  "n_points": 50,
+  "points": [
+    {
+      "inputs": {
+        "thickness_mm": 10.9,
+        "conductivity": 5,
+        "heat_load_w": 192.0
+      },
+      "outputs": {
+        "temperature_rise_c": 18.15,
+        "heat_flux_w_m2": 188.8,
+        "thermal_resistance_k_w": 0.102171
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 4.8,
+        "conductivity": 167,
+        "heat_load_w": 2210.0
+      },
+      "outputs": {
+        "temperature_rise_c": 208.68,
+        "heat_flux_w_m2": 2312.6,
+        "thermal_resistance_k_w": 0.100029
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 26.7,
+        "conductivity": 16,
+        "heat_load_w": 3758.0
+      },
+      "outputs": {
+        "temperature_rise_c": 413.67,
+        "heat_flux_w_m2": 3877.4,
+        "thermal_resistance_k_w": 0.101667
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 21.7,
+        "conductivity": 167,
+        "heat_load_w": 9840.0
+      },
+      "outputs": {
+        "temperature_rise_c": 1012.39,
+        "heat_flux_w_m2": 9614.0,
+        "thermal_resistance_k_w": 0.10013
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 20.7,
+        "conductivity": 167,
+        "heat_load_w": 3064.0
+      },
+      "outputs": {
+        "temperature_rise_c": 309.7,
+        "heat_flux_w_m2": 2939.9,
+        "thermal_resistance_k_w": 0.100124
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 5.8,
+        "conductivity": 5,
+        "heat_load_w": 8908.0
+      },
+      "outputs": {
+        "temperature_rise_c": 877.84,
+        "heat_flux_w_m2": 8804.7,
+        "thermal_resistance_k_w": 0.101152
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 9.9,
+        "conductivity": 16,
+        "heat_load_w": 7204.0
+      },
+      "outputs": {
+        "temperature_rise_c": 717.32,
+        "heat_flux_w_m2": 7400.1,
+        "thermal_resistance_k_w": 0.100618
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 9.4,
+        "conductivity": 117,
+        "heat_load_w": 2586.0
+      },
+      "outputs": {
+        "temperature_rise_c": 261.35,
+        "heat_flux_w_m2": 2577.0,
+        "thermal_resistance_k_w": 0.10008
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 19.8,
+        "conductivity": 50,
+        "heat_load_w": 536.0
+      },
+      "outputs": {
+        "temperature_rise_c": 55.54,
+        "heat_flux_w_m2": 541.4,
+        "thermal_resistance_k_w": 0.100395
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 29.4,
+        "conductivity": 16,
+        "heat_load_w": 7438.0
+      },
+      "outputs": {
+        "temperature_rise_c": 701.07,
+        "heat_flux_w_m2": 7388.0,
+        "thermal_resistance_k_w": 0.10184
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 2.3,
+        "conductivity": 5,
+        "heat_load_w": 9456.0
+      },
+      "outputs": {
+        "temperature_rise_c": 980.13,
+        "heat_flux_w_m2": 9355.8,
+        "thermal_resistance_k_w": 0.100454
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 3.0,
+        "conductivity": 50,
+        "heat_load_w": 5867.0
+      },
+      "outputs": {
+        "temperature_rise_c": 596.45,
+        "heat_flux_w_m2": 5916.0,
+        "thermal_resistance_k_w": 0.10006
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 10.6,
+        "conductivity": 5,
+        "heat_load_w": 8999.0
+      },
+      "outputs": {
+        "temperature_rise_c": 881.08,
+        "heat_flux_w_m2": 9131.5,
+        "thermal_resistance_k_w": 0.102126
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 4.9,
+        "conductivity": 167,
+        "heat_load_w": 8853.0
+      },
+      "outputs": {
+        "temperature_rise_c": 812.63,
+        "heat_flux_w_m2": 8989.7,
+        "thermal_resistance_k_w": 0.100029
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 6.3,
+        "conductivity": 16,
+        "heat_load_w": 8660.0
+      },
+      "outputs": {
+        "temperature_rise_c": 918.47,
+        "heat_flux_w_m2": 8612.5,
+        "thermal_resistance_k_w": 0.100395
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 26.7,
+        "conductivity": 5,
+        "heat_load_w": 1876.0
+      },
+      "outputs": {
+        "temperature_rise_c": 217.12,
+        "heat_flux_w_m2": 1845.7,
+        "thermal_resistance_k_w": 0.105336
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 13.5,
+        "conductivity": 401,
+        "heat_load_w": 8654.0
+      },
+      "outputs": {
+        "temperature_rise_c": 909.15,
+        "heat_flux_w_m2": 8527.7,
+        "thermal_resistance_k_w": 0.100034
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 24.0,
+        "conductivity": 5,
+        "heat_load_w": 3887.0
+      },
+      "outputs": {
+        "temperature_rise_c": 402.17,
+        "heat_flux_w_m2": 3908.3,
+        "thermal_resistance_k_w": 0.104809
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 7.6,
+        "conductivity": 117,
+        "heat_load_w": 3562.0
+      },
+      "outputs": {
+        "temperature_rise_c": 383.32,
+        "heat_flux_w_m2": 3431.3,
+        "thermal_resistance_k_w": 0.100065
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 8.2,
+        "conductivity": 401,
+        "heat_load_w": 2012.0
+      },
+      "outputs": {
+        "temperature_rise_c": 204.59,
+        "heat_flux_w_m2": 2082.9,
+        "thermal_resistance_k_w": 0.100021
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 29.1,
+        "conductivity": 50,
+        "heat_load_w": 3576.0
+      },
+      "outputs": {
+        "temperature_rise_c": 331.16,
+        "heat_flux_w_m2": 3570.0,
+        "thermal_resistance_k_w": 0.100581
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 25.6,
+        "conductivity": 50,
+        "heat_load_w": 9398.0
+      },
+      "outputs": {
+        "temperature_rise_c": 1024.5,
+        "heat_flux_w_m2": 9729.1,
+        "thermal_resistance_k_w": 0.100512
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 7.0,
+        "conductivity": 50,
+        "heat_load_w": 479.0
+      },
+      "outputs": {
+        "temperature_rise_c": 48.39,
+        "heat_flux_w_m2": 473.7,
+        "thermal_resistance_k_w": 0.10014
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 24.0,
+        "conductivity": 117,
+        "heat_load_w": 6101.0
+      },
+      "outputs": {
+        "temperature_rise_c": 566.74,
+        "heat_flux_w_m2": 6092.8,
+        "thermal_resistance_k_w": 0.100205
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 18.1,
+        "conductivity": 50,
+        "heat_load_w": 539.0
+      },
+      "outputs": {
+        "temperature_rise_c": 50.63,
+        "heat_flux_w_m2": 544.5,
+        "thermal_resistance_k_w": 0.100363
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 24.6,
+        "conductivity": 401,
+        "heat_load_w": 7222.0
+      },
+      "outputs": {
+        "temperature_rise_c": 702.19,
+        "heat_flux_w_m2": 7007.4,
+        "thermal_resistance_k_w": 0.100061
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 12.2,
+        "conductivity": 5,
+        "heat_load_w": 9494.0
+      },
+      "outputs": {
+        "temperature_rise_c": 990.22,
+        "heat_flux_w_m2": 9367.2,
+        "thermal_resistance_k_w": 0.10244
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 20.6,
+        "conductivity": 5,
+        "heat_load_w": 7226.0
+      },
+      "outputs": {
+        "temperature_rise_c": 783.12,
+        "heat_flux_w_m2": 7343.7,
+        "thermal_resistance_k_w": 0.104115
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 13.4,
+        "conductivity": 117,
+        "heat_load_w": 7002.0
+      },
+      "outputs": {
+        "temperature_rise_c": 714.37,
+        "heat_flux_w_m2": 6971.7,
+        "thermal_resistance_k_w": 0.100115
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 20.6,
+        "conductivity": 117,
+        "heat_load_w": 6805.0
+      },
+      "outputs": {
+        "temperature_rise_c": 739.47,
+        "heat_flux_w_m2": 6697.5,
+        "thermal_resistance_k_w": 0.100176
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 10.4,
+        "conductivity": 167,
+        "heat_load_w": 8354.0
+      },
+      "outputs": {
+        "temperature_rise_c": 795.22,
+        "heat_flux_w_m2": 8462.1,
+        "thermal_resistance_k_w": 0.100062
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 24.0,
+        "conductivity": 167,
+        "heat_load_w": 6582.0
+      },
+      "outputs": {
+        "temperature_rise_c": 609.37,
+        "heat_flux_w_m2": 6612.6,
+        "thermal_resistance_k_w": 0.100144
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 8.0,
+        "conductivity": 117,
+        "heat_load_w": 7958.0
+      },
+      "outputs": {
+        "temperature_rise_c": 875.45,
+        "heat_flux_w_m2": 7893.1,
+        "thermal_resistance_k_w": 0.100068
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 20.4,
+        "conductivity": 50,
+        "heat_load_w": 5203.0
+      },
+      "outputs": {
+        "temperature_rise_c": 538.56,
+        "heat_flux_w_m2": 5133.3,
+        "thermal_resistance_k_w": 0.100409
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 24.9,
+        "conductivity": 16,
+        "heat_load_w": 6761.0
+      },
+      "outputs": {
+        "temperature_rise_c": 681.36,
+        "heat_flux_w_m2": 6849.6,
+        "thermal_resistance_k_w": 0.101557
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 2.7,
+        "conductivity": 16,
+        "heat_load_w": 9841.0
+      },
+      "outputs": {
+        "temperature_rise_c": 967.95,
+        "heat_flux_w_m2": 9624.3,
+        "thermal_resistance_k_w": 0.100168
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 14.8,
+        "conductivity": 401,
+        "heat_load_w": 5799.0
+      },
+      "outputs": {
+        "temperature_rise_c": 600.3,
+        "heat_flux_w_m2": 5687.2,
+        "thermal_resistance_k_w": 0.100037
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 13.2,
+        "conductivity": 16,
+        "heat_load_w": 6595.0
+      },
+      "outputs": {
+        "temperature_rise_c": 718.57,
+        "heat_flux_w_m2": 6602.6,
+        "thermal_resistance_k_w": 0.100824
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 23.6,
+        "conductivity": 5,
+        "heat_load_w": 7806.0
+      },
+      "outputs": {
+        "temperature_rise_c": 784.73,
+        "heat_flux_w_m2": 8082.9,
+        "thermal_resistance_k_w": 0.104712
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 21.5,
+        "conductivity": 117,
+        "heat_load_w": 597.0
+      },
+      "outputs": {
+        "temperature_rise_c": 61.29,
+        "heat_flux_w_m2": 620.4,
+        "thermal_resistance_k_w": 0.100184
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 14.8,
+        "conductivity": 117,
+        "heat_load_w": 6709.0
+      },
+      "outputs": {
+        "temperature_rise_c": 726.73,
+        "heat_flux_w_m2": 6695.3,
+        "thermal_resistance_k_w": 0.100126
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 28.6,
+        "conductivity": 117,
+        "heat_load_w": 6165.0
+      },
+      "outputs": {
+        "temperature_rise_c": 603.96,
+        "heat_flux_w_m2": 6021.8,
+        "thermal_resistance_k_w": 0.100244
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 25.3,
+        "conductivity": 167,
+        "heat_load_w": 4515.0
+      },
+      "outputs": {
+        "temperature_rise_c": 469.58,
+        "heat_flux_w_m2": 4665.6,
+        "thermal_resistance_k_w": 0.100151
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 14.6,
+        "conductivity": 16,
+        "heat_load_w": 8415.0
+      },
+      "outputs": {
+        "temperature_rise_c": 879.22,
+        "heat_flux_w_m2": 8702.2,
+        "thermal_resistance_k_w": 0.100913
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 15.6,
+        "conductivity": 16,
+        "heat_load_w": 2819.0
+      },
+      "outputs": {
+        "temperature_rise_c": 292.8,
+        "heat_flux_w_m2": 2840.1,
+        "thermal_resistance_k_w": 0.100973
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 9.6,
+        "conductivity": 50,
+        "heat_load_w": 8941.0
+      },
+      "outputs": {
+        "temperature_rise_c": 900.97,
+        "heat_flux_w_m2": 8990.6,
+        "thermal_resistance_k_w": 0.100192
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 12.7,
+        "conductivity": 16,
+        "heat_load_w": 7094.0
+      },
+      "outputs": {
+        "temperature_rise_c": 740.99,
+        "heat_flux_w_m2": 7150.6,
+        "thermal_resistance_k_w": 0.100795
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 17.2,
+        "conductivity": 117,
+        "heat_load_w": 716.0
+      },
+      "outputs": {
+        "temperature_rise_c": 69.19,
+        "heat_flux_w_m2": 704.1,
+        "thermal_resistance_k_w": 0.100147
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 23.6,
+        "conductivity": 401,
+        "heat_load_w": 293.0
+      },
+      "outputs": {
+        "temperature_rise_c": 28.69,
+        "heat_flux_w_m2": 288.1,
+        "thermal_resistance_k_w": 0.100059
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    },
+    {
+      "inputs": {
+        "thickness_mm": 15.4,
+        "conductivity": 50,
+        "heat_load_w": 3056.0
+      },
+      "outputs": {
+        "temperature_rise_c": 296.66,
+        "heat_flux_w_m2": 3138.4,
+        "thermal_resistance_k_w": 0.100307
+      },
+      "metadata": {
+        "solver": "synthetic_cfd",
+        "mesh": "tet_5mm"
+      }
+    }
+  ]
+}

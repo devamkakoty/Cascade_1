@@ -158,6 +158,7 @@ _SECTOR_KEYWORDS = {
     "naval": ["hull", "deck", "bulkhead", "marine", "keel", "rudder", "propeller", "vessel", "ship", "dnv"],
     "aerospace": ["fuselage", "wing", "spar", "aircraft", "windshield", "airframe", "nacelle", "avionics"],
     "automotive_ev": ["battery", "cell", "module", "pack", "cooling", "bms", "ev", "motor", "chassis"],
+    "robotics": ["robot", "arm", "link", "joint", "actuator", "gripper", "servo", "end effector", "manipulator", "dof"],
 }
 
 

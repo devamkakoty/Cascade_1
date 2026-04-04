@@ -1,0 +1,869 @@
+{
+  "name": "vibration_vs_geometry",
+  "description": "Modal analysis: natural frequencies vs arm length and mass",
+  "source": "synthetic",
+  "input_params": [
+    "length_mm",
+    "mass_kg",
+    "stiffness_n_m"
+  ],
+  "output_params": [
+    "natural_freq_1_hz",
+    "natural_freq_2_hz",
+    "natural_freq_3_hz",
+    "tip_displacement_mm"
+  ],
+  "n_points": 50,
+  "points": [
+    {
+      "inputs": {
+        "length_mm": 701.0,
+        "mass_kg": 5.61,
+        "stiffness_n_m": 74790.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 18.61,
+        "natural_freq_2_hz": 51.37,
+        "natural_freq_3_hz": 100.51,
+        "tip_displacement_mm": 16.5363
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 493.0,
+        "mass_kg": 3.09,
+        "stiffness_n_m": 51136.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 20.0,
+        "natural_freq_2_hz": 55.2,
+        "natural_freq_3_hz": 107.99,
+        "tip_displacement_mm": 15.5426
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 679.0,
+        "mass_kg": 7.38,
+        "stiffness_n_m": 84848.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 17.9,
+        "natural_freq_2_hz": 49.42,
+        "natural_freq_3_hz": 96.69,
+        "tip_displacement_mm": 19.8793
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 520.0,
+        "mass_kg": 9.12,
+        "stiffness_n_m": 61230.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 12.99,
+        "natural_freq_2_hz": 35.84,
+        "natural_freq_3_hz": 70.13,
+        "tip_displacement_mm": 35.8594
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 457.0,
+        "mass_kg": 8.74,
+        "stiffness_n_m": 22264.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 8.03,
+        "natural_freq_2_hz": 22.15,
+        "natural_freq_3_hz": 43.34,
+        "tip_displacement_mm": 100.4963
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 473.0,
+        "mass_kg": 3.71,
+        "stiffness_n_m": 88566.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 24.39,
+        "natural_freq_2_hz": 67.31,
+        "natural_freq_3_hz": 131.7,
+        "tip_displacement_mm": 11.5044
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 453.0,
+        "mass_kg": 8.43,
+        "stiffness_n_m": 49679.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 12.22,
+        "natural_freq_2_hz": 33.72,
+        "natural_freq_3_hz": 65.97,
+        "tip_displacement_mm": 40.9437
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 771.0,
+        "mass_kg": 2.63,
+        "stiffness_n_m": 11519.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 10.59,
+        "natural_freq_2_hz": 29.23,
+        "natural_freq_3_hz": 57.19,
+        "tip_displacement_mm": 55.7858
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 219.0,
+        "mass_kg": 2.85,
+        "stiffness_n_m": 84727.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 27.15,
+        "natural_freq_2_hz": 74.94,
+        "natural_freq_3_hz": 146.62,
+        "tip_displacement_mm": 8.037
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 484.0,
+        "mass_kg": 1.59,
+        "stiffness_n_m": 95037.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 38.37,
+        "natural_freq_2_hz": 105.89,
+        "natural_freq_3_hz": 207.18,
+        "tip_displacement_mm": 4.1289
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 421.0,
+        "mass_kg": 6.26,
+        "stiffness_n_m": 96555.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 19.64,
+        "natural_freq_2_hz": 54.2,
+        "natural_freq_3_hz": 106.04,
+        "tip_displacement_mm": 14.5394
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 298.0,
+        "mass_kg": 3.45,
+        "stiffness_n_m": 59975.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 21.46,
+        "natural_freq_2_hz": 59.24,
+        "natural_freq_3_hz": 115.91,
+        "tip_displacement_mm": 13.7279
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 745.0,
+        "mass_kg": 4.07,
+        "stiffness_n_m": 94440.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 24.46,
+        "natural_freq_2_hz": 67.52,
+        "natural_freq_3_hz": 132.11,
+        "tip_displacement_mm": 11.2275
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 698.0,
+        "mass_kg": 2.81,
+        "stiffness_n_m": 71233.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 25.11,
+        "natural_freq_2_hz": 69.3,
+        "natural_freq_3_hz": 135.58,
+        "tip_displacement_mm": 10.36
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 683.0,
+        "mass_kg": 8.06,
+        "stiffness_n_m": 58764.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 13.91,
+        "natural_freq_2_hz": 38.39,
+        "natural_freq_3_hz": 75.12,
+        "tip_displacement_mm": 34.1855
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 597.0,
+        "mass_kg": 1.16,
+        "stiffness_n_m": 66517.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 38.99,
+        "natural_freq_2_hz": 107.6,
+        "natural_freq_3_hz": 210.53,
+        "tip_displacement_mm": 4.2765
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 494.0,
+        "mass_kg": 4.62,
+        "stiffness_n_m": 39408.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 14.95,
+        "natural_freq_2_hz": 41.28,
+        "natural_freq_3_hz": 80.76,
+        "tip_displacement_mm": 27.7382
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 292.0,
+        "mass_kg": 2.17,
+        "stiffness_n_m": 54566.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 24.81,
+        "natural_freq_2_hz": 68.48,
+        "natural_freq_3_hz": 133.97,
+        "tip_displacement_mm": 9.2203
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 752.0,
+        "mass_kg": 7.86,
+        "stiffness_n_m": 49163.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 12.74,
+        "natural_freq_2_hz": 35.17,
+        "natural_freq_3_hz": 68.81,
+        "tip_displacement_mm": 36.8704
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 393.0,
+        "mass_kg": 2.83,
+        "stiffness_n_m": 93789.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 28.85,
+        "natural_freq_2_hz": 79.62,
+        "natural_freq_3_hz": 155.78,
+        "tip_displacement_mm": 7.8047
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 650.0,
+        "mass_kg": 5.91,
+        "stiffness_n_m": 68478.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 16.92,
+        "natural_freq_2_hz": 46.7,
+        "natural_freq_3_hz": 91.37,
+        "tip_displacement_mm": 22.238
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 395.0,
+        "mass_kg": 5.13,
+        "stiffness_n_m": 38708.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 13.81,
+        "natural_freq_2_hz": 38.12,
+        "natural_freq_3_hz": 74.58,
+        "tip_displacement_mm": 33.8287
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 558.0,
+        "mass_kg": 8.86,
+        "stiffness_n_m": 57800.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 12.69,
+        "natural_freq_2_hz": 35.02,
+        "natural_freq_3_hz": 68.51,
+        "tip_displacement_mm": 37.4703
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 345.0,
+        "mass_kg": 4.36,
+        "stiffness_n_m": 57742.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 18.34,
+        "natural_freq_2_hz": 50.61,
+        "natural_freq_3_hz": 99.03,
+        "tip_displacement_mm": 19.5742
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 627.0,
+        "mass_kg": 4.76,
+        "stiffness_n_m": 6638.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 5.91,
+        "natural_freq_2_hz": 16.32,
+        "natural_freq_3_hz": 31.92,
+        "tip_displacement_mm": 184.3791
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 346.0,
+        "mass_kg": 6.81,
+        "stiffness_n_m": 40057.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 12.0,
+        "natural_freq_2_hz": 33.11,
+        "natural_freq_3_hz": 64.78,
+        "tip_displacement_mm": 41.0492
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 798.0,
+        "mass_kg": 5.73,
+        "stiffness_n_m": 38422.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 12.82,
+        "natural_freq_2_hz": 35.38,
+        "natural_freq_3_hz": 69.23,
+        "tip_displacement_mm": 37.0149
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 338.0,
+        "mass_kg": 7.35,
+        "stiffness_n_m": 34977.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 10.95,
+        "natural_freq_2_hz": 30.23,
+        "natural_freq_3_hz": 59.15,
+        "tip_displacement_mm": 45.2302
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 614.0,
+        "mass_kg": 2.32,
+        "stiffness_n_m": 75167.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 28.52,
+        "natural_freq_2_hz": 78.72,
+        "natural_freq_3_hz": 154.03,
+        "tip_displacement_mm": 8.0664
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 656.0,
+        "mass_kg": 6.17,
+        "stiffness_n_m": 98149.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 20.24,
+        "natural_freq_2_hz": 55.87,
+        "natural_freq_3_hz": 109.3,
+        "tip_displacement_mm": 14.8552
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 417.0,
+        "mass_kg": 3.37,
+        "stiffness_n_m": 72262.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 23.4,
+        "natural_freq_2_hz": 64.58,
+        "natural_freq_3_hz": 126.36,
+        "tip_displacement_mm": 11.5674
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 233.0,
+        "mass_kg": 3.28,
+        "stiffness_n_m": 94689.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 26.47,
+        "natural_freq_2_hz": 73.07,
+        "natural_freq_3_hz": 142.96,
+        "tip_displacement_mm": 7.943
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 262.0,
+        "mass_kg": 0.62,
+        "stiffness_n_m": 32012.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 35.61,
+        "natural_freq_2_hz": 98.28,
+        "natural_freq_3_hz": 192.3,
+        "tip_displacement_mm": 4.752
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 779.0,
+        "mass_kg": 2.9,
+        "stiffness_n_m": 86864.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 27.7,
+        "natural_freq_2_hz": 76.46,
+        "natural_freq_3_hz": 149.6,
+        "tip_displacement_mm": 8.2826
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 495.0,
+        "mass_kg": 5.98,
+        "stiffness_n_m": 70213.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 17.61,
+        "natural_freq_2_hz": 48.6,
+        "natural_freq_3_hz": 95.08,
+        "tip_displacement_mm": 22.449
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 769.0,
+        "mass_kg": 1.31,
+        "stiffness_n_m": 28578.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 23.06,
+        "natural_freq_2_hz": 63.64,
+        "natural_freq_3_hz": 124.52,
+        "tip_displacement_mm": 11.0274
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 558.0,
+        "mass_kg": 6.37,
+        "stiffness_n_m": 78691.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 17.12,
+        "natural_freq_2_hz": 47.24,
+        "natural_freq_3_hz": 92.43,
+        "tip_displacement_mm": 21.3519
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 378.0,
+        "mass_kg": 6.09,
+        "stiffness_n_m": 45739.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 13.7,
+        "natural_freq_2_hz": 37.82,
+        "natural_freq_3_hz": 74.0,
+        "tip_displacement_mm": 32.4191
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 776.0,
+        "mass_kg": 1.44,
+        "stiffness_n_m": 77460.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 36.47,
+        "natural_freq_2_hz": 100.66,
+        "natural_freq_3_hz": 196.94,
+        "tip_displacement_mm": 4.4408
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 249.0,
+        "mass_kg": 2.78,
+        "stiffness_n_m": 57439.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 23.14,
+        "natural_freq_2_hz": 63.87,
+        "natural_freq_3_hz": 124.97,
+        "tip_displacement_mm": 12.3705
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 614.0,
+        "mass_kg": 4.96,
+        "stiffness_n_m": 8101.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 6.4,
+        "natural_freq_2_hz": 17.68,
+        "natural_freq_3_hz": 34.58,
+        "tip_displacement_mm": 156.2406
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 716.0,
+        "mass_kg": 1.18,
+        "stiffness_n_m": 27175.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 24.11,
+        "natural_freq_2_hz": 66.55,
+        "natural_freq_3_hz": 130.21,
+        "tip_displacement_mm": 11.5505
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 554.0,
+        "mass_kg": 8.14,
+        "stiffness_n_m": 23793.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 8.7,
+        "natural_freq_2_hz": 24.01,
+        "natural_freq_3_hz": 46.97,
+        "tip_displacement_mm": 85.8511
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 289.0,
+        "mass_kg": 3.02,
+        "stiffness_n_m": 18512.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 12.86,
+        "natural_freq_2_hz": 35.51,
+        "natural_freq_3_hz": 69.47,
+        "tip_displacement_mm": 41.3552
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 557.0,
+        "mass_kg": 8.33,
+        "stiffness_n_m": 92513.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 16.42,
+        "natural_freq_2_hz": 45.33,
+        "natural_freq_3_hz": 88.68,
+        "tip_displacement_mm": 22.5466
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 382.0,
+        "mass_kg": 4.32,
+        "stiffness_n_m": 30863.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 13.17,
+        "natural_freq_2_hz": 36.34,
+        "natural_freq_3_hz": 71.1,
+        "tip_displacement_mm": 33.9002
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 559.0,
+        "mass_kg": 8.95,
+        "stiffness_n_m": 74781.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 14.5,
+        "natural_freq_2_hz": 40.01,
+        "natural_freq_3_hz": 78.28,
+        "tip_displacement_mm": 29.147
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 337.0,
+        "mass_kg": 6.91,
+        "stiffness_n_m": 86749.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 17.78,
+        "natural_freq_2_hz": 49.06,
+        "natural_freq_3_hz": 95.99,
+        "tip_displacement_mm": 19.4196
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 659.0,
+        "mass_kg": 8.3,
+        "stiffness_n_m": 59743.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 13.51,
+        "natural_freq_2_hz": 37.3,
+        "natural_freq_3_hz": 72.97,
+        "tip_displacement_mm": 33.0321
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    },
+    {
+      "inputs": {
+        "length_mm": 511.0,
+        "mass_kg": 4.7,
+        "stiffness_n_m": 31425.0
+      },
+      "outputs": {
+        "natural_freq_1_hz": 13.29,
+        "natural_freq_2_hz": 36.68,
+        "natural_freq_3_hz": 71.77,
+        "tip_displacement_mm": 36.6519
+      },
+      "metadata": {
+        "solver": "synthetic_modal",
+        "mesh": "hex_2mm"
+      }
+    }
+  ]
+}
