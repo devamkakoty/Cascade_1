@@ -1,0 +1,6802 @@
+[
+  {
+    "filename": "plate_0000.png",
+    "part_name": "Deck Panel",
+    "material": "AL 2024-T3",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2400.0,
+        "unit": "mm",
+        "tolerance_plus": 1.2,
+        "tolerance_minus": -1.2,
+        "text": "2400",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1429.0,
+        "unit": "mm",
+        "tolerance_plus": 1.2,
+        "tolerance_minus": -1.2,
+        "text": "1429",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 8.2,
+        "unit": "mm",
+        "tolerance_plus": 0.5,
+        "tolerance_minus": -0.5,
+        "text": "8.2 \u00b10.5",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b11.2mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 2024-T3"
+    ]
+  },
+  {
+    "filename": "plate_0001.png",
+    "part_name": "Wing Skin Panel",
+    "material": "AH36 Marine Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2101.0,
+        "unit": "mm",
+        "tolerance_plus": 1.4,
+        "tolerance_minus": -1.4,
+        "text": "2101",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1487.0,
+        "unit": "mm",
+        "tolerance_plus": 1.4,
+        "tolerance_minus": -1.4,
+        "text": "1487",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 16.1,
+        "unit": "mm",
+        "tolerance_plus": 0.29,
+        "tolerance_minus": -0.29,
+        "text": "16.1 \u00b10.29",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b11.4mm",
+      "Surface finish: Ra 3.2",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "plate_0002.png",
+    "part_name": "Hull Plate",
+    "material": "Titanium Ti-6Al-4V",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1744.0,
+        "unit": "mm",
+        "tolerance_plus": 3.3,
+        "tolerance_minus": -3.3,
+        "text": "1744",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 474.0,
+        "unit": "mm",
+        "tolerance_plus": 3.3,
+        "tolerance_minus": -3.3,
+        "text": "474",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 23.5,
+        "unit": "mm",
+        "tolerance_plus": 0.48,
+        "tolerance_minus": -0.48,
+        "text": "23.5 \u00b10.48",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b13.3mm",
+      "Surface finish: Ra 3.2",
+      "Material: Titanium Ti-6Al-4V"
+    ]
+  },
+  {
+    "filename": "plate_0003.png",
+    "part_name": "Bulkhead Panel",
+    "material": "DH36 Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1810.0,
+        "unit": "mm",
+        "tolerance_plus": 1.3,
+        "tolerance_minus": -1.3,
+        "text": "1810",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 501.0,
+        "unit": "mm",
+        "tolerance_plus": 1.3,
+        "tolerance_minus": -1.3,
+        "text": "501",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 13.2,
+        "unit": "mm",
+        "tolerance_plus": 0.37,
+        "tolerance_minus": -0.37,
+        "text": "13.2 \u00b10.37",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b11.3mm",
+      "Surface finish: Ra 3.2",
+      "Material: DH36 Steel"
+    ]
+  },
+  {
+    "filename": "plate_0004.png",
+    "part_name": "Fuselage Skin",
+    "material": "Titanium Ti-6Al-4V",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2131.0,
+        "unit": "mm",
+        "tolerance_plus": 2.2,
+        "tolerance_minus": -2.2,
+        "text": "2131",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 743.0,
+        "unit": "mm",
+        "tolerance_plus": 2.2,
+        "tolerance_minus": -2.2,
+        "text": "743",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 17.1,
+        "unit": "mm",
+        "tolerance_plus": 0.39,
+        "tolerance_minus": -0.39,
+        "text": "17.1 \u00b10.39",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.2mm",
+      "Surface finish: Ra 3.2",
+      "Material: Titanium Ti-6Al-4V"
+    ]
+  },
+  {
+    "filename": "plate_0005.png",
+    "part_name": "Deck Panel",
+    "material": "Titanium Ti-6Al-4V",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2927.0,
+        "unit": "mm",
+        "tolerance_plus": 3.2,
+        "tolerance_minus": -3.2,
+        "text": "2927",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 785.0,
+        "unit": "mm",
+        "tolerance_plus": 3.2,
+        "tolerance_minus": -3.2,
+        "text": "785",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 21.4,
+        "unit": "mm",
+        "tolerance_plus": 0.32,
+        "tolerance_minus": -0.32,
+        "text": "21.4 \u00b10.32",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b13.2mm",
+      "Surface finish: Ra 3.2",
+      "Material: Titanium Ti-6Al-4V"
+    ]
+  },
+  {
+    "filename": "plate_0006.png",
+    "part_name": "Deck Panel",
+    "material": "CFRP Laminate",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 834.0,
+        "unit": "mm",
+        "tolerance_plus": 4.4,
+        "tolerance_minus": -4.4,
+        "text": "834",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1455.0,
+        "unit": "mm",
+        "tolerance_plus": 4.4,
+        "tolerance_minus": -4.4,
+        "text": "1455",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 16.9,
+        "unit": "mm",
+        "tolerance_plus": 0.15,
+        "tolerance_minus": -0.15,
+        "text": "16.9 \u00b10.15",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b14.4mm",
+      "Surface finish: Ra 3.2",
+      "Material: CFRP Laminate"
+    ]
+  },
+  {
+    "filename": "plate_0007.png",
+    "part_name": "Wing Skin Panel",
+    "material": "AH36 Marine Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1499.0,
+        "unit": "mm",
+        "tolerance_plus": 4.8,
+        "tolerance_minus": -4.8,
+        "text": "1499",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1223.0,
+        "unit": "mm",
+        "tolerance_plus": 4.8,
+        "tolerance_minus": -4.8,
+        "text": "1223",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 8.0,
+        "unit": "mm",
+        "tolerance_plus": 0.37,
+        "tolerance_minus": -0.37,
+        "text": "8.0 \u00b10.37",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b14.8mm",
+      "Surface finish: Ra 3.2",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "plate_0008.png",
+    "part_name": "Wing Skin Panel",
+    "material": "CFRP Laminate",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2177.0,
+        "unit": "mm",
+        "tolerance_plus": 1.0,
+        "tolerance_minus": -1.0,
+        "text": "2177",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 998.0,
+        "unit": "mm",
+        "tolerance_plus": 1.0,
+        "tolerance_minus": -1.0,
+        "text": "998",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 11.4,
+        "unit": "mm",
+        "tolerance_plus": 0.13,
+        "tolerance_minus": -0.13,
+        "text": "11.4 \u00b10.13",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b11.0mm",
+      "Surface finish: Ra 3.2",
+      "Material: CFRP Laminate"
+    ]
+  },
+  {
+    "filename": "plate_0009.png",
+    "part_name": "Fuselage Skin",
+    "material": "AH36 Marine Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1781.0,
+        "unit": "mm",
+        "tolerance_plus": 2.0,
+        "tolerance_minus": -2.0,
+        "text": "1781",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1084.0,
+        "unit": "mm",
+        "tolerance_plus": 2.0,
+        "tolerance_minus": -2.0,
+        "text": "1084",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 22.0,
+        "unit": "mm",
+        "tolerance_plus": 0.43,
+        "tolerance_minus": -0.43,
+        "text": "22.0 \u00b10.43",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.0mm",
+      "Surface finish: Ra 3.2",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "plate_0010.png",
+    "part_name": "Hull Plate",
+    "material": "CFRP Laminate",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1938.0,
+        "unit": "mm",
+        "tolerance_plus": 4.0,
+        "tolerance_minus": -4.0,
+        "text": "1938",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 211.0,
+        "unit": "mm",
+        "tolerance_plus": 4.0,
+        "tolerance_minus": -4.0,
+        "text": "211",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 19.5,
+        "unit": "mm",
+        "tolerance_plus": 0.32,
+        "tolerance_minus": -0.32,
+        "text": "19.5 \u00b10.32",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b14.0mm",
+      "Surface finish: Ra 3.2",
+      "Material: CFRP Laminate"
+    ]
+  },
+  {
+    "filename": "plate_0011.png",
+    "part_name": "Deck Panel",
+    "material": "DH36 Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1674.0,
+        "unit": "mm",
+        "tolerance_plus": 1.2,
+        "tolerance_minus": -1.2,
+        "text": "1674",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 903.0,
+        "unit": "mm",
+        "tolerance_plus": 1.2,
+        "tolerance_minus": -1.2,
+        "text": "903",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 20.4,
+        "unit": "mm",
+        "tolerance_plus": 0.37,
+        "tolerance_minus": -0.37,
+        "text": "20.4 \u00b10.37",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b11.2mm",
+      "Surface finish: Ra 3.2",
+      "Material: DH36 Steel"
+    ]
+  },
+  {
+    "filename": "plate_0012.png",
+    "part_name": "Hull Plate",
+    "material": "AL 6061-T6",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1037.0,
+        "unit": "mm",
+        "tolerance_plus": 2.8,
+        "tolerance_minus": -2.8,
+        "text": "1037",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 219.0,
+        "unit": "mm",
+        "tolerance_plus": 2.8,
+        "tolerance_minus": -2.8,
+        "text": "219",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 11.8,
+        "unit": "mm",
+        "tolerance_plus": 0.35,
+        "tolerance_minus": -0.35,
+        "text": "11.8 \u00b10.35",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.8mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 6061-T6"
+    ]
+  },
+  {
+    "filename": "plate_0013.png",
+    "part_name": "Fuselage Skin",
+    "material": "AH36 Marine Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 780.0,
+        "unit": "mm",
+        "tolerance_plus": 3.2,
+        "tolerance_minus": -3.2,
+        "text": "780",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1444.0,
+        "unit": "mm",
+        "tolerance_plus": 3.2,
+        "tolerance_minus": -3.2,
+        "text": "1444",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 4.5,
+        "unit": "mm",
+        "tolerance_plus": 0.3,
+        "tolerance_minus": -0.3,
+        "text": "4.5 \u00b10.3",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b13.2mm",
+      "Surface finish: Ra 3.2",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "plate_0014.png",
+    "part_name": "Wing Skin Panel",
+    "material": "DH36 Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1387.0,
+        "unit": "mm",
+        "tolerance_plus": 2.0,
+        "tolerance_minus": -2.0,
+        "text": "1387",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1083.0,
+        "unit": "mm",
+        "tolerance_plus": 2.0,
+        "tolerance_minus": -2.0,
+        "text": "1083",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 18.9,
+        "unit": "mm",
+        "tolerance_plus": 0.38,
+        "tolerance_minus": -0.38,
+        "text": "18.9 \u00b10.38",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.0mm",
+      "Surface finish: Ra 3.2",
+      "Material: DH36 Steel"
+    ]
+  },
+  {
+    "filename": "plate_0015.png",
+    "part_name": "Bulkhead Panel",
+    "material": "CFRP Laminate",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1610.0,
+        "unit": "mm",
+        "tolerance_plus": 2.8,
+        "tolerance_minus": -2.8,
+        "text": "1610",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 532.0,
+        "unit": "mm",
+        "tolerance_plus": 2.8,
+        "tolerance_minus": -2.8,
+        "text": "532",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 13.6,
+        "unit": "mm",
+        "tolerance_plus": 0.46,
+        "tolerance_minus": -0.46,
+        "text": "13.6 \u00b10.46",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.8mm",
+      "Surface finish: Ra 3.2",
+      "Material: CFRP Laminate"
+    ]
+  },
+  {
+    "filename": "plate_0016.png",
+    "part_name": "Fuselage Skin",
+    "material": "AL 6061-T6",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1198.0,
+        "unit": "mm",
+        "tolerance_plus": 3.4,
+        "tolerance_minus": -3.4,
+        "text": "1198",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1043.0,
+        "unit": "mm",
+        "tolerance_plus": 3.4,
+        "tolerance_minus": -3.4,
+        "text": "1043",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 8.2,
+        "unit": "mm",
+        "tolerance_plus": 0.33,
+        "tolerance_minus": -0.33,
+        "text": "8.2 \u00b10.33",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b13.4mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 6061-T6"
+    ]
+  },
+  {
+    "filename": "plate_0017.png",
+    "part_name": "Hull Plate",
+    "material": "AH36 Marine Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2077.0,
+        "unit": "mm",
+        "tolerance_plus": 1.5,
+        "tolerance_minus": -1.5,
+        "text": "2077",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 437.0,
+        "unit": "mm",
+        "tolerance_plus": 1.5,
+        "tolerance_minus": -1.5,
+        "text": "437",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 21.4,
+        "unit": "mm",
+        "tolerance_plus": 0.25,
+        "tolerance_minus": -0.25,
+        "text": "21.4 \u00b10.25",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b11.5mm",
+      "Surface finish: Ra 3.2",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "plate_0018.png",
+    "part_name": "Bulkhead Panel",
+    "material": "AL 2024-T3",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2268.0,
+        "unit": "mm",
+        "tolerance_plus": 4.0,
+        "tolerance_minus": -4.0,
+        "text": "2268",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1050.0,
+        "unit": "mm",
+        "tolerance_plus": 4.0,
+        "tolerance_minus": -4.0,
+        "text": "1050",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 6.1,
+        "unit": "mm",
+        "tolerance_plus": 0.18,
+        "tolerance_minus": -0.18,
+        "text": "6.1 \u00b10.18",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b14.0mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 2024-T3"
+    ]
+  },
+  {
+    "filename": "plate_0019.png",
+    "part_name": "Hull Plate",
+    "material": "Titanium Ti-6Al-4V",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 547.0,
+        "unit": "mm",
+        "tolerance_plus": 2.7,
+        "tolerance_minus": -2.7,
+        "text": "547",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 360.0,
+        "unit": "mm",
+        "tolerance_plus": 2.7,
+        "tolerance_minus": -2.7,
+        "text": "360",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 11.2,
+        "unit": "mm",
+        "tolerance_plus": 0.22,
+        "tolerance_minus": -0.22,
+        "text": "11.2 \u00b10.22",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.7mm",
+      "Surface finish: Ra 3.2",
+      "Material: Titanium Ti-6Al-4V"
+    ]
+  },
+  {
+    "filename": "plate_0020.png",
+    "part_name": "Bulkhead Panel",
+    "material": "AH36 Marine Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1918.0,
+        "unit": "mm",
+        "tolerance_plus": 2.2,
+        "tolerance_minus": -2.2,
+        "text": "1918",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 736.0,
+        "unit": "mm",
+        "tolerance_plus": 2.2,
+        "tolerance_minus": -2.2,
+        "text": "736",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 15.0,
+        "unit": "mm",
+        "tolerance_plus": 0.44,
+        "tolerance_minus": -0.44,
+        "text": "15.0 \u00b10.44",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.2mm",
+      "Surface finish: Ra 3.2",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "plate_0021.png",
+    "part_name": "Bulkhead Panel",
+    "material": "CFRP Laminate",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1327.0,
+        "unit": "mm",
+        "tolerance_plus": 1.7,
+        "tolerance_minus": -1.7,
+        "text": "1327",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 789.0,
+        "unit": "mm",
+        "tolerance_plus": 1.7,
+        "tolerance_minus": -1.7,
+        "text": "789",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 23.4,
+        "unit": "mm",
+        "tolerance_plus": 0.11,
+        "tolerance_minus": -0.11,
+        "text": "23.4 \u00b10.11",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b11.7mm",
+      "Surface finish: Ra 3.2",
+      "Material: CFRP Laminate"
+    ]
+  },
+  {
+    "filename": "plate_0022.png",
+    "part_name": "Deck Panel",
+    "material": "AL 6061-T6",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1059.0,
+        "unit": "mm",
+        "tolerance_plus": 3.1,
+        "tolerance_minus": -3.1,
+        "text": "1059",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 512.0,
+        "unit": "mm",
+        "tolerance_plus": 3.1,
+        "tolerance_minus": -3.1,
+        "text": "512",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 5.0,
+        "unit": "mm",
+        "tolerance_plus": 0.43,
+        "tolerance_minus": -0.43,
+        "text": "5.0 \u00b10.43",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b13.1mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 6061-T6"
+    ]
+  },
+  {
+    "filename": "plate_0023.png",
+    "part_name": "Floor Panel",
+    "material": "DH36 Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1862.0,
+        "unit": "mm",
+        "tolerance_plus": 3.6,
+        "tolerance_minus": -3.6,
+        "text": "1862",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1097.0,
+        "unit": "mm",
+        "tolerance_plus": 3.6,
+        "tolerance_minus": -3.6,
+        "text": "1097",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 20.3,
+        "unit": "mm",
+        "tolerance_plus": 0.47,
+        "tolerance_minus": -0.47,
+        "text": "20.3 \u00b10.47",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b13.6mm",
+      "Surface finish: Ra 3.2",
+      "Material: DH36 Steel"
+    ]
+  },
+  {
+    "filename": "plate_0024.png",
+    "part_name": "Fuselage Skin",
+    "material": "Titanium Ti-6Al-4V",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 735.0,
+        "unit": "mm",
+        "tolerance_plus": 2.3,
+        "tolerance_minus": -2.3,
+        "text": "735",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1202.0,
+        "unit": "mm",
+        "tolerance_plus": 2.3,
+        "tolerance_minus": -2.3,
+        "text": "1202",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 12.9,
+        "unit": "mm",
+        "tolerance_plus": 0.42,
+        "tolerance_minus": -0.42,
+        "text": "12.9 \u00b10.42",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.3mm",
+      "Surface finish: Ra 3.2",
+      "Material: Titanium Ti-6Al-4V"
+    ]
+  },
+  {
+    "filename": "plate_0025.png",
+    "part_name": "Wing Skin Panel",
+    "material": "AL 6061-T6",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 868.0,
+        "unit": "mm",
+        "tolerance_plus": 4.1,
+        "tolerance_minus": -4.1,
+        "text": "868",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 759.0,
+        "unit": "mm",
+        "tolerance_plus": 4.1,
+        "tolerance_minus": -4.1,
+        "text": "759",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 5.0,
+        "unit": "mm",
+        "tolerance_plus": 0.46,
+        "tolerance_minus": -0.46,
+        "text": "5.0 \u00b10.46",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b14.1mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 6061-T6"
+    ]
+  },
+  {
+    "filename": "plate_0026.png",
+    "part_name": "Floor Panel",
+    "material": "CFRP Laminate",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2836.0,
+        "unit": "mm",
+        "tolerance_plus": 2.7,
+        "tolerance_minus": -2.7,
+        "text": "2836",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 709.0,
+        "unit": "mm",
+        "tolerance_plus": 2.7,
+        "tolerance_minus": -2.7,
+        "text": "709",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 17.8,
+        "unit": "mm",
+        "tolerance_plus": 0.24,
+        "tolerance_minus": -0.24,
+        "text": "17.8 \u00b10.24",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.7mm",
+      "Surface finish: Ra 3.2",
+      "Material: CFRP Laminate"
+    ]
+  },
+  {
+    "filename": "plate_0027.png",
+    "part_name": "Bulkhead Panel",
+    "material": "CFRP Laminate",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1577.0,
+        "unit": "mm",
+        "tolerance_plus": 2.8,
+        "tolerance_minus": -2.8,
+        "text": "1577",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 453.0,
+        "unit": "mm",
+        "tolerance_plus": 2.8,
+        "tolerance_minus": -2.8,
+        "text": "453",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 23.3,
+        "unit": "mm",
+        "tolerance_plus": 0.36,
+        "tolerance_minus": -0.36,
+        "text": "23.3 \u00b10.36",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.8mm",
+      "Surface finish: Ra 3.2",
+      "Material: CFRP Laminate"
+    ]
+  },
+  {
+    "filename": "plate_0028.png",
+    "part_name": "Bulkhead Panel",
+    "material": "Titanium Ti-6Al-4V",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1425.0,
+        "unit": "mm",
+        "tolerance_plus": 2.4,
+        "tolerance_minus": -2.4,
+        "text": "1425",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 485.0,
+        "unit": "mm",
+        "tolerance_plus": 2.4,
+        "tolerance_minus": -2.4,
+        "text": "485",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 10.8,
+        "unit": "mm",
+        "tolerance_plus": 0.24,
+        "tolerance_minus": -0.24,
+        "text": "10.8 \u00b10.24",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.4mm",
+      "Surface finish: Ra 3.2",
+      "Material: Titanium Ti-6Al-4V"
+    ]
+  },
+  {
+    "filename": "plate_0029.png",
+    "part_name": "Bulkhead Panel",
+    "material": "AL 2024-T3",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2611.0,
+        "unit": "mm",
+        "tolerance_plus": 3.2,
+        "tolerance_minus": -3.2,
+        "text": "2611",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 735.0,
+        "unit": "mm",
+        "tolerance_plus": 3.2,
+        "tolerance_minus": -3.2,
+        "text": "735",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 24.8,
+        "unit": "mm",
+        "tolerance_plus": 0.43,
+        "tolerance_minus": -0.43,
+        "text": "24.8 \u00b10.43",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b13.2mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 2024-T3"
+    ]
+  },
+  {
+    "filename": "plate_0030.png",
+    "part_name": "Floor Panel",
+    "material": "CFRP Laminate",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2198.0,
+        "unit": "mm",
+        "tolerance_plus": 2.9,
+        "tolerance_minus": -2.9,
+        "text": "2198",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 868.0,
+        "unit": "mm",
+        "tolerance_plus": 2.9,
+        "tolerance_minus": -2.9,
+        "text": "868",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 21.9,
+        "unit": "mm",
+        "tolerance_plus": 0.2,
+        "tolerance_minus": -0.2,
+        "text": "21.9 \u00b10.2",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.9mm",
+      "Surface finish: Ra 3.2",
+      "Material: CFRP Laminate"
+    ]
+  },
+  {
+    "filename": "plate_0031.png",
+    "part_name": "Hull Plate",
+    "material": "AL 2024-T3",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1108.0,
+        "unit": "mm",
+        "tolerance_plus": 4.0,
+        "tolerance_minus": -4.0,
+        "text": "1108",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 995.0,
+        "unit": "mm",
+        "tolerance_plus": 4.0,
+        "tolerance_minus": -4.0,
+        "text": "995",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 24.4,
+        "unit": "mm",
+        "tolerance_plus": 0.47,
+        "tolerance_minus": -0.47,
+        "text": "24.4 \u00b10.47",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b14.0mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 2024-T3"
+    ]
+  },
+  {
+    "filename": "plate_0032.png",
+    "part_name": "Fuselage Skin",
+    "material": "AL 6061-T6",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2912.0,
+        "unit": "mm",
+        "tolerance_plus": 1.5,
+        "tolerance_minus": -1.5,
+        "text": "2912",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 506.0,
+        "unit": "mm",
+        "tolerance_plus": 1.5,
+        "tolerance_minus": -1.5,
+        "text": "506",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 17.0,
+        "unit": "mm",
+        "tolerance_plus": 0.35,
+        "tolerance_minus": -0.35,
+        "text": "17.0 \u00b10.35",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b11.5mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 6061-T6"
+    ]
+  },
+  {
+    "filename": "plate_0033.png",
+    "part_name": "Deck Panel",
+    "material": "Titanium Ti-6Al-4V",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1672.0,
+        "unit": "mm",
+        "tolerance_plus": 2.6,
+        "tolerance_minus": -2.6,
+        "text": "1672",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 679.0,
+        "unit": "mm",
+        "tolerance_plus": 2.6,
+        "tolerance_minus": -2.6,
+        "text": "679",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 13.2,
+        "unit": "mm",
+        "tolerance_plus": 0.33,
+        "tolerance_minus": -0.33,
+        "text": "13.2 \u00b10.33",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.6mm",
+      "Surface finish: Ra 3.2",
+      "Material: Titanium Ti-6Al-4V"
+    ]
+  },
+  {
+    "filename": "plate_0034.png",
+    "part_name": "Deck Panel",
+    "material": "AL 6061-T6",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 556.0,
+        "unit": "mm",
+        "tolerance_plus": 5.0,
+        "tolerance_minus": -5.0,
+        "text": "556",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1179.0,
+        "unit": "mm",
+        "tolerance_plus": 5.0,
+        "tolerance_minus": -5.0,
+        "text": "1179",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 16.1,
+        "unit": "mm",
+        "tolerance_plus": 0.17,
+        "tolerance_minus": -0.17,
+        "text": "16.1 \u00b10.17",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b15.0mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 6061-T6"
+    ]
+  },
+  {
+    "filename": "plate_0035.png",
+    "part_name": "Fuselage Skin",
+    "material": "CFRP Laminate",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2602.0,
+        "unit": "mm",
+        "tolerance_plus": 1.6,
+        "tolerance_minus": -1.6,
+        "text": "2602",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1190.0,
+        "unit": "mm",
+        "tolerance_plus": 1.6,
+        "tolerance_minus": -1.6,
+        "text": "1190",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 23.5,
+        "unit": "mm",
+        "tolerance_plus": 0.2,
+        "tolerance_minus": -0.2,
+        "text": "23.5 \u00b10.2",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b11.6mm",
+      "Surface finish: Ra 3.2",
+      "Material: CFRP Laminate"
+    ]
+  },
+  {
+    "filename": "plate_0036.png",
+    "part_name": "Deck Panel",
+    "material": "Titanium Ti-6Al-4V",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2809.0,
+        "unit": "mm",
+        "tolerance_plus": 1.1,
+        "tolerance_minus": -1.1,
+        "text": "2809",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1066.0,
+        "unit": "mm",
+        "tolerance_plus": 1.1,
+        "tolerance_minus": -1.1,
+        "text": "1066",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 12.6,
+        "unit": "mm",
+        "tolerance_plus": 0.35,
+        "tolerance_minus": -0.35,
+        "text": "12.6 \u00b10.35",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b11.1mm",
+      "Surface finish: Ra 3.2",
+      "Material: Titanium Ti-6Al-4V"
+    ]
+  },
+  {
+    "filename": "plate_0037.png",
+    "part_name": "Bulkhead Panel",
+    "material": "Titanium Ti-6Al-4V",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1689.0,
+        "unit": "mm",
+        "tolerance_plus": 4.0,
+        "tolerance_minus": -4.0,
+        "text": "1689",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 922.0,
+        "unit": "mm",
+        "tolerance_plus": 4.0,
+        "tolerance_minus": -4.0,
+        "text": "922",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 4.9,
+        "unit": "mm",
+        "tolerance_plus": 0.25,
+        "tolerance_minus": -0.25,
+        "text": "4.9 \u00b10.25",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b14.0mm",
+      "Surface finish: Ra 3.2",
+      "Material: Titanium Ti-6Al-4V"
+    ]
+  },
+  {
+    "filename": "plate_0038.png",
+    "part_name": "Deck Panel",
+    "material": "DH36 Steel",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2934.0,
+        "unit": "mm",
+        "tolerance_plus": 4.3,
+        "tolerance_minus": -4.3,
+        "text": "2934",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1473.0,
+        "unit": "mm",
+        "tolerance_plus": 4.3,
+        "tolerance_minus": -4.3,
+        "text": "1473",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 17.8,
+        "unit": "mm",
+        "tolerance_plus": 0.33,
+        "tolerance_minus": -0.33,
+        "text": "17.8 \u00b10.33",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b14.3mm",
+      "Surface finish: Ra 3.2",
+      "Material: DH36 Steel"
+    ]
+  },
+  {
+    "filename": "plate_0039.png",
+    "part_name": "Floor Panel",
+    "material": "AH36 Marine Steel",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2316.0,
+        "unit": "mm",
+        "tolerance_plus": 2.9,
+        "tolerance_minus": -2.9,
+        "text": "2316",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 875.0,
+        "unit": "mm",
+        "tolerance_plus": 2.9,
+        "tolerance_minus": -2.9,
+        "text": "875",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 8.5,
+        "unit": "mm",
+        "tolerance_plus": 0.25,
+        "tolerance_minus": -0.25,
+        "text": "8.5 \u00b10.25",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.9mm",
+      "Surface finish: Ra 3.2",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "plate_0040.png",
+    "part_name": "Bulkhead Panel",
+    "material": "AL 2024-T3",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2360.0,
+        "unit": "mm",
+        "tolerance_plus": 4.6,
+        "tolerance_minus": -4.6,
+        "text": "2360",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 993.0,
+        "unit": "mm",
+        "tolerance_plus": 4.6,
+        "tolerance_minus": -4.6,
+        "text": "993",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 16.2,
+        "unit": "mm",
+        "tolerance_plus": 0.34,
+        "tolerance_minus": -0.34,
+        "text": "16.2 \u00b10.34",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b14.6mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 2024-T3"
+    ]
+  },
+  {
+    "filename": "plate_0041.png",
+    "part_name": "Bulkhead Panel",
+    "material": "CFRP Laminate",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2350.0,
+        "unit": "mm",
+        "tolerance_plus": 4.7,
+        "tolerance_minus": -4.7,
+        "text": "2350",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 550.0,
+        "unit": "mm",
+        "tolerance_plus": 4.7,
+        "tolerance_minus": -4.7,
+        "text": "550",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 6.3,
+        "unit": "mm",
+        "tolerance_plus": 0.34,
+        "tolerance_minus": -0.34,
+        "text": "6.3 \u00b10.34",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b14.7mm",
+      "Surface finish: Ra 3.2",
+      "Material: CFRP Laminate"
+    ]
+  },
+  {
+    "filename": "plate_0042.png",
+    "part_name": "Fuselage Skin",
+    "material": "CFRP Laminate",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1429.0,
+        "unit": "mm",
+        "tolerance_plus": 2.1,
+        "tolerance_minus": -2.1,
+        "text": "1429",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1277.0,
+        "unit": "mm",
+        "tolerance_plus": 2.1,
+        "tolerance_minus": -2.1,
+        "text": "1277",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 6.2,
+        "unit": "mm",
+        "tolerance_plus": 0.42,
+        "tolerance_minus": -0.42,
+        "text": "6.2 \u00b10.42",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b12.1mm",
+      "Surface finish: Ra 3.2",
+      "Material: CFRP Laminate"
+    ]
+  },
+  {
+    "filename": "plate_0043.png",
+    "part_name": "Deck Panel",
+    "material": "AH36 Marine Steel",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1253.0,
+        "unit": "mm",
+        "tolerance_plus": 1.9,
+        "tolerance_minus": -1.9,
+        "text": "1253",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 371.0,
+        "unit": "mm",
+        "tolerance_plus": 1.9,
+        "tolerance_minus": -1.9,
+        "text": "371",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 4.5,
+        "unit": "mm",
+        "tolerance_plus": 0.23,
+        "tolerance_minus": -0.23,
+        "text": "4.5 \u00b10.23",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b11.9mm",
+      "Surface finish: Ra 3.2",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "plate_0044.png",
+    "part_name": "Hull Plate",
+    "material": "AL 2024-T3",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2329.0,
+        "unit": "mm",
+        "tolerance_plus": 3.8,
+        "tolerance_minus": -3.8,
+        "text": "2329",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 828.0,
+        "unit": "mm",
+        "tolerance_plus": 3.8,
+        "tolerance_minus": -3.8,
+        "text": "828",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 10.4,
+        "unit": "mm",
+        "tolerance_plus": 0.32,
+        "tolerance_minus": -0.32,
+        "text": "10.4 \u00b10.32",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b13.8mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 2024-T3"
+    ]
+  },
+  {
+    "filename": "plate_0045.png",
+    "part_name": "Floor Panel",
+    "material": "AL 2024-T3",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2042.0,
+        "unit": "mm",
+        "tolerance_plus": 3.7,
+        "tolerance_minus": -3.7,
+        "text": "2042",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1291.0,
+        "unit": "mm",
+        "tolerance_plus": 3.7,
+        "tolerance_minus": -3.7,
+        "text": "1291",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 14.2,
+        "unit": "mm",
+        "tolerance_plus": 0.27,
+        "tolerance_minus": -0.27,
+        "text": "14.2 \u00b10.27",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b13.7mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 2024-T3"
+    ]
+  },
+  {
+    "filename": "plate_0046.png",
+    "part_name": "Hull Plate",
+    "material": "AL 2024-T3",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 655.0,
+        "unit": "mm",
+        "tolerance_plus": 4.8,
+        "tolerance_minus": -4.8,
+        "text": "655",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1277.0,
+        "unit": "mm",
+        "tolerance_plus": 4.8,
+        "tolerance_minus": -4.8,
+        "text": "1277",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 18.9,
+        "unit": "mm",
+        "tolerance_plus": 0.19,
+        "tolerance_minus": -0.19,
+        "text": "18.9 \u00b10.19",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b14.8mm",
+      "Surface finish: Ra 3.2",
+      "Material: AL 2024-T3"
+    ]
+  },
+  {
+    "filename": "plate_0047.png",
+    "part_name": "Floor Panel",
+    "material": "CFRP Laminate",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 1134.0,
+        "unit": "mm",
+        "tolerance_plus": 3.8,
+        "tolerance_minus": -3.8,
+        "text": "1134",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1266.0,
+        "unit": "mm",
+        "tolerance_plus": 3.8,
+        "tolerance_minus": -3.8,
+        "text": "1266",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 22.4,
+        "unit": "mm",
+        "tolerance_plus": 0.2,
+        "tolerance_minus": -0.2,
+        "text": "22.4 \u00b10.2",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b13.8mm",
+      "Surface finish: Ra 3.2",
+      "Material: CFRP Laminate"
+    ]
+  },
+  {
+    "filename": "plate_0048.png",
+    "part_name": "Hull Plate",
+    "material": "Titanium Ti-6Al-4V",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2298.0,
+        "unit": "mm",
+        "tolerance_plus": 3.7,
+        "tolerance_minus": -3.7,
+        "text": "2298",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 1159.0,
+        "unit": "mm",
+        "tolerance_plus": 3.7,
+        "tolerance_minus": -3.7,
+        "text": "1159",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 19.5,
+        "unit": "mm",
+        "tolerance_plus": 0.49,
+        "tolerance_minus": -0.49,
+        "text": "19.5 \u00b10.49",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b13.7mm",
+      "Surface finish: Ra 3.2",
+      "Material: Titanium Ti-6Al-4V"
+    ]
+  },
+  {
+    "filename": "plate_0049.png",
+    "part_name": "Floor Panel",
+    "material": "DH36 Steel",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 2265.0,
+        "unit": "mm",
+        "tolerance_plus": 4.1,
+        "tolerance_minus": -4.1,
+        "text": "2265",
+        "label": "length",
+        "bbox": [
+          0.42500000000000004,
+          0.26999999999999996,
+          0.55,
+          0.05
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 498.0,
+        "unit": "mm",
+        "tolerance_plus": 4.1,
+        "tolerance_minus": -4.1,
+        "text": "498",
+        "label": "width",
+        "bbox": [
+          0.78,
+          0.5249999999999999,
+          0.05,
+          0.35
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 13.0,
+        "unit": "mm",
+        "tolerance_plus": 0.19,
+        "tolerance_minus": -0.19,
+        "text": "13.0 \u00b10.19",
+        "label": "thickness",
+        "bbox": [
+          0.06999999999999999,
+          0.245,
+          0.05,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "General tolerance: \u00b14.1mm",
+      "Surface finish: Ra 3.2",
+      "Material: DH36 Steel"
+    ]
+  },
+  {
+    "filename": "circular_0050.png",
+    "part_name": "Motor Mount Ring",
+    "material": "Titanium Gr.5",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 249.0,
+        "unit": "mm",
+        "tolerance_plus": 0.04,
+        "tolerance_minus": -0.04,
+        "text": "\u00d8249.0 \u00b10.04",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 91.3,
+        "unit": "mm",
+        "tolerance_plus": 0.04,
+        "tolerance_minus": -0.04,
+        "text": "\u00d891.3",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.374,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 58.9,
+        "unit": "mm",
+        "tolerance_plus": 0.4,
+        "tolerance_minus": -0.4,
+        "text": "58.9",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.44257831325301206,
+          0.04,
+          0.08515662650602408
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 18.9,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d818.9",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.523,
+          0.623,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "4x \u00d818.9 bolt holes on PCD 187",
+      "Material: Titanium Gr.5"
+    ]
+  },
+  {
+    "filename": "circular_0051.png",
+    "part_name": "Bearing Housing",
+    "material": "Stainless 316L",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 120.9,
+        "unit": "mm",
+        "tolerance_plus": 0.078,
+        "tolerance_minus": -0.078,
+        "text": "\u00d8120.9 \u00b10.078",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 43.9,
+        "unit": "mm",
+        "tolerance_plus": 0.078,
+        "tolerance_minus": -0.078,
+        "text": "\u00d843.9",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.37464019851116626,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 44.2,
+        "unit": "mm",
+        "tolerance_plus": 0.78,
+        "tolerance_minus": -0.78,
+        "text": "44.2",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.46580645161290324,
+          0.04,
+          0.13161290322580646
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 11.8,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d811.8",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.522679900744417,
+          0.6226799007444168,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "8x \u00d811.8 bolt holes on PCD 91",
+      "Material: Stainless 316L"
+    ]
+  },
+  {
+    "filename": "circular_0052.png",
+    "part_name": "Windshield Frame Ring",
+    "material": "Titanium Gr.5",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 167.2,
+        "unit": "mm",
+        "tolerance_plus": 0.013,
+        "tolerance_minus": -0.013,
+        "text": "\u00d8167.2 \u00b10.013",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 22.0,
+        "unit": "mm",
+        "tolerance_plus": 0.013,
+        "tolerance_minus": -0.013,
+        "text": "\u00d822.0",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.4163157894736842,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 17.2,
+        "unit": "mm",
+        "tolerance_plus": 0.13,
+        "tolerance_minus": -0.13,
+        "text": "17.2",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.4185167464114833,
+          0.04,
+          0.03703349282296651
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 6.3,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d86.3",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5018421052631579,
+          0.6018421052631578,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "8x \u00d86.3 bolt holes on PCD 125",
+      "Material: Titanium Gr.5"
+    ]
+  },
+  {
+    "filename": "circular_0053.png",
+    "part_name": "Propeller Hub",
+    "material": "AL 7075-T6",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 365.2,
+        "unit": "mm",
+        "tolerance_plus": 0.036,
+        "tolerance_minus": -0.036,
+        "text": "\u00d8365.2 \u00b10.036",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 159.6,
+        "unit": "mm",
+        "tolerance_plus": 0.036,
+        "tolerance_minus": -0.036,
+        "text": "\u00d8159.6",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.36133625410733844,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 28.3,
+        "unit": "mm",
+        "tolerance_plus": 0.36,
+        "tolerance_minus": -0.36,
+        "text": "28.3",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.41394852135815996,
+          0.04,
+          0.027897042716319827
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 12.3,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d812.3",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5293318729463308,
+          0.6293318729463308,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "12x \u00d812.3 bolt holes on PCD 274",
+      "Material: AL 7075-T6"
+    ]
+  },
+  {
+    "filename": "circular_0054.png",
+    "part_name": "Propeller Hub",
+    "material": "Inconel 718",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 70.1,
+        "unit": "mm",
+        "tolerance_plus": 0.091,
+        "tolerance_minus": -0.091,
+        "text": "\u00d870.1 \u00b10.091",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 39.9,
+        "unit": "mm",
+        "tolerance_plus": 0.091,
+        "tolerance_minus": -0.091,
+        "text": "\u00d839.9",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.33754636233951496,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 71.3,
+        "unit": "mm",
+        "tolerance_plus": 0.9099999999999999,
+        "tolerance_minus": -0.9099999999999999,
+        "text": "71.3",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.5830813124108417,
+          0.04,
+          0.3661626248216833
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 15.8,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d815.8",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5412268188302425,
+          0.6412268188302426,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "4x \u00d815.8 bolt holes on PCD 53",
+      "Material: Inconel 718"
+    ]
+  },
+  {
+    "filename": "circular_0055.png",
+    "part_name": "Motor Mount Ring",
+    "material": "AL 7075-T6",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 65.9,
+        "unit": "mm",
+        "tolerance_plus": 0.049,
+        "tolerance_minus": -0.049,
+        "text": "\u00d865.9 \u00b10.049",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 23.8,
+        "unit": "mm",
+        "tolerance_plus": 0.049,
+        "tolerance_minus": -0.049,
+        "text": "\u00d823.8",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.37499241274658573,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 27.2,
+        "unit": "mm",
+        "tolerance_plus": 0.49,
+        "tolerance_minus": -0.49,
+        "text": "27.2",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.47429438543247343,
+          0.04,
+          0.14858877086494685
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 5.3,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d85.3",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5225037936267072,
+          0.6225037936267072,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "4x \u00d85.3 bolt holes on PCD 49",
+      "Material: AL 7075-T6"
+    ]
+  },
+  {
+    "filename": "circular_0056.png",
+    "part_name": "Bearing Housing",
+    "material": "Steel 4340",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 141.0,
+        "unit": "mm",
+        "tolerance_plus": 0.079,
+        "tolerance_minus": -0.079,
+        "text": "\u00d8141.0 \u00b10.079",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 68.0,
+        "unit": "mm",
+        "tolerance_plus": 0.079,
+        "tolerance_minus": -0.079,
+        "text": "\u00d868.0",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.35319148936170214,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 24.8,
+        "unit": "mm",
+        "tolerance_plus": 0.79,
+        "tolerance_minus": -0.79,
+        "text": "24.8",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.4316595744680851,
+          0.04,
+          0.06331914893617022
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 9.9,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d89.9",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5334042553191489,
+          0.6334042553191489,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "8x \u00d89.9 bolt holes on PCD 106",
+      "Material: Steel 4340"
+    ]
+  },
+  {
+    "filename": "circular_0057.png",
+    "part_name": "Windshield Frame Ring",
+    "material": "Stainless 316L",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 120.0,
+        "unit": "mm",
+        "tolerance_plus": 0.099,
+        "tolerance_minus": -0.099,
+        "text": "\u00d8120.0 \u00b10.099",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 29.0,
+        "unit": "mm",
+        "tolerance_plus": 0.099,
+        "tolerance_minus": -0.099,
+        "text": "\u00d829.0",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.3965,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 44.9,
+        "unit": "mm",
+        "tolerance_plus": 0.99,
+        "tolerance_minus": -0.99,
+        "text": "44.9",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.46735000000000004,
+          0.04,
+          0.1347
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 12.1,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d812.1",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.51175,
+          0.61175,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "6x \u00d812.1 bolt holes on PCD 90",
+      "Material: Stainless 316L"
+    ]
+  },
+  {
+    "filename": "circular_0058.png",
+    "part_name": "Propeller Hub",
+    "material": "Inconel 718",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 50.6,
+        "unit": "mm",
+        "tolerance_plus": 0.098,
+        "tolerance_minus": -0.098,
+        "text": "\u00d850.6 \u00b10.098",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 17.0,
+        "unit": "mm",
+        "tolerance_plus": 0.098,
+        "tolerance_minus": -0.098,
+        "text": "\u00d817.0",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.37952569169960476,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 88.5,
+        "unit": "mm",
+        "tolerance_plus": 0.98,
+        "tolerance_minus": -0.98,
+        "text": "88.5",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.7148221343873518,
+          0.04,
+          0.6296442687747035
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 9.9,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d89.9",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5202371541501977,
+          0.6202371541501976,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "12x \u00d89.9 bolt holes on PCD 38",
+      "Material: Inconel 718"
+    ]
+  },
+  {
+    "filename": "circular_0059.png",
+    "part_name": "Pipe Flange",
+    "material": "Titanium Gr.5",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 361.5,
+        "unit": "mm",
+        "tolerance_plus": 0.077,
+        "tolerance_minus": -0.077,
+        "text": "\u00d8361.5 \u00b10.077",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 156.7,
+        "unit": "mm",
+        "tolerance_plus": 0.077,
+        "tolerance_minus": -0.077,
+        "text": "\u00d8156.7",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.36197510373443986,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 42.4,
+        "unit": "mm",
+        "tolerance_plus": 0.77,
+        "tolerance_minus": -0.77,
+        "text": "42.4",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.4211120331950208,
+          0.04,
+          0.04222406639004149
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 15.2,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d815.2",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.52901244813278,
+          0.6290124481327801,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "4x \u00d815.2 bolt holes on PCD 271",
+      "Material: Titanium Gr.5"
+    ]
+  },
+  {
+    "filename": "circular_0060.png",
+    "part_name": "Windshield Frame Ring",
+    "material": "AL 7075-T6",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 280.3,
+        "unit": "mm",
+        "tolerance_plus": 0.033,
+        "tolerance_minus": -0.033,
+        "text": "\u00d8280.3 \u00b10.033",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 48.5,
+        "unit": "mm",
+        "tolerance_plus": 0.033,
+        "tolerance_minus": -0.033,
+        "text": "\u00d848.5",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.4088547984302533,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 39.3,
+        "unit": "mm",
+        "tolerance_plus": 0.33,
+        "tolerance_minus": -0.33,
+        "text": "39.3",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.4252372458080628,
+          0.04,
+          0.05047449161612558
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 14.0,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d814.0",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5055726007848733,
+          0.6055726007848734,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "12x \u00d814.0 bolt holes on PCD 210",
+      "Material: AL 7075-T6"
+    ]
+  },
+  {
+    "filename": "circular_0061.png",
+    "part_name": "Pipe Flange",
+    "material": "Steel 4340",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 266.2,
+        "unit": "mm",
+        "tolerance_plus": 0.013,
+        "tolerance_minus": -0.013,
+        "text": "\u00d8266.2 \u00b10.013",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 25.0,
+        "unit": "mm",
+        "tolerance_plus": 0.013,
+        "tolerance_minus": -0.013,
+        "text": "\u00d825.0",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.4230954169797145,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 64.3,
+        "unit": "mm",
+        "tolerance_plus": 0.13,
+        "tolerance_minus": -0.13,
+        "text": "64.3",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.4434785875281743,
+          0.04,
+          0.0869571750563486
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 9.0,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d89.0",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.49845229151014275,
+          0.5984522915101428,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "8x \u00d89.0 bolt holes on PCD 200",
+      "Material: Steel 4340"
+    ]
+  },
+  {
+    "filename": "circular_0062.png",
+    "part_name": "Pipe Flange",
+    "material": "AL 7075-T6",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 56.2,
+        "unit": "mm",
+        "tolerance_plus": 0.077,
+        "tolerance_minus": -0.077,
+        "text": "\u00d856.2 \u00b10.077",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 10.6,
+        "unit": "mm",
+        "tolerance_plus": 0.077,
+        "tolerance_minus": -0.077,
+        "text": "\u00d810.6",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.40604982206405693,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 28.9,
+        "unit": "mm",
+        "tolerance_plus": 0.77,
+        "tolerance_minus": -0.77,
+        "text": "28.9",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.4925622775800712,
+          0.04,
+          0.1851245551601423
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 7.2,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d87.2",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5069750889679716,
+          0.6069750889679715,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "8x \u00d87.2 bolt holes on PCD 42",
+      "Material: AL 7075-T6"
+    ]
+  },
+  {
+    "filename": "circular_0063.png",
+    "part_name": "Motor Mount Ring",
+    "material": "Bronze C93200",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 114.6,
+        "unit": "mm",
+        "tolerance_plus": 0.061,
+        "tolerance_minus": -0.061,
+        "text": "\u00d8114.6 \u00b10.061",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 48.3,
+        "unit": "mm",
+        "tolerance_plus": 0.061,
+        "tolerance_minus": -0.061,
+        "text": "\u00d848.3",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.36413612565445025,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 91.8,
+        "unit": "mm",
+        "tolerance_plus": 0.61,
+        "tolerance_minus": -0.61,
+        "text": "91.8",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.5441884816753927,
+          0.04,
+          0.28837696335078533
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 17.2,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d817.2",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5279319371727749,
+          0.6279319371727748,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "12x \u00d817.2 bolt holes on PCD 86",
+      "Material: Bronze C93200"
+    ]
+  },
+  {
+    "filename": "circular_0064.png",
+    "part_name": "Motor Mount Ring",
+    "material": "Steel 4340",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 254.5,
+        "unit": "mm",
+        "tolerance_plus": 0.078,
+        "tolerance_minus": -0.078,
+        "text": "\u00d8254.5 \u00b10.078",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 89.2,
+        "unit": "mm",
+        "tolerance_plus": 0.078,
+        "tolerance_minus": -0.078,
+        "text": "\u00d889.2",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.3769115913555992,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 64.3,
+        "unit": "mm",
+        "tolerance_plus": 0.78,
+        "tolerance_minus": -0.78,
+        "text": "64.3",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.44547740667976427,
+          0.04,
+          0.09095481335952849
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 10.9,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d810.9",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5215442043222004,
+          0.6215442043222004,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "12x \u00d810.9 bolt holes on PCD 191",
+      "Material: Steel 4340"
+    ]
+  },
+  {
+    "filename": "circular_0065.png",
+    "part_name": "Flange Coupling",
+    "material": "AL 7075-T6",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 96.6,
+        "unit": "mm",
+        "tolerance_plus": 0.022,
+        "tolerance_minus": -0.022,
+        "text": "\u00d896.6 \u00b10.022",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 51.9,
+        "unit": "mm",
+        "tolerance_plus": 0.022,
+        "tolerance_minus": -0.022,
+        "text": "\u00d851.9",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.34329192546583853,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 29.9,
+        "unit": "mm",
+        "tolerance_plus": 0.21999999999999997,
+        "tolerance_minus": -0.21999999999999997,
+        "text": "29.9",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.45571428571428574,
+          0.04,
+          0.11142857142857143
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 13.5,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d813.5",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5383540372670808,
+          0.6383540372670807,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "12x \u00d813.5 bolt holes on PCD 72",
+      "Material: AL 7075-T6"
+    ]
+  },
+  {
+    "filename": "circular_0066.png",
+    "part_name": "Propeller Hub",
+    "material": "Bronze C93200",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 248.5,
+        "unit": "mm",
+        "tolerance_plus": 0.085,
+        "tolerance_minus": -0.085,
+        "text": "\u00d8248.5 \u00b10.085",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 140.0,
+        "unit": "mm",
+        "tolerance_plus": 0.085,
+        "tolerance_minus": -0.085,
+        "text": "\u00d8140.0",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.3385915492957747,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 33.4,
+        "unit": "mm",
+        "tolerance_plus": 0.8500000000000001,
+        "tolerance_minus": -0.8500000000000001,
+        "text": "33.4",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.42419315895372234,
+          0.04,
+          0.048386317907444666
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 5.3,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d85.3",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5407042253521127,
+          0.6407042253521127,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "12x \u00d85.3 bolt holes on PCD 186",
+      "Material: Bronze C93200"
+    ]
+  },
+  {
+    "filename": "circular_0067.png",
+    "part_name": "Windshield Frame Ring",
+    "material": "Steel 4340",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 306.1,
+        "unit": "mm",
+        "tolerance_plus": 0.055,
+        "tolerance_minus": -0.055,
+        "text": "\u00d8306.1 \u00b10.055",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 87.4,
+        "unit": "mm",
+        "tolerance_plus": 0.055,
+        "tolerance_minus": -0.055,
+        "text": "\u00d887.4",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.3886050310356093,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 91.6,
+        "unit": "mm",
+        "tolerance_plus": 0.55,
+        "tolerance_minus": -0.55,
+        "text": "91.6",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.45386475008167265,
+          0.04,
+          0.1077295001633453
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 17.0,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d817.0",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5156974844821953,
+          0.6156974844821954,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "6x \u00d817.0 bolt holes on PCD 230",
+      "Material: Steel 4340"
+    ]
+  },
+  {
+    "filename": "circular_0068.png",
+    "part_name": "Propeller Hub",
+    "material": "AL 7075-T6",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 81.6,
+        "unit": "mm",
+        "tolerance_plus": 0.046,
+        "tolerance_minus": -0.046,
+        "text": "\u00d881.6 \u00b10.046",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 41.8,
+        "unit": "mm",
+        "tolerance_plus": 0.046,
+        "tolerance_minus": -0.046,
+        "text": "\u00d841.8",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.3477941176470588,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 60.3,
+        "unit": "mm",
+        "tolerance_plus": 0.45999999999999996,
+        "tolerance_minus": -0.45999999999999996,
+        "text": "60.3",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.533014705882353,
+          0.04,
+          0.2660294117647059
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 7.3,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d87.3",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5361029411764706,
+          0.6361029411764706,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "6x \u00d87.3 bolt holes on PCD 61",
+      "Material: AL 7075-T6"
+    ]
+  },
+  {
+    "filename": "circular_0069.png",
+    "part_name": "Windshield Frame Ring",
+    "material": "Bronze C93200",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 248.2,
+        "unit": "mm",
+        "tolerance_plus": 0.088,
+        "tolerance_minus": -0.088,
+        "text": "\u00d8248.2 \u00b10.088",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 49.9,
+        "unit": "mm",
+        "tolerance_plus": 0.088,
+        "tolerance_minus": -0.088,
+        "text": "\u00d849.9",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.40381144238517325,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 48.7,
+        "unit": "mm",
+        "tolerance_plus": 0.8799999999999999,
+        "tolerance_minus": -0.8799999999999999,
+        "text": "48.7",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.4353182917002418,
+          0.04,
+          0.07063658340048348
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 11.3,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d811.3",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5080942788074134,
+          0.6080942788074134,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "8x \u00d811.3 bolt holes on PCD 186",
+      "Material: Bronze C93200"
+    ]
+  },
+  {
+    "filename": "circular_0070.png",
+    "part_name": "Windshield Frame Ring",
+    "material": "Steel 4340",
+    "sector": "automotive_ev",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 235.2,
+        "unit": "mm",
+        "tolerance_plus": 0.093,
+        "tolerance_minus": -0.093,
+        "text": "\u00d8235.2 \u00b10.093",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 122.3,
+        "unit": "mm",
+        "tolerance_plus": 0.093,
+        "tolerance_minus": -0.093,
+        "text": "\u00d8122.3",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.34640306122448977,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 12.8,
+        "unit": "mm",
+        "tolerance_plus": 0.9299999999999999,
+        "tolerance_minus": -0.9299999999999999,
+        "text": "12.8",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.40979591836734697,
+          0.04,
+          0.01959183673469388
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 12.9,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d812.9",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5367984693877551,
+          0.6367984693877551,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "12x \u00d812.9 bolt holes on PCD 176",
+      "Material: Steel 4340"
+    ]
+  },
+  {
+    "filename": "circular_0071.png",
+    "part_name": "Pipe Flange",
+    "material": "Titanium Gr.5",
+    "sector": "automotive_ev",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 252.5,
+        "unit": "mm",
+        "tolerance_plus": 0.081,
+        "tolerance_minus": -0.081,
+        "text": "\u00d8252.5 \u00b10.081",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 141.9,
+        "unit": "mm",
+        "tolerance_plus": 0.081,
+        "tolerance_minus": -0.081,
+        "text": "\u00d8141.9",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.33884356435643564,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 90.9,
+        "unit": "mm",
+        "tolerance_plus": 0.81,
+        "tolerance_minus": -0.81,
+        "text": "90.9",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.46480000000000005,
+          0.04,
+          0.12960000000000002
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 6.1,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d86.1",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5405782178217822,
+          0.6405782178217821,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "4x \u00d86.1 bolt holes on PCD 189",
+      "Material: Titanium Gr.5"
+    ]
+  },
+  {
+    "filename": "circular_0072.png",
+    "part_name": "Motor Mount Ring",
+    "material": "Stainless 316L",
+    "sector": "automotive_ev",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 430.6,
+        "unit": "mm",
+        "tolerance_plus": 0.034,
+        "tolerance_minus": -0.034,
+        "text": "\u00d8430.6 \u00b10.034",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 134.4,
+        "unit": "mm",
+        "tolerance_plus": 0.034,
+        "tolerance_minus": -0.034,
+        "text": "\u00d8134.4",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.38381792847189966,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 61.7,
+        "unit": "mm",
+        "tolerance_plus": 0.34,
+        "tolerance_minus": -0.34,
+        "text": "61.7",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.42579191825359963,
+          0.04,
+          0.051583836507199256
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 18.7,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d818.7",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5180910357640501,
+          0.6180910357640501,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "4x \u00d818.7 bolt holes on PCD 323",
+      "Material: Stainless 316L"
+    ]
+  },
+  {
+    "filename": "circular_0073.png",
+    "part_name": "Flange Coupling",
+    "material": "AL 7075-T6",
+    "sector": "automotive_ev",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 202.6,
+        "unit": "mm",
+        "tolerance_plus": 0.038,
+        "tolerance_minus": -0.038,
+        "text": "\u00d8202.6 \u00b10.038",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 16.9,
+        "unit": "mm",
+        "tolerance_plus": 0.038,
+        "tolerance_minus": -0.038,
+        "text": "\u00d816.9",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.4249851924975321,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 43.1,
+        "unit": "mm",
+        "tolerance_plus": 0.38,
+        "tolerance_minus": -0.38,
+        "text": "43.1",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.4382922013820336,
+          0.04,
+          0.07658440276406714
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 8.7,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d88.7",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.497507403751234,
+          0.597507403751234,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "12x \u00d88.7 bolt holes on PCD 152",
+      "Material: AL 7075-T6"
+    ]
+  },
+  {
+    "filename": "circular_0074.png",
+    "part_name": "Motor Mount Ring",
+    "material": "Bronze C93200",
+    "sector": "automotive_ev",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 130.5,
+        "unit": "mm",
+        "tolerance_plus": 0.077,
+        "tolerance_minus": -0.077,
+        "text": "\u00d8130.5 \u00b10.077",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 55.2,
+        "unit": "mm",
+        "tolerance_plus": 0.077,
+        "tolerance_minus": -0.077,
+        "text": "\u00d855.2",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.36386206896551726,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 88.0,
+        "unit": "mm",
+        "tolerance_plus": 0.77,
+        "tolerance_minus": -0.77,
+        "text": "88.0",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.5213793103448277,
+          0.04,
+          0.24275862068965517
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 17.8,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d817.8",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5280689655172414,
+          0.6280689655172413,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "4x \u00d817.8 bolt holes on PCD 98",
+      "Material: Bronze C93200"
+    ]
+  },
+  {
+    "filename": "circular_0075.png",
+    "part_name": "Pipe Flange",
+    "material": "Steel 4340",
+    "sector": "automotive_ev",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 243.9,
+        "unit": "mm",
+        "tolerance_plus": 0.085,
+        "tolerance_minus": -0.085,
+        "text": "\u00d8243.9 \u00b10.085",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 119.1,
+        "unit": "mm",
+        "tolerance_plus": 0.085,
+        "tolerance_minus": -0.085,
+        "text": "\u00d8119.1",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.35210332103321035,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 43.3,
+        "unit": "mm",
+        "tolerance_plus": 0.8500000000000001,
+        "tolerance_minus": -0.8500000000000001,
+        "text": "43.3",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.4319557195571956,
+          0.04,
+          0.06391143911439114
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 5.6,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d85.6",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5339483394833948,
+          0.6339483394833948,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "8x \u00d85.6 bolt holes on PCD 183",
+      "Material: Steel 4340"
+    ]
+  },
+  {
+    "filename": "circular_0076.png",
+    "part_name": "Flange Coupling",
+    "material": "Stainless 316L",
+    "sector": "automotive_ev",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 147.2,
+        "unit": "mm",
+        "tolerance_plus": 0.037,
+        "tolerance_minus": -0.037,
+        "text": "\u00d8147.2 \u00b10.037",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 56.2,
+        "unit": "mm",
+        "tolerance_plus": 0.037,
+        "tolerance_minus": -0.037,
+        "text": "\u00d856.2",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.3712771739130435,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 53.2,
+        "unit": "mm",
+        "tolerance_plus": 0.37,
+        "tolerance_minus": -0.37,
+        "text": "53.2",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.465054347826087,
+          0.04,
+          0.13010869565217392
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 15.1,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d815.1",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5243614130434783,
+          0.6243614130434783,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "12x \u00d815.1 bolt holes on PCD 110",
+      "Material: Stainless 316L"
+    ]
+  },
+  {
+    "filename": "circular_0077.png",
+    "part_name": "Motor Mount Ring",
+    "material": "Bronze C93200",
+    "sector": "automotive_ev",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 130.7,
+        "unit": "mm",
+        "tolerance_plus": 0.073,
+        "tolerance_minus": -0.073,
+        "text": "\u00d8130.7 \u00b10.073",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 57.9,
+        "unit": "mm",
+        "tolerance_plus": 0.073,
+        "tolerance_minus": -0.073,
+        "text": "\u00d857.9",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.3602601377199694,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 60.6,
+        "unit": "mm",
+        "tolerance_plus": 0.73,
+        "tolerance_minus": -0.73,
+        "text": "60.6",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.4834583014537108,
+          0.04,
+          0.1669166029074216
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 5.2,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d85.2",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5298699311400153,
+          0.6298699311400153,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "8x \u00d85.2 bolt holes on PCD 98",
+      "Material: Bronze C93200"
+    ]
+  },
+  {
+    "filename": "circular_0078.png",
+    "part_name": "Flange Coupling",
+    "material": "Inconel 718",
+    "sector": "automotive_ev",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 171.1,
+        "unit": "mm",
+        "tolerance_plus": 0.023,
+        "tolerance_minus": -0.023,
+        "text": "\u00d8171.1 \u00b10.023",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 38.5,
+        "unit": "mm",
+        "tolerance_plus": 0.023,
+        "tolerance_minus": -0.023,
+        "text": "\u00d838.5",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.39949736995908824,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 12.7,
+        "unit": "mm",
+        "tolerance_plus": 0.22999999999999998,
+        "tolerance_minus": -0.22999999999999998,
+        "text": "12.7",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.4133606078316774,
+          0.04,
+          0.026721215663354763
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 15.3,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d815.3",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.510251315020456,
+          0.6102513150204558,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "12x \u00d815.3 bolt holes on PCD 128",
+      "Material: Inconel 718"
+    ]
+  },
+  {
+    "filename": "circular_0079.png",
+    "part_name": "Propeller Hub",
+    "material": "Bronze C93200",
+    "sector": "automotive_ev",
+    "dimensions": [
+      {
+        "type": "diameter",
+        "value": 101.7,
+        "unit": "mm",
+        "tolerance_plus": 0.078,
+        "tolerance_minus": -0.078,
+        "text": "\u00d8101.7 \u00b10.078",
+        "label": "outer_diameter",
+        "bbox": [
+          0.4,
+          0.72,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 24.6,
+        "unit": "mm",
+        "tolerance_plus": 0.078,
+        "tolerance_minus": -0.078,
+        "text": "\u00d824.6",
+        "label": "inner_diameter",
+        "bbox": [
+          0.4,
+          0.39646017699115044,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 46.1,
+        "unit": "mm",
+        "tolerance_plus": 0.78,
+        "tolerance_minus": -0.78,
+        "text": "46.1",
+        "label": "height",
+        "bbox": [
+          0.92,
+          0.4815929203539823,
+          0.04,
+          0.1631858407079646
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 11.6,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d811.6",
+        "label": "bolt_hole_diameter",
+        "bbox": [
+          0.5117699115044247,
+          0.6117699115044248,
+          0.08,
+          0.05
+        ]
+      }
+    ],
+    "notes": [
+      "6x \u00d811.6 bolt holes on PCD 76",
+      "Material: Bronze C93200"
+    ]
+  },
+  {
+    "filename": "bracket_0080.png",
+    "part_name": "Keel Bracket",
+    "material": "AH36 Marine Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 246.0,
+        "unit": "mm",
+        "tolerance_plus": 2.25,
+        "tolerance_minus": -2.25,
+        "text": "246",
+        "label": "leg_length_a",
+        "bbox": [
+          0.4,
+          0.24,
+          0.4,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 92.0,
+        "unit": "mm",
+        "tolerance_plus": 2.25,
+        "tolerance_minus": -2.25,
+        "text": "92",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.37479674796747964,
+          0.04,
+          0.14959349593495935
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 8.1,
+        "unit": "mm",
+        "tolerance_plus": 0.45,
+        "tolerance_minus": -0.45,
+        "text": "8.1 \u00b10.45",
+        "label": "thickness",
+        "bbox": [
+          0.4,
+          0.3595121951219512,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 17.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R17",
+        "label": "fillet_radius",
+        "bbox": [
+          0.23951219512195124,
+          0.3395121951219512,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 9.2,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d89.2",
+        "label": "hole_diameter",
+        "bbox": [
+          0.4,
+          0.3197560975609756,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R17.0mm all internal corners",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "bracket_0081.png",
+    "part_name": "Motor Mount Bracket",
+    "material": "AL 5083-H116",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 135.0,
+        "unit": "mm",
+        "tolerance_plus": 2.05,
+        "tolerance_minus": -2.05,
+        "text": "135",
+        "label": "leg_length_a",
+        "bbox": [
+          0.3022727272727273,
+          0.24,
+          0.20454545454545456,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 264.0,
+        "unit": "mm",
+        "tolerance_plus": 2.05,
+        "tolerance_minus": -2.05,
+        "text": "264",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 9.2,
+        "unit": "mm",
+        "tolerance_plus": 0.41,
+        "tolerance_minus": -0.41,
+        "text": "9.2 \u00b10.41",
+        "label": "thickness",
+        "bbox": [
+          0.3022727272727273,
+          0.3618181818181818,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 15.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R15",
+        "label": "fillet_radius",
+        "bbox": [
+          0.24181818181818182,
+          0.3418181818181818,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 13.0,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d813.0",
+        "label": "hole_diameter",
+        "bbox": [
+          0.3022727272727273,
+          0.3209090909090909,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R15.0mm all internal corners",
+      "Material: AL 5083-H116"
+    ]
+  },
+  {
+    "filename": "bracket_0082.png",
+    "part_name": "Sensor Bracket",
+    "material": "AL 5083-H116",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 95.0,
+        "unit": "mm",
+        "tolerance_plus": 2.3000000000000003,
+        "tolerance_minus": -2.3000000000000003,
+        "text": "95",
+        "label": "leg_length_a",
+        "bbox": [
+          0.2829694323144105,
+          0.24,
+          0.16593886462882096,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 229.0,
+        "unit": "mm",
+        "tolerance_plus": 2.3000000000000003,
+        "tolerance_minus": -2.3000000000000003,
+        "text": "229",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 13.0,
+        "unit": "mm",
+        "tolerance_plus": 0.46,
+        "tolerance_minus": -0.46,
+        "text": "13.0 \u00b10.46",
+        "label": "thickness",
+        "bbox": [
+          0.2829694323144105,
+          0.38812227074235806,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 20.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R20",
+        "label": "fillet_radius",
+        "bbox": [
+          0.26812227074235806,
+          0.36812227074235804,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 11.8,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d811.8",
+        "label": "hole_diameter",
+        "bbox": [
+          0.2829694323144105,
+          0.33406113537117904,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R20.0mm all internal corners",
+      "Material: AL 5083-H116"
+    ]
+  },
+  {
+    "filename": "bracket_0083.png",
+    "part_name": "Stiffener Bracket",
+    "material": "AH36 Marine Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 87.0,
+        "unit": "mm",
+        "tolerance_plus": 2.5,
+        "tolerance_minus": -2.5,
+        "text": "87",
+        "label": "leg_length_a",
+        "bbox": [
+          0.26170212765957446,
+          0.24,
+          0.12340425531914895,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 282.0,
+        "unit": "mm",
+        "tolerance_plus": 2.5,
+        "tolerance_minus": -2.5,
+        "text": "282",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 14.7,
+        "unit": "mm",
+        "tolerance_plus": 0.5,
+        "tolerance_minus": -0.5,
+        "text": "14.7 \u00b10.5",
+        "label": "thickness",
+        "bbox": [
+          0.26170212765957446,
+          0.38255319148936173,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 8.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R8",
+        "label": "fillet_radius",
+        "bbox": [
+          0.26255319148936174,
+          0.3625531914893617,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 7.1,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d87.1",
+        "label": "hole_diameter",
+        "bbox": [
+          0.26170212765957446,
+          0.3312765957446808,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R8.0mm all internal corners",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "bracket_0084.png",
+    "part_name": "Sensor Bracket",
+    "material": "AH36 Marine Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 85.0,
+        "unit": "mm",
+        "tolerance_plus": 2.25,
+        "tolerance_minus": -2.25,
+        "text": "85",
+        "label": "leg_length_a",
+        "bbox": [
+          0.3734693877551021,
+          0.24,
+          0.34693877551020413,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 98.0,
+        "unit": "mm",
+        "tolerance_plus": 2.25,
+        "tolerance_minus": -2.25,
+        "text": "98",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 6.5,
+        "unit": "mm",
+        "tolerance_plus": 0.45,
+        "tolerance_minus": -0.45,
+        "text": "6.5 \u00b10.45",
+        "label": "thickness",
+        "bbox": [
+          0.3734693877551021,
+          0.3995918367346939,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 25.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R25",
+        "label": "fillet_radius",
+        "bbox": [
+          0.2795918367346939,
+          0.3795918367346939,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 11.9,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d811.9",
+        "label": "hole_diameter",
+        "bbox": [
+          0.3734693877551021,
+          0.3397959183673469,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R25.0mm all internal corners",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "bracket_0085.png",
+    "part_name": "Keel Bracket",
+    "material": "AL 5083-H116",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 216.0,
+        "unit": "mm",
+        "tolerance_plus": 1.5,
+        "tolerance_minus": -1.5,
+        "text": "216",
+        "label": "leg_length_a",
+        "bbox": [
+          0.4,
+          0.24,
+          0.4,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 216.0,
+        "unit": "mm",
+        "tolerance_plus": 1.5,
+        "tolerance_minus": -1.5,
+        "text": "216",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 14.3,
+        "unit": "mm",
+        "tolerance_plus": 0.3,
+        "tolerance_minus": -0.3,
+        "text": "14.3 \u00b10.3",
+        "label": "thickness",
+        "bbox": [
+          0.4,
+          0.3994444444444445,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 26.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R26",
+        "label": "fillet_radius",
+        "bbox": [
+          0.2794444444444445,
+          0.3794444444444445,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 12.4,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d812.4",
+        "label": "hole_diameter",
+        "bbox": [
+          0.4,
+          0.3397222222222222,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R26.0mm all internal corners",
+      "Material: AL 5083-H116"
+    ]
+  },
+  {
+    "filename": "bracket_0086.png",
+    "part_name": "Stiffener Bracket",
+    "material": "Steel A36",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 271.0,
+        "unit": "mm",
+        "tolerance_plus": 1.75,
+        "tolerance_minus": -1.75,
+        "text": "271",
+        "label": "leg_length_a",
+        "bbox": [
+          0.4,
+          0.24,
+          0.4,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 258.0,
+        "unit": "mm",
+        "tolerance_plus": 1.75,
+        "tolerance_minus": -1.75,
+        "text": "258",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.4904059040590406,
+          0.04,
+          0.38081180811808124
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 9.3,
+        "unit": "mm",
+        "tolerance_plus": 0.35,
+        "tolerance_minus": -0.35,
+        "text": "9.3 \u00b10.35",
+        "label": "thickness",
+        "bbox": [
+          0.4,
+          0.3611808118081181,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 18.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R18",
+        "label": "fillet_radius",
+        "bbox": [
+          0.2411808118081181,
+          0.3411808118081181,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 10.3,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d810.3",
+        "label": "hole_diameter",
+        "bbox": [
+          0.4,
+          0.320590405904059,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R18.0mm all internal corners",
+      "Material: Steel A36"
+    ]
+  },
+  {
+    "filename": "bracket_0087.png",
+    "part_name": "Bracket Assembly",
+    "material": "Stainless 304",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 204.0,
+        "unit": "mm",
+        "tolerance_plus": 1.85,
+        "tolerance_minus": -1.85,
+        "text": "204",
+        "label": "leg_length_a",
+        "bbox": [
+          0.4,
+          0.24,
+          0.4,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 66.0,
+        "unit": "mm",
+        "tolerance_plus": 1.85,
+        "tolerance_minus": -1.85,
+        "text": "66",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.36470588235294116,
+          0.04,
+          0.12941176470588234
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 16.5,
+        "unit": "mm",
+        "tolerance_plus": 0.37,
+        "tolerance_minus": -0.37,
+        "text": "16.5 \u00b10.37",
+        "label": "thickness",
+        "bbox": [
+          0.4,
+          0.41705882352941176,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 25.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R25",
+        "label": "fillet_radius",
+        "bbox": [
+          0.29705882352941176,
+          0.39705882352941174,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 9.1,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d89.1",
+        "label": "hole_diameter",
+        "bbox": [
+          0.4,
+          0.34852941176470587,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R25.0mm all internal corners",
+      "Material: Stainless 304"
+    ]
+  },
+  {
+    "filename": "bracket_0088.png",
+    "part_name": "Bracket Assembly",
+    "material": "AH36 Marine Steel",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 170.0,
+        "unit": "mm",
+        "tolerance_plus": 0.7000000000000001,
+        "tolerance_minus": -0.7000000000000001,
+        "text": "170",
+        "label": "leg_length_a",
+        "bbox": [
+          0.4,
+          0.24,
+          0.4,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 135.0,
+        "unit": "mm",
+        "tolerance_plus": 0.7000000000000001,
+        "tolerance_minus": -0.7000000000000001,
+        "text": "135",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.45882352941176474,
+          0.04,
+          0.31764705882352945
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 9.2,
+        "unit": "mm",
+        "tolerance_plus": 0.14,
+        "tolerance_minus": -0.14,
+        "text": "9.2 \u00b10.14",
+        "label": "thickness",
+        "bbox": [
+          0.4,
+          0.38494117647058823,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 10.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R10",
+        "label": "fillet_radius",
+        "bbox": [
+          0.26494117647058824,
+          0.3649411764705882,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 15.3,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d815.3",
+        "label": "hole_diameter",
+        "bbox": [
+          0.4,
+          0.33247058823529413,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R10.0mm all internal corners",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "bracket_0089.png",
+    "part_name": "Sensor Bracket",
+    "material": "AL 6061-T6",
+    "sector": "naval",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 283.0,
+        "unit": "mm",
+        "tolerance_plus": 1.75,
+        "tolerance_minus": -1.75,
+        "text": "283",
+        "label": "leg_length_a",
+        "bbox": [
+          0.4,
+          0.24,
+          0.4,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 278.0,
+        "unit": "mm",
+        "tolerance_plus": 1.75,
+        "tolerance_minus": -1.75,
+        "text": "278",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.49646643109540634,
+          0.04,
+          0.39293286219081275
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 7.7,
+        "unit": "mm",
+        "tolerance_plus": 0.35,
+        "tolerance_minus": -0.35,
+        "text": "7.7 \u00b10.35",
+        "label": "thickness",
+        "bbox": [
+          0.4,
+          0.3526501766784452,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 17.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R17",
+        "label": "fillet_radius",
+        "bbox": [
+          0.23265017667844523,
+          0.3326501766784452,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 6.6,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d86.6",
+        "label": "hole_diameter",
+        "bbox": [
+          0.4,
+          0.3163250883392226,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R17.0mm all internal corners",
+      "Material: AL 6061-T6"
+    ]
+  },
+  {
+    "filename": "bracket_0090.png",
+    "part_name": "Sensor Bracket",
+    "material": "AL 6061-T6",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 282.0,
+        "unit": "mm",
+        "tolerance_plus": 1.35,
+        "tolerance_minus": -1.35,
+        "text": "282",
+        "label": "leg_length_a",
+        "bbox": [
+          0.4,
+          0.24,
+          0.4,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 115.0,
+        "unit": "mm",
+        "tolerance_plus": 1.35,
+        "tolerance_minus": -1.35,
+        "text": "115",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.38156028368794326,
+          0.04,
+          0.16312056737588654
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 10.8,
+        "unit": "mm",
+        "tolerance_plus": 0.27,
+        "tolerance_minus": -0.27,
+        "text": "10.8 \u00b10.27",
+        "label": "thickness",
+        "bbox": [
+          0.4,
+          0.36595744680851067,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 13.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R13",
+        "label": "fillet_radius",
+        "bbox": [
+          0.24595744680851067,
+          0.34595744680851065,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 13.9,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d813.9",
+        "label": "hole_diameter",
+        "bbox": [
+          0.4,
+          0.3229787234042553,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R13.0mm all internal corners",
+      "Material: AL 6061-T6"
+    ]
+  },
+  {
+    "filename": "bracket_0091.png",
+    "part_name": "Gusset Plate",
+    "material": "AL 6061-T6",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 121.0,
+        "unit": "mm",
+        "tolerance_plus": 1.35,
+        "tolerance_minus": -1.35,
+        "text": "121",
+        "label": "leg_length_a",
+        "bbox": [
+          0.3457831325301205,
+          0.24,
+          0.29156626506024097,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 166.0,
+        "unit": "mm",
+        "tolerance_plus": 1.35,
+        "tolerance_minus": -1.35,
+        "text": "166",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 17.0,
+        "unit": "mm",
+        "tolerance_plus": 0.27,
+        "tolerance_minus": -0.27,
+        "text": "17.0 \u00b10.27",
+        "label": "thickness",
+        "bbox": [
+          0.3457831325301205,
+          0.44289156626506027,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 18.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R18",
+        "label": "fillet_radius",
+        "bbox": [
+          0.32289156626506027,
+          0.42289156626506025,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 9.3,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d89.3",
+        "label": "hole_diameter",
+        "bbox": [
+          0.3457831325301205,
+          0.3614457831325301,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R18.0mm all internal corners",
+      "Material: AL 6061-T6"
+    ]
+  },
+  {
+    "filename": "bracket_0092.png",
+    "part_name": "Gusset Plate",
+    "material": "Steel A36",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 196.0,
+        "unit": "mm",
+        "tolerance_plus": 0.8500000000000001,
+        "tolerance_minus": -0.8500000000000001,
+        "text": "196",
+        "label": "leg_length_a",
+        "bbox": [
+          0.37043478260869567,
+          0.24,
+          0.3408695652173913,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 230.0,
+        "unit": "mm",
+        "tolerance_plus": 0.8500000000000001,
+        "tolerance_minus": -0.8500000000000001,
+        "text": "230",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 8.3,
+        "unit": "mm",
+        "tolerance_plus": 0.17,
+        "tolerance_minus": -0.17,
+        "text": "8.3 \u00b10.17",
+        "label": "thickness",
+        "bbox": [
+          0.37043478260869567,
+          0.36330434782608695,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 7.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R7",
+        "label": "fillet_radius",
+        "bbox": [
+          0.24330434782608695,
+          0.34330434782608693,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 14.5,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d814.5",
+        "label": "hole_diameter",
+        "bbox": [
+          0.37043478260869567,
+          0.32165217391304346,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R7.0mm all internal corners",
+      "Material: Steel A36"
+    ]
+  },
+  {
+    "filename": "bracket_0093.png",
+    "part_name": "Bracket Assembly",
+    "material": "Stainless 304",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 57.0,
+        "unit": "mm",
+        "tolerance_plus": 2.4,
+        "tolerance_minus": -2.4,
+        "text": "57",
+        "label": "leg_length_a",
+        "bbox": [
+          0.3753846153846154,
+          0.24,
+          0.3507692307692308,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 65.0,
+        "unit": "mm",
+        "tolerance_plus": 2.4,
+        "tolerance_minus": -2.4,
+        "text": "65",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 8.3,
+        "unit": "mm",
+        "tolerance_plus": 0.48,
+        "tolerance_minus": -0.48,
+        "text": "8.3 \u00b10.48",
+        "label": "thickness",
+        "bbox": [
+          0.3753846153846154,
+          0.47323076923076923,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 20.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R20",
+        "label": "fillet_radius",
+        "bbox": [
+          0.35323076923076924,
+          0.4532307692307692,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 6.9,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d86.9",
+        "label": "hole_diameter",
+        "bbox": [
+          0.3753846153846154,
+          0.37661538461538463,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R20.0mm all internal corners",
+      "Material: Stainless 304"
+    ]
+  },
+  {
+    "filename": "bracket_0094.png",
+    "part_name": "Keel Bracket",
+    "material": "Stainless 304",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 260.0,
+        "unit": "mm",
+        "tolerance_plus": 1.2,
+        "tolerance_minus": -1.2,
+        "text": "260",
+        "label": "leg_length_a",
+        "bbox": [
+          0.3940298507462687,
+          0.24,
+          0.3880597014925373,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 268.0,
+        "unit": "mm",
+        "tolerance_plus": 1.2,
+        "tolerance_minus": -1.2,
+        "text": "268",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 14.5,
+        "unit": "mm",
+        "tolerance_plus": 0.24,
+        "tolerance_minus": -0.24,
+        "text": "14.5 \u00b10.24",
+        "label": "thickness",
+        "bbox": [
+          0.3940298507462687,
+          0.3849253731343284,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 6.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R6",
+        "label": "fillet_radius",
+        "bbox": [
+          0.2649253731343284,
+          0.3649253731343284,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 14.6,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d814.6",
+        "label": "hole_diameter",
+        "bbox": [
+          0.3940298507462687,
+          0.33246268656716416,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R6.0mm all internal corners",
+      "Material: Stainless 304"
+    ]
+  },
+  {
+    "filename": "bracket_0095.png",
+    "part_name": "Motor Mount Bracket",
+    "material": "AH36 Marine Steel",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 137.0,
+        "unit": "mm",
+        "tolerance_plus": 0.8,
+        "tolerance_minus": -0.8,
+        "text": "137",
+        "label": "leg_length_a",
+        "bbox": [
+          0.30873015873015874,
+          0.24,
+          0.21746031746031746,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 252.0,
+        "unit": "mm",
+        "tolerance_plus": 0.8,
+        "tolerance_minus": -0.8,
+        "text": "252",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 18.3,
+        "unit": "mm",
+        "tolerance_plus": 0.16,
+        "tolerance_minus": -0.16,
+        "text": "18.3 \u00b10.16",
+        "label": "thickness",
+        "bbox": [
+          0.30873015873015874,
+          0.40714285714285714,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 18.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R18",
+        "label": "fillet_radius",
+        "bbox": [
+          0.28714285714285714,
+          0.3871428571428571,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 11.6,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d811.6",
+        "label": "hole_diameter",
+        "bbox": [
+          0.30873015873015874,
+          0.3435714285714286,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R18.0mm all internal corners",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "bracket_0096.png",
+    "part_name": "Motor Mount Bracket",
+    "material": "Stainless 304",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 129.0,
+        "unit": "mm",
+        "tolerance_plus": 2.4,
+        "tolerance_minus": -2.4,
+        "text": "129",
+        "label": "leg_length_a",
+        "bbox": [
+          0.4,
+          0.24,
+          0.4,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 75.0,
+        "unit": "mm",
+        "tolerance_plus": 2.4,
+        "tolerance_minus": -2.4,
+        "text": "75",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.41627906976744183,
+          0.04,
+          0.23255813953488372
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 4.5,
+        "unit": "mm",
+        "tolerance_plus": 0.48,
+        "tolerance_minus": -0.48,
+        "text": "4.5 \u00b10.48",
+        "label": "thickness",
+        "bbox": [
+          0.4,
+          0.36186046511627906,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 13.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R13",
+        "label": "fillet_radius",
+        "bbox": [
+          0.24186046511627907,
+          0.34186046511627904,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 15.7,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d815.7",
+        "label": "hole_diameter",
+        "bbox": [
+          0.4,
+          0.3209302325581395,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R13.0mm all internal corners",
+      "Material: Stainless 304"
+    ]
+  },
+  {
+    "filename": "bracket_0097.png",
+    "part_name": "Bracket Assembly",
+    "material": "AH36 Marine Steel",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 128.0,
+        "unit": "mm",
+        "tolerance_plus": 2.05,
+        "tolerance_minus": -2.05,
+        "text": "128",
+        "label": "leg_length_a",
+        "bbox": [
+          0.31277533039647576,
+          0.24,
+          0.22555066079295155,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 227.0,
+        "unit": "mm",
+        "tolerance_plus": 2.05,
+        "tolerance_minus": -2.05,
+        "text": "227",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 8.3,
+        "unit": "mm",
+        "tolerance_plus": 0.41,
+        "tolerance_minus": -0.41,
+        "text": "8.3 \u00b10.41",
+        "label": "thickness",
+        "bbox": [
+          0.31277533039647576,
+          0.36387665198237884,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 18.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R18",
+        "label": "fillet_radius",
+        "bbox": [
+          0.24387665198237887,
+          0.3438766519823788,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 13.9,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d813.9",
+        "label": "hole_diameter",
+        "bbox": [
+          0.31277533039647576,
+          0.32193832599118943,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R18.0mm all internal corners",
+      "Material: AH36 Marine Steel"
+    ]
+  },
+  {
+    "filename": "bracket_0098.png",
+    "part_name": "Gusset Plate",
+    "material": "AL 5083-H116",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 230.0,
+        "unit": "mm",
+        "tolerance_plus": 0.8999999999999999,
+        "tolerance_minus": -0.8999999999999999,
+        "text": "230",
+        "label": "leg_length_a",
+        "bbox": [
+          0.3932773109243698,
+          0.24,
+          0.3865546218487395,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 238.0,
+        "unit": "mm",
+        "tolerance_plus": 0.8999999999999999,
+        "tolerance_minus": -0.8999999999999999,
+        "text": "238",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 19.0,
+        "unit": "mm",
+        "tolerance_plus": 0.18,
+        "tolerance_minus": -0.18,
+        "text": "19.0 \u00b10.18",
+        "label": "thickness",
+        "bbox": [
+          0.3932773109243698,
+          0.41579831932773115,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 11.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R11",
+        "label": "fillet_radius",
+        "bbox": [
+          0.29579831932773115,
+          0.39579831932773113,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 10.9,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d810.9",
+        "label": "hole_diameter",
+        "bbox": [
+          0.3932773109243698,
+          0.34789915966386553,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R11.0mm all internal corners",
+      "Material: AL 5083-H116"
+    ]
+  },
+  {
+    "filename": "bracket_0099.png",
+    "part_name": "Bracket Assembly",
+    "material": "AL 6061-T6",
+    "sector": "aerospace",
+    "dimensions": [
+      {
+        "type": "linear",
+        "value": 182.0,
+        "unit": "mm",
+        "tolerance_plus": 1.7999999999999998,
+        "tolerance_minus": -1.7999999999999998,
+        "text": "182",
+        "label": "leg_length_a",
+        "bbox": [
+          0.32133333333333336,
+          0.24,
+          0.2426666666666667,
+          0.04
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 300.0,
+        "unit": "mm",
+        "tolerance_plus": 1.7999999999999998,
+        "tolerance_minus": -1.7999999999999998,
+        "text": "300",
+        "label": "leg_length_b",
+        "bbox": [
+          0.12000000000000001,
+          0.5,
+          0.04,
+          0.4000000000000001
+        ]
+      },
+      {
+        "type": "linear",
+        "value": 7.5,
+        "unit": "mm",
+        "tolerance_plus": 0.36,
+        "tolerance_minus": -0.36,
+        "text": "7.5 \u00b10.36",
+        "label": "thickness",
+        "bbox": [
+          0.32133333333333336,
+          0.35000000000000003,
+          0.1,
+          0.03
+        ]
+      },
+      {
+        "type": "radius",
+        "value": 17.0,
+        "unit": "mm",
+        "tolerance_plus": 0,
+        "tolerance_minus": 0,
+        "text": "R17",
+        "label": "fillet_radius",
+        "bbox": [
+          0.23,
+          0.33,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "type": "diameter",
+        "value": 10.1,
+        "unit": "mm",
+        "tolerance_plus": 0.05,
+        "tolerance_minus": -0.05,
+        "text": "\u00d810.1",
+        "label": "hole_diameter",
+        "bbox": [
+          0.32133333333333336,
+          0.315,
+          0.08,
+          0.03
+        ]
+      }
+    ],
+    "notes": [
+      "Fillet R17.0mm all internal corners",
+      "Material: AL 6061-T6"
+    ]
+  }
+]
