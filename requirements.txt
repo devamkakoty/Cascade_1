@@ -1,7 +1,9 @@
 numpy>=1.24
-torch>=2.0
-matplotlib>=3.7
 streamlit>=1.28
 plotly>=5.18
 scipy>=1.11
 pypdf>=4.0
+Pillow>=10.0
+pytesseract>=0.3.10
+trimesh>=4.0
+matplotlib>=3.7
