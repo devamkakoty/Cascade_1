@@ -37,9 +37,10 @@ _ONSHAPE_MODELS = {
 }
 
 # ── Top-level tabs ───────────────────────────────────────────────────
-tab_system, tab_battery = st.tabs([
+tab_system, tab_battery, tab_data = st.tabs([
     "System Cascade (Cross-Subsystem)",
     "Battery Thermal Cascade",
+    "Data Pipeline & Sources",
 ])
 
 # =====================================================================
@@ -119,6 +120,29 @@ with tab_system:
             key="drawing_upload",
         )
 
+    # --- Sample Library (no upload needed) ---
+    from cascade_predict.sample_library import get_sample_library, get_sample_by_name
+    with st.expander("Or pick from the Sample Library (no file needed)", expanded=False):
+        _samples = get_sample_library()
+        _sample_names = ["(none)"] + [s.name for s in _samples]
+        _sample_descs = {s.name: f"**{s.sector.title()}** — {s.description}" for s in _samples}
+        _sel_sample = st.selectbox(
+            "Select a sample CAD model",
+            _sample_names,
+            key="sample_select",
+        )
+        if _sel_sample != "(none)":
+            st.markdown(_sample_descs[_sel_sample])
+
+    # Load sample as if it was uploaded
+    _sample_cad_data = None
+    _sample_cad_name = None
+    if _sel_sample != "(none)" and uploaded_cad is None:
+        sample = get_sample_by_name(_sel_sample)
+        if sample.file_type == "stl":
+            _sample_cad_data = sample.data
+            _sample_cad_name = sample.name.split("(")[0].strip().replace(" ", "_") + ".stl"
+
     # --- Process 2D Drawing ---
     drawing_result = None  # type: DrawingParseResult | None
     if uploaded_drawing is not None:
@@ -180,9 +204,19 @@ with tab_system:
             st.warning("Please paste a valid Onshape URL (must contain onshape.com).")
 
     cad_result = None  # type: CADAnalysisResult | None
+    # Use uploaded CAD or sample library
+    _cad_source_raw = None
+    _cad_source_name = None
     if uploaded_cad is not None:
-        cad_raw = uploaded_cad.read()
-        cad_result = parse_cad_file(uploaded_cad.name, cad_raw)
+        _cad_source_raw = uploaded_cad.read()
+        _cad_source_name = uploaded_cad.name
+    elif _sample_cad_data is not None:
+        _cad_source_raw = _sample_cad_data
+        _cad_source_name = _sample_cad_name
+        st.success(f"Loaded sample: **{_sel_sample}**")
+
+    if _cad_source_raw is not None:
+        cad_result = parse_cad_file(_cad_source_name, _cad_source_raw)
 
         st.markdown("---")
         st.subheader("3D Model Preview")
@@ -205,8 +239,8 @@ with tab_system:
                 st.dataframe(geo_table, use_container_width=True, hide_index=True)
 
     # Show guidance if nothing uploaded yet
-    if uploaded_spec is None and uploaded_cad is None and uploaded_drawing is None and not _has_onshape:
-        st.info("Upload a spec document, a CAD file (STL/STEP), a 2D drawing, or paste an Onshape URL above to get started. You can also skip directly to Step 3.")
+    if uploaded_spec is None and uploaded_cad is None and uploaded_drawing is None and not _has_onshape and _sample_cad_data is None:
+        st.info("Upload a spec document, a CAD file (STL/STEP), a 2D drawing, paste an Onshape URL, or pick from the Sample Library above. You can also skip directly to Step 3.")
 
     # ── STEP 2: Identify Part ────────────────────────────────────────
     st.markdown("---")
@@ -549,10 +583,13 @@ with tab_system:
             )
         prop = editable_props[selected_prop]
         with col_val:
+            # Ensure value and step are both float to avoid Streamlit type error
+            _prop_val = float(prop.value)
+            _prop_step = abs(_prop_val) * 0.05 if _prop_val != 0 else 0.1
             new_value = st.number_input(
                 f"New value ({prop.unit})",
-                value=prop.value,
-                step=abs(prop.value) * 0.05 if prop.value != 0 else 0.1,
+                value=_prop_val,
+                step=_prop_step,
                 format="%.4f",
             )
             delta = new_value - prop.value
@@ -1186,3 +1223,370 @@ with tab_battery:
                 xaxis_title="Time to Runaway (s)",
             )
             st.plotly_chart(fig_tl, use_container_width=True)
+
+# =====================================================================
+# TAB 3: DATA PIPELINE & SOURCES
+# =====================================================================
+with tab_data:
+    st.title("Data Pipeline & Knowledge Sources")
+    st.caption(
+        "How cascade predictions are powered — from physics equations to "
+        "historical data, simulation surrogates, and live operational feeds."
+    )
+
+    dp_a, dp_c, dp_d, dp_e, dp_ops = st.tabs([
+        "A: Universal Physics",
+        "C: Engineering Changes",
+        "D: Simulation Surrogates",
+        "E: Standards Tables",
+        "Operational Data",
+    ])
+
+    # ── Option A: Universal Physics Library ──────────────────────────
+    with dp_a:
+        st.header("Option A — Universal Physics Coupling Library")
+        st.markdown("""
+**What it is:** A catalog of physics relationships that hold true regardless
+of sector or application. Parameterized by material properties and geometry.
+
+**Why it matters:** These are the *default* couplings used when no historical
+data or simulation results are available. They provide the baseline 80% of
+cascade predictions from first principles alone.
+
+**How it works in the pipeline:**
+1. User provides geometry (CAD/drawing) + material
+2. Auto-assembler selects applicable coupling patterns
+3. Material DB provides density, yield strength, thermal conductivity, etc.
+4. Physics models compute exact sensitivities (Δoutput/Δinput)
+        """)
+
+        from cascade_predict.physics_models.universal import MATERIAL_DB, list_materials
+
+        st.subheader("Universal Coupling Patterns")
+        _coupling_patterns = [
+            ("Thickness → Mass", "Δm = ρ × A × Δt", "mass", "Any plate, panel, or shell"),
+            ("Diameter → Mass", "Δm = ρ × π/2 × D × L × ΔD", "mass", "Cylinders, shafts, pipes"),
+            ("Mass → Weight", "ΔF = n × g × Δm", "structural", "All structures under gravity"),
+            ("Load → Stress", "Δσ = ΔF / A", "structural", "Any loaded cross-section"),
+            ("Stress → Safety Margin", "Δmargin = -Δσ / σ_yield", "structural", "All materials"),
+            ("Stress → Fatigue Life", "ΔN/N = -m × Δσ/σ (S-N curve)", "structural", "Cyclic loading"),
+            ("Thickness → Heat Flux", "Q = k×A×ΔT/t (Fourier)", "thermal", "Conduction through walls"),
+            ("Heat → Temperature", "ΔT = Q × R_thermal", "thermal", "All thermal systems"),
+            ("Power → Waste Heat", "Q = P × (1-η)", "thermal", "Motors, electronics, engines"),
+            ("Mass → Drag", "D ∝ displacement^⅔", "fluid", "Vehicles, vessels, aircraft"),
+            ("Drag → Power", "P = D × v / η", "fluid", "All propulsion systems"),
+            ("Power → Range", "R ∝ 1/P (fixed energy)", "fluid", "Battery/fuel limited systems"),
+            ("Mass → Cost", "cost = Δm × $/kg", "cost", "All manufactured parts"),
+            ("Mass → Schedule", "lead_time ∝ mass^0.6", "schedule", "Manufacturing learning curve"),
+        ]
+        _cp_table = [{"Pattern": p, "Equation": e, "Discipline": d, "Applies To": a}
+                     for p, e, d, a in _coupling_patterns]
+        st.dataframe(_cp_table, use_container_width=True, hide_index=True)
+
+        st.subheader("Material Properties Database")
+        _mat_table = []
+        for key, props in MATERIAL_DB.items():
+            _mat_table.append({
+                "Material": key.replace("_", " ").title(),
+                "Density (kg/m³)": props["density"],
+                "Yield (MPa)": f"{props['yield_strength']/1e6:.0f}",
+                "k (W/mK)": props["thermal_conductivity"],
+                "Fatigue (MPa)": f"{props['fatigue_endurance']/1e6:.0f}",
+                "Cost ($/kg)": props["cost_per_kg"],
+            })
+        st.dataframe(_mat_table, use_container_width=True, hide_index=True)
+
+    # ── Option C: Engineering Change Records ─────────────────────────
+    with dp_c:
+        st.header("Option C — Data-Driven Coupling Discovery")
+        st.markdown("""
+**What it is:** Historical engineering change records (ECR/ECO) that capture
+what changed, what downstream effects were observed, and the actual deltas.
+
+**Why it matters:** Physics models give theoretical sensitivities. ECR data
+gives *real* sensitivities from actual projects — including effects that
+physics alone can't predict (supply chain delays, tooling rework, etc.)
+
+**How it works in the pipeline:**
+1. ECR data is collected (currently synthetic, future: PLM/ERP integration)
+2. For each (source, target) parameter pair, we fit: `sensitivity = mean(Δtarget / Δsource)`
+3. Fitted couplings can override or augment physics-based models
+4. Confidence scores indicate data quality and consistency
+
+**Future data sources:** Siemens Teamcenter, PTC Windchill, Jira, SAP PLM
+        """)
+
+        from cascade_predict.data.engineering_changes import (
+            load_ecr_dataset, discover_all_couplings, generate_synthetic_ecr_dataset,
+        )
+        import os
+
+        _ecr_path = "training_data/ecr_dataset.json"
+        if not os.path.exists(_ecr_path):
+            generate_synthetic_ecr_dataset(_ecr_path, n_records=200)
+
+        _ecr_records = load_ecr_dataset(_ecr_path)
+        st.metric("Total ECR Records", len(_ecr_records))
+
+        col_ecr1, col_ecr2 = st.columns(2)
+        with col_ecr1:
+            _sectors_in_data = set(r.sector for r in _ecr_records)
+            _sector_counts = {s: sum(1 for r in _ecr_records if r.sector == s) for s in _sectors_in_data}
+            st.subheader("Records by Sector")
+            for s, c in sorted(_sector_counts.items()):
+                st.markdown(f"- **{s}**: {c} records")
+
+        with col_ecr2:
+            st.subheader("Sample Records")
+            _sample_ecrs = _ecr_records[:5]
+            for r in _sample_ecrs:
+                st.markdown(
+                    f"**{r.ecr_id}** ({r.timestamp}) — {r.description[:60]}...  \n"
+                    f"Trigger: `{r.trigger.node_id}` {r.trigger.old_value:.1f} → {r.trigger.new_value:.1f} {r.trigger.unit}  \n"
+                    f"Cost: ${r.cost_delta_usd:,.0f} | Schedule: {r.schedule_delta_weeks:.1f} wks"
+                )
+
+        st.subheader("Discovered Coupling Relationships")
+        _couplings = discover_all_couplings(_ecr_records, min_observations=3)
+        if _couplings:
+            _coup_table = [{
+                "Source": c.source_node,
+                "Target": c.target_node,
+                "Sensitivity": f"{c.observed_sensitivity:.4f}",
+                "Observations": c.n_observations,
+                "Std Dev": f"{c.std_dev:.4f}",
+                "Confidence": f"{c.confidence:.0%}",
+            } for c in _couplings[:15]]
+            st.dataframe(_coup_table, use_container_width=True, hide_index=True)
+            st.caption(f"Showing top 15 of {len(_couplings)} discovered couplings (sorted by confidence)")
+
+    # ── Option D: Simulation Surrogates ──────────────────────────────
+    with dp_d:
+        st.header("Option D — Simulation-Backed Surrogates")
+        st.markdown("""
+**What it is:** Response surface models fitted from FEA/CFD/modal simulation
+sweeps. The surrogate captures the nonlinear input-output relationship in
+a lightweight polynomial model that runs in microseconds.
+
+**Why it matters:** Real simulations take hours per run. A fitted surrogate
+gives the same answer (within R² accuracy) instantly — enabling real-time
+cascade propagation with simulation-grade fidelity.
+
+**How it works in the pipeline:**
+1. DOE (Design of Experiments) defines parameter sweep ranges
+2. Simulations run at each point (currently synthetic, future: ANSYS/COMSOL API)
+3. Linear or quadratic response surface is fitted
+4. `SurrogatePhysicsModel` wraps the fit as a drop-in PhysicsModel
+5. Can replace any physics-based coupling in the cascade graph
+
+**Future integrations:** ANSYS Workbench, COMSOL API, OpenFOAM (via PyFoam)
+        """)
+
+        from cascade_predict.data.simulation_surrogates import (
+            load_simulation_dataset, fit_linear_surrogate, fit_quadratic_surrogate,
+            generate_synthetic_simulation_data,
+        )
+
+        _sim_dir = "training_data/simulations"
+        if not os.path.exists(_sim_dir):
+            generate_synthetic_simulation_data(_sim_dir)
+
+        _sim_files = [f for f in os.listdir(_sim_dir) if f.endswith(".json")]
+        for sf in sorted(_sim_files):
+            ds = load_simulation_dataset(os.path.join(_sim_dir, sf))
+            with st.expander(f"{ds.name.replace('_', ' ').title()} ({ds.n_points} points)", expanded=True):
+                st.markdown(f"*{ds.description}*")
+                st.markdown(f"**Inputs:** {', '.join(ds.input_params)} | **Outputs:** {', '.join(ds.output_params)}")
+
+                _fit_results = []
+                for inp in ds.input_params:
+                    for out in ds.output_params:
+                        quad = fit_quadratic_surrogate(ds, inp, out)
+                        lin = fit_linear_surrogate(ds, inp, out)
+                        best = quad if (quad and quad.r_squared > (lin.r_squared if lin else 0)) else lin
+                        if best and best.r_squared > 0.1:
+                            _fit_results.append({
+                                "Input": best.input_param,
+                                "Output": best.output_param,
+                                "Model": best.model_type,
+                                "R²": f"{best.r_squared:.3f}",
+                                "Training Points": best.n_training_points,
+                                "Equation": (f"{best.coefficients[0]:.4f}x² + {best.coefficients[1]:.4f}x + {best.coefficients[2]:.2f}"
+                                             if best.model_type == "quadratic" else
+                                             f"{best.coefficients[0]:.4f}x + {best.coefficients[1]:.2f}"),
+                            })
+                if _fit_results:
+                    st.dataframe(_fit_results, use_container_width=True, hide_index=True)
+
+    # ── Option E: Standards Lookup Tables ────────────────────────────
+    with dp_e:
+        st.header("Option E — Standards-Based Lookup Tables")
+        st.markdown("""
+**What it is:** Engineering standards (DNV, FAR, ISO, SAE, SOLAS) codify
+decades of industry experience into allowable limits, safety factors, and
+design rules. These are the most trustworthy source of constraints.
+
+**Why it matters:** Standards define what's *acceptable*, not just what's
+*possible*. They encode regulatory requirements that override pure physics.
+
+**How it works in the pipeline:**
+1. Each sector has registered standards constraints
+2. Constraints are checked after every cascade propagation
+3. Violations are flagged with the exact standard reference
+4. Safety factors and stress limits are sector-specific
+        """)
+
+        from cascade_predict.graph_assembler import SAFETY_FACTORS, TEMP_LIMITS, STRESS_LIMITS
+        from cascade_predict.subsystems.cost_schedule import COST_RATES
+
+        col_sf, col_sl = st.columns(2)
+        with col_sf:
+            st.subheader("Safety Factors by Sector")
+            _sf_table = [{"Sector": k.title(), "Safety Factor": v, "Source": {
+                "aerospace": "FAR 25.303", "automotive_ev": "SAE J2464",
+                "naval": "DNV GL", "general": "Engineering practice", "robotics": "ISO 10218"
+            }.get(k, "")} for k, v in SAFETY_FACTORS.items()]
+            st.dataframe(_sf_table, use_container_width=True, hide_index=True)
+
+        with col_sl:
+            st.subheader("Stress Limits (% of Yield)")
+            _sl_table = [{"Sector": k.title(), "Max Stress / Yield": f"{v:.0%}", "Rationale": {
+                "aerospace": "Fatigue-critical, long life",
+                "automotive_ev": "Crash + fatigue",
+                "naval": "Corrosion allowance",
+                "general": "Conservative default",
+                "robotics": "Dynamic loading + fatigue",
+            }.get(k, "")} for k, v in STRESS_LIMITS.items()]
+            st.dataframe(_sl_table, use_container_width=True, hide_index=True)
+
+        st.subheader("Temperature Limits by Sector")
+        _temp_table = []
+        for sector, limits in TEMP_LIMITS.items():
+            for limit_name, limit_val in limits.items():
+                _temp_table.append({
+                    "Sector": sector.title(),
+                    "Parameter": limit_name.replace("_", " ").replace("max ", "Max "),
+                    "Limit": f"{limit_val}°C",
+                })
+        st.dataframe(_temp_table, use_container_width=True, hide_index=True)
+
+        st.subheader("Cost Rates by Sector")
+        _cost_table = []
+        for sector, rates in COST_RATES.items():
+            _cost_table.append({
+                "Sector": sector.title(),
+                "Material ($/kg)": rates["material_per_kg"],
+                "Manufacturing ($/kg)": rates["manufacturing_per_kg"],
+                "Tooling Base ($)": f"${rates['tooling_base']:,.0f}",
+                "Mfg Lead (wks)": rates["mfg_lead_weeks"],
+                "Cert Lead (wks)": rates["cert_lead_weeks"],
+            })
+        st.dataframe(_cost_table, use_container_width=True, hide_index=True)
+
+    # ── Operational Data ─────────────────────────────────────────────
+    with dp_ops:
+        st.header("Operational Data Pipeline")
+        st.markdown("""
+**What it is:** Live sensor/telemetry data that flows back from operating
+systems to validate and update cascade models in real time.
+
+**Why it matters:** Design-time predictions are based on nominal values.
+Operational data reveals how parameters *actually* drift over time —
+enabling predictive maintenance and early warning of cascading failures.
+
+**How it works in the pipeline:**
+1. Sensors map to graph nodes (e.g., strain gauge → applied_stress)
+2. Readings are compared against design nominal values
+3. Drift detection triggers warnings when thresholds are crossed
+4. Historical trends validate physics model accuracy
+
+**Future data sources:** MQTT, OPC-UA, SCADA, CAN bus, ARINC 429
+        """)
+
+        from cascade_predict.data.operational import (
+            get_sensor_configs, generate_operational_dataset,
+            create_operational_snapshot, load_operational_dataset,
+        )
+
+        _ops_sector = st.selectbox("Sector", ["naval", "aerospace", "automotive_ev", "robotics"],
+                                    format_func=lambda x: x.replace("_", " ").title(),
+                                    key="ops_sector")
+
+        _ops_path = f"training_data/operational/operational_{_ops_sector}.json"
+        if not os.path.exists(_ops_path):
+            generate_operational_dataset("training_data/operational", sector=_ops_sector)
+
+        _configs, _streams = load_operational_dataset(_ops_path)
+
+        st.subheader("Sensor Configuration")
+        _sensor_table = [{
+            "Sensor ID": c.sensor_id,
+            "Maps To": c.node_id,
+            "Description": c.description,
+            "Nominal": f"{c.nominal_value} {c.unit}",
+            "Warning": f"±{c.warning_threshold}%",
+            "Alarm": f"±{c.alarm_threshold}%",
+        } for c in _configs]
+        st.dataframe(_sensor_table, use_container_width=True, hide_index=True)
+
+        st.subheader("Latest Readings")
+        _snapshot = create_operational_snapshot(_streams, _configs)
+        if _snapshot.readings:
+            _reading_table = []
+            for config in _configs:
+                if config.node_id in _snapshot.readings:
+                    val = _snapshot.readings[config.node_id]
+                    dev = abs(val - config.nominal_value) / abs(config.nominal_value) * 100
+                    status = "Normal"
+                    if dev > config.alarm_threshold:
+                        status = "ALARM"
+                    elif dev > config.warning_threshold:
+                        status = "Warning"
+                    _reading_table.append({
+                        "Parameter": config.node_id.replace("_", " ").title(),
+                        "Current": f"{val:.2f} {config.unit}",
+                        "Nominal": f"{config.nominal_value} {config.unit}",
+                        "Deviation": f"{dev:.1f}%",
+                        "Status": status,
+                    })
+            st.dataframe(_reading_table, use_container_width=True, hide_index=True)
+
+        if _snapshot.alerts:
+            st.subheader("Drift Alerts")
+            for alert in _snapshot.alerts[:10]:
+                if alert.severity == "critical":
+                    st.error(f"**CRITICAL** — {alert.message}")
+                elif alert.severity == "alarm":
+                    st.warning(f"**ALARM** — {alert.message}")
+                else:
+                    st.info(f"**Warning** — {alert.message}")
+
+        # Time series visualization
+        st.subheader("Sensor Time Series (last 100 readings)")
+        _plot_sensor = st.selectbox(
+            "Select sensor",
+            [c.sensor_id for c in _configs],
+            format_func=lambda x: next((c.description for c in _configs if c.sensor_id == x), x),
+            key="ops_sensor_plot",
+        )
+        if _plot_sensor in _streams and _streams[_plot_sensor]:
+            _readings = _streams[_plot_sensor]
+            _config = next(c for c in _configs if c.sensor_id == _plot_sensor)
+            _times = list(range(len(_readings)))
+            _values = [r.value for r in _readings]
+
+            fig_ops = go.Figure()
+            fig_ops.add_trace(go.Scatter(x=_times, y=_values, mode='lines', name='Reading'))
+            fig_ops.add_hline(y=_config.nominal_value, line_dash="dash", line_color="green",
+                             annotation_text="Nominal")
+            fig_ops.add_hline(y=_config.nominal_value * (1 + _config.warning_threshold/100),
+                             line_dash="dot", line_color="orange", annotation_text="Warning +")
+            fig_ops.add_hline(y=_config.nominal_value * (1 - _config.warning_threshold/100),
+                             line_dash="dot", line_color="orange")
+            fig_ops.update_layout(
+                title=_config.description,
+                xaxis_title="Sample",
+                yaxis_title=f"{_config.unit}",
+                height=350,
+            )
+            st.plotly_chart(fig_ops, use_container_width=True)
