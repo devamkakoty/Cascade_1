@@ -40,6 +40,18 @@ TEMPLATE_INFO = TemplateInfo(
             "property_name": "grip_force",
             "new_value": 100,
         },
+        {
+            "name": "Payload offset: front-heavy (+80 mm X)",
+            "component_id": "payload_placement",
+            "property_name": "payload_offset_x",
+            "new_value": 80.0,
+        },
+        {
+            "name": "Payload offset: top-heavy (+60 mm Z)",
+            "component_id": "payload_placement",
+            "property_name": "payload_offset_z",
+            "new_value": 60.0,
+        },
     ],
 )
 

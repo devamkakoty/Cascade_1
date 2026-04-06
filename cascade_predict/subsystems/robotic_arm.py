@@ -451,6 +451,219 @@ def build_robotic_arm():
         description="Grip force → grippable mass (friction limit)",
     ))
 
+    # ── Payload Distribution / Placement ───────────────────────
+    # Payload placement drives: CG shift → stability, braking, tracking, overhang
+    graph.add_node(SubsystemNode(
+        "payload_offset_x", "performance", 0.0, "mm",
+        "Payload CG offset from tool center point (X-forward)",
+    ))
+    graph.add_node(SubsystemNode(
+        "payload_offset_z", "performance", 0.0, "mm",
+        "Payload CG offset from tool center point (Z-vertical)",
+    ))
+    graph.add_node(SubsystemNode(
+        "effective_overhang", "structural", 50.0, "mm",
+        "Effective overhang moment arm (distance from last joint to payload CG)",
+    ))
+    graph.add_node(SubsystemNode(
+        "cg_shift", "structural", 0.0, "mm",
+        "Arm system CG shift from nominal (affects base loads)",
+    ))
+    graph.add_node(SubsystemNode(
+        "static_tip_moment", "structural", 36.8, "Nm",
+        "Static moment at tip from payload (m × g × overhang)",
+    ))
+    graph.add_node(SubsystemNode(
+        "dynamic_load_factor", "performance", 1.0, "ratio",
+        "Dynamic amplification factor (>1 when payload is offset or at speed)",
+        bounds=(1.0, 3.0),
+    ))
+    graph.add_node(SubsystemNode(
+        "tracking_error", "performance", 0.1, "mm",
+        "Path tracking error under load (increases with CG offset)",
+        bounds=(0, 0.5),
+        regulatory_limit=0.5,
+        regulatory_ref="ISO 9283 path tracking",
+    ))
+    graph.add_node(SubsystemNode(
+        "braking_distance", "performance", 2.5, "mm",
+        "Emergency stop overshoot distance",
+        bounds=(0, 5.0),
+        regulatory_limit=5.0,
+        regulatory_ref="ISO 10218-1 stopping performance",
+    ))
+    graph.add_node(SubsystemNode(
+        "stability_margin", "structural", 0.85, "ratio",
+        "Tip-over stability margin for mobile base (1.0 = neutral, <0.5 = unstable)",
+        bounds=(0.3, float("inf")),
+    ))
+
+    # Payload offset → effective overhang
+    graph.add_edge(CouplingEdge(
+        source_id="payload_offset_x", target_id="effective_overhang",
+        model=LinearModel(
+            coefficient=1.0,
+            desc="Forward payload offset adds to overhang moment arm",
+            eq="Δoverhang = Δoffset_x",
+        ),
+        description="Payload X-offset → overhang",
+    ))
+
+    # Payload Z-offset → effective overhang (vertical offset adds moment arm via Pythagoras)
+    graph.add_edge(CouplingEdge(
+        source_id="payload_offset_z", target_id="effective_overhang",
+        model=LinearModel(
+            coefficient=0.5,
+            desc="Vertical offset adds to effective moment arm (~0.5× contribution)",
+            eq="Δoverhang ≈ 0.5 × Δoffset_z (geometric coupling)",
+        ),
+        description="Payload Z-offset → overhang (geometric)",
+    ))
+
+    # Payload Z-offset → CG shift (vertical CG raise destabilizes)
+    graph.add_edge(CouplingEdge(
+        source_id="payload_offset_z", target_id="cg_shift",
+        model=LinearModel(
+            coefficient=5.0 / 18.0 * 0.7,  # reduced influence vs X
+            desc="Vertical payload offset raises CG",
+            eq="Δcg ≈ (m_pay/m_tot) × 0.7 × Δoffset_z",
+        ),
+        description="Payload Z-offset → CG shift (vertical)",
+    ))
+
+    # Payload Z-offset → dynamic load factor (vertical offset creates overturning)
+    graph.add_edge(CouplingEdge(
+        source_id="payload_offset_z", target_id="dynamic_load_factor",
+        model=LinearModel(
+            coefficient=0.002,  # slightly less than X-offset
+            desc="Raised CG amplifies dynamic loads during motion",
+            eq="ΔDLF ≈ 0.002 × Δoffset_z",
+        ),
+        description="Payload Z-offset → dynamic load factor",
+    ))
+
+    # Payload capacity × overhang → static tip moment
+    # M = m × g × overhang.  Linearized: ΔM = g × overhang₀ × Δm + m₀ × g × Δoverhang
+    graph.add_edge(CouplingEdge(
+        source_id="payload_capacity", target_id="static_tip_moment",
+        model=LinearModel(
+            coefficient=9.81 * 0.050,  # g × overhang_m (50mm = 0.05m)
+            desc="Heavier payload increases tip moment",
+            eq="ΔM = g × overhang × Δm_payload",
+        ),
+        description="Payload mass → tip moment",
+    ))
+    graph.add_edge(CouplingEdge(
+        source_id="effective_overhang", target_id="static_tip_moment",
+        model=LinearModel(
+            coefficient=5.0 * 9.81 * 0.001,  # m_payload × g × mm_to_m
+            desc="More overhang increases tip moment",
+            eq="ΔM = m_payload × g × Δoverhang",
+        ),
+        description="Overhang → tip moment",
+    ))
+
+    # Tip moment → additional shoulder torque requirement
+    graph.add_edge(CouplingEdge(
+        source_id="static_tip_moment", target_id="joint1_rated_torque",
+        model=LinearModel(
+            coefficient=1.0,
+            desc="Tip moment adds directly to shoulder torque",
+            eq="Δτ_shoulder = ΔM_tip",
+        ),
+        description="Tip moment → shoulder torque",
+    ))
+
+    # Payload offset → CG shift of whole arm system
+    # CG shift ≈ (m_payload / m_total) × offset
+    graph.add_edge(CouplingEdge(
+        source_id="payload_offset_x", target_id="cg_shift",
+        model=LinearModel(
+            coefficient=5.0 / 18.0,  # m_payload / m_total
+            desc="Payload offset shifts overall CG",
+            eq="Δcg = (m_payload/m_total) × Δoffset",
+        ),
+        description="Payload offset → system CG shift",
+    ))
+
+    # CG shift → stability margin (for mobile base robots)
+    # Stability margin decreases as CG moves away from base center
+    graph.add_edge(CouplingEdge(
+        source_id="cg_shift", target_id="stability_margin",
+        model=LinearModel(
+            coefficient=-0.002,  # ratio per mm of CG shift
+            desc="CG shift erodes stability margin",
+            eq="Δstability = -0.002 × Δcg_shift",
+        ),
+        description="CG shift → stability margin (degrades)",
+    ))
+
+    # Dynamic load factor increases with payload offset + speed
+    # Offset creates centrifugal moment: F_dyn = m × ω² × r
+    graph.add_edge(CouplingEdge(
+        source_id="payload_offset_x", target_id="dynamic_load_factor",
+        model=LinearModel(
+            coefficient=0.003,  # per mm of offset (at rated speed)
+            desc="Offset payload sees centrifugal amplification",
+            eq="ΔDLF ≈ 0.003 × Δoffset (at ω_rated)",
+        ),
+        description="Payload offset → dynamic load factor",
+    ))
+    graph.add_edge(CouplingEdge(
+        source_id="max_speed", target_id="dynamic_load_factor",
+        model=LinearModel(
+            coefficient=0.15,  # per m/s speed increase
+            desc="Faster motion amplifies dynamic loads",
+            eq="ΔDLF ≈ 0.15 × Δv",
+        ),
+        description="Speed → dynamic load factor",
+    ))
+
+    # Dynamic load factor → tracking error (higher dynamic loads = worse tracking)
+    graph.add_edge(CouplingEdge(
+        source_id="dynamic_load_factor", target_id="tracking_error",
+        model=LinearModel(
+            coefficient=0.1 / 1.0,  # tracking_error_base / DLF_base
+            desc="Dynamic amplification degrades path tracking",
+            eq="Δtrack_err = track₀ × ΔDLF",
+        ),
+        description="Dynamic load → tracking error",
+    ))
+
+    # Dynamic load factor → braking distance
+    # Higher momentum from offset CG = longer stopping distance
+    graph.add_edge(CouplingEdge(
+        source_id="dynamic_load_factor", target_id="braking_distance",
+        model=LinearModel(
+            coefficient=2.5,  # braking_dist_base × ΔDLF
+            desc="Higher dynamic loads increase stopping distance",
+            eq="Δbrake = d₀ × ΔDLF",
+        ),
+        description="Dynamic load → braking distance",
+    ))
+
+    # CG shift also affects braking (asymmetric braking)
+    graph.add_edge(CouplingEdge(
+        source_id="cg_shift", target_id="braking_distance",
+        model=LinearModel(
+            coefficient=0.01,  # mm per mm of CG shift
+            desc="Off-center CG causes asymmetric braking",
+            eq="Δbrake ≈ 0.01 × Δcg_shift",
+        ),
+        description="CG shift → braking distance (asymmetric)",
+    ))
+
+    # Tracking error → positioning accuracy (additional degradation)
+    graph.add_edge(CouplingEdge(
+        source_id="tracking_error", target_id="positioning_accuracy",
+        model=LinearModel(
+            coefficient=0.5,
+            desc="Tracking error degrades static positioning",
+            eq="Δacc += 0.5 × Δtrack_err",
+        ),
+        description="Tracking error → positioning accuracy",
+    ))
+
     # ── Cost/schedule injection ─────────────────────────────────
     inject_cost_schedule_nodes(
         graph, "robotics",
@@ -492,6 +705,14 @@ def build_robotic_arm():
     comp_power.add_property("supply_voltage", 48, "V", "supply_voltage", "Bus voltage")
     components["power_supply"] = comp_power
 
+    comp_payload = Component("payload_placement", "Payload Placement", "performance",
+                             "Payload CG position relative to tool center point")
+    comp_payload.add_property("payload_offset_x", 0.0, "mm", "payload_offset_x",
+                              "Forward CG offset from TCP (X-axis)")
+    comp_payload.add_property("payload_offset_z", 0.0, "mm", "payload_offset_z",
+                              "Vertical CG offset from TCP (Z-axis)")
+    components["payload_placement"] = comp_payload
+
     # ═══════════════════════════════════════════════════════════════
     # CONSTRAINTS
     # ═══════════════════════════════════════════════════════════════
@@ -526,6 +747,18 @@ def build_robotic_arm():
             "Maximum Tip Deflection",
             "Tip deflection under rated load must not exceed 1mm",
             "tip_deflection", 1.0, "max", "mm",
+        ),
+        CertConstraint(
+            "iso_9283_tracking", "ISO 9283:1998", "7.3",
+            "Path Tracking Error",
+            "Path tracking error must not exceed 0.5mm under rated load and speed",
+            "tracking_error", 0.5, "max", "mm",
+        ),
+        CertConstraint(
+            "iso_10218_braking", "ISO 10218-1:2011", "5.5.3",
+            "Emergency Stop Braking Distance",
+            "Emergency stop overshoot must not exceed 5mm at rated speed and load",
+            "braking_distance", 5.0, "max", "mm",
         ),
     ]
 
