@@ -1,0 +1,20 @@
+# ── Deploy to Render.com ─────────────────────────────────────────
+# 1. Push this repo to GitHub
+# 2. Go to https://dashboard.render.com/new/web
+# 3. Connect your GitHub repo
+# 4. Render auto-detects this file and deploys
+#
+# Free tier works for testing. For 20+ users, use "Starter" ($7/mo).
+# ─────────────────────────────────────────────────────────────────
+
+services:
+  - type: web
+    name: cascade-predict
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: STREAMLIT_SERVER_PORT
+        value: "8501"
+    plan: starter       # starter = $7/mo, 1GB RAM. Use "standard" for 20+ users
+    healthCheckPath: /_stcore/health
+    autoDeploy: true    # auto-deploy on git push
