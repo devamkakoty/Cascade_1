@@ -98,17 +98,39 @@ class CascadeResult:
                 path.append(step.target_node)
         return path
 
-    def summary(self) -> dict:
+    @property
+    def max_pct_change(self) -> float:
+        """Largest absolute % change in any downstream node."""
+        max_pct = 0.0
+        for step in self.steps:
+            baseline = self.initial_state.get(step.target_node, step.old_value)
+            if abs(baseline) > 1e-10:
+                pct = abs(step.delta_output / baseline * 100)
+                max_pct = max(max_pct, pct)
+        return max_pct
+
+    def summary(self, total_graph_nodes: int = 0) -> dict:
+        from cascade_predict.cost_predictor import compute_propagation_score
+        n_affected = len(self.affected_nodes)
+        total = total_graph_nodes if total_graph_nodes > 0 else max(n_affected + 5, 20)
+        prop_score = compute_propagation_score(
+            n_affected, total,
+            len(self.violations),
+            self.n_cross_domain_hops,
+            self.max_pct_change,
+        )
         return {
             "trigger": self.trigger_node,
             "trigger_delta": self.trigger_delta,
-            "nodes_affected": len(self.affected_nodes),
+            "nodes_affected": n_affected,
             "cascade_depth": self.cascade_depth,
             "subsystems_affected": self.n_subsystems_affected,
             "cross_domain_hops": self.n_cross_domain_hops,
             "violations": len(self.violations),
             "converged": self.converged,
             "iterations": self.n_iterations,
+            "propagation_score": prop_score,
+            "max_pct_change": round(self.max_pct_change, 2),
         }
 
 

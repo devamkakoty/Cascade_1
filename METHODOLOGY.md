@@ -366,14 +366,56 @@ The app is stateless (no database), so horizontal scaling is straightforward.
 
 ---
 
-## 12. What Is NOT Used
+## 12. Cost Variance Prediction (ML Layer)
+
+Alongside the deterministic physics engine, an ML model predicts **cost overrun risk**:
+
+### 12.1 Model
+- **Algorithm:** Random Forest Regressor (50 estimators, scikit-learn)
+- **Target:** Cost Variance % — how much actual cost exceeds estimated cost
+- **Training:** Synthetic data generated from ECR templates with noise (2,000 samples)
+
+### 12.2 Features (38 total)
+- **Cascade metrics:** propagation_score, n_nodes_affected, n_subsystems_affected, n_violations, n_cross_domain_hops, cascade_depth, max_pct_change
+- **Change context:** estimated_cost, duration_days, regulatory_involved
+- **Subsystem flags:** 13 binary flags for affected subsystems
+- **Categorical:** change_type (9 one-hot), change_cause (4 one-hot), severity (2 one-hot)
+
+### 12.3 Propagation Score
+A single 0-1 metric condensing cascade severity:
+- 25% graph coverage (fraction of nodes affected)
+- 30% violation severity (saturates at 3 violations)
+- 20% cross-domain spread (saturates at 5 hops)
+- 25% impact magnitude (saturates at 50% change)
+
+### 12.4 Risk Tiers
+| Tier | Variance | Action |
+|------|----------|--------|
+| 1 | < 15% | Fast-track |
+| 2 | 15–30% | Standard review |
+| 3 | 30–45% | Senior review |
+| 4 | > 45% | Deep analysis |
+
+### 12.5 Feedback Loop
+After implementation, users record actual cost. The actual-vs-predicted delta is displayed, and over time these records can retrain the model on real data.
+
+### 12.6 Change Context Collection
+The UI captures additional context that improves predictions:
+- **Change cause:** customer requirement, integration issue, supplier innovation, regulatory, design optimization
+- **Severity:** high, medium, low
+- **Part location:** external exposed, internal structural, interface boundary, submerged, pressurized, high vibration
+- **Operating temperature, load type, estimated cost**
+- **Connected systems:** structural frame, cooling, electrical, hydraulic, control, propulsion, sensors, etc.
+
+---
+
+## 13. What Is NOT Used
 
 To be explicit about scope:
 
 - **No LLMs** — no GPT, Claude, or any language model in the prediction pipeline
-- **No neural networks** — cascade propagation is BFS on a DAG with analytical coefficients
-- **No training data required** — physics models are equations, not learned functions
+- **No neural networks** — cascade propagation is BFS on a DAG with analytical coefficients. The RF cost predictor is a shallow tree ensemble, not a neural net.
 - **No external API calls** — everything runs locally, no cloud dependencies at runtime
 - **No database** — all state is in-memory per session
 
-The ML training infrastructure (`train_model.py`, `training_data/`) exists for a separate prediction model but is **not used** in the cascade propagation engine.
+The ML training infrastructure (`train_model.py`, `training_data/`) exists for a separate prediction model but is **not used** in the cascade propagation engine. The cost variance predictor (RandomForest) is the only ML model in the platform, and it sits alongside — not inside — the physics propagation path.

@@ -369,6 +369,75 @@ with tab_system:
     )
     from cascade_predict.physics_models.universal import list_materials, lookup_material
 
+    # ── Change Context (drives cost/risk prediction) ─────────────────
+    with st.expander("Change Context (improves cost & risk prediction)", expanded=False):
+        ctx_col1, ctx_col2, ctx_col3 = st.columns(3)
+        with ctx_col1:
+            _change_cause = st.selectbox(
+                "Why is this change happening?",
+                ["customer_requirement", "integration_issue",
+                 "supplier_innovation", "regulatory", "design_optimization"],
+                format_func=lambda x: x.replace("_", " ").title(),
+                key="change_cause",
+            )
+        with ctx_col2:
+            _change_severity = st.selectbox(
+                "Severity / Scope",
+                ["medium", "high", "low"],
+                format_func=lambda x: x.title(),
+                key="change_severity",
+            )
+        with ctx_col3:
+            _regulatory_involved = st.checkbox(
+                "Regulatory / Certification affected?",
+                value=False,
+                key="regulatory_involved",
+            )
+
+        st.markdown("##### Part Location & Environment")
+        loc_col1, loc_col2, loc_col3, loc_col4 = st.columns(4)
+        with loc_col1:
+            _part_location = st.selectbox(
+                "Where does this part sit?",
+                ["external_exposed", "internal_structural", "internal_non_structural",
+                 "interface_boundary", "submerged", "pressurized", "high_vibration"],
+                format_func=lambda x: x.replace("_", " ").title(),
+                key="part_location",
+            )
+        with loc_col2:
+            _operating_temp = st.number_input(
+                "Operating temp (°C)",
+                value=25.0, min_value=-60.0, max_value=500.0,
+                step=5.0, key="operating_temp",
+            )
+        with loc_col3:
+            _load_type = st.selectbox(
+                "Primary load type",
+                ["static", "cyclic_fatigue", "impact", "thermal_cycling",
+                 "pressure", "vibration", "combined"],
+                format_func=lambda x: x.replace("_", " ").title(),
+                key="load_type",
+            )
+        with loc_col4:
+            _estimated_cost = st.number_input(
+                "Estimated change cost ($)",
+                value=10000.0, min_value=0.0,
+                step=1000.0, format="%.0f",
+                key="estimated_cost",
+            )
+
+        st.markdown("##### Connected Systems")
+        _interfaces = st.multiselect(
+            "What does this part interface with?",
+            ["structural_frame", "cooling_system", "electrical_harness",
+             "hydraulic_lines", "control_system", "propulsion",
+             "sensors", "human_operator", "external_environment",
+             "adjacent_parts", "mounting_hardware", "seals_gaskets"],
+            default=[],
+            format_func=lambda x: x.replace("_", " ").title(),
+            key="part_interfaces",
+        )
+
     all_templates = list_templates()
     template_names = {t.template_id: f"{t.name} ({t.industry})" for t in all_templates}
     # Add auto-assemble option
@@ -725,7 +794,7 @@ with tab_system:
             trigger_node = list(deltas.keys())[0]
             trigger_delta = list(deltas.values())[0]
             result = engine.propagate(trigger_node, trigger_delta, mode="single_pass")
-            summary = result.summary()
+            summary = result.summary(total_graph_nodes=len(graph.nodes))
 
             # Deduplicate steps
             seen_targets = {}
@@ -747,15 +816,41 @@ with tab_system:
             st.divider()
             st.header("Cascade Results")
 
+            # ── Cost Variance Prediction ─────────────────────────────
+            from cascade_predict.cost_predictor import (
+                get_predictor, ChangeRequest, CostPrediction,
+                compute_propagation_score,
+            )
+            _predictor = get_predictor()
+            _change_req = ChangeRequest(
+                change_type=comp.subsystem if comp else "structural",
+                affected_subsystems=list(set(s.target_subsystem for s in unique_steps)),
+                change_cause=_change_cause,
+                severity=_change_severity,
+                regulatory_involved=_regulatory_involved,
+                estimated_cost=_estimated_cost,
+                propagation_score=summary["propagation_score"],
+                n_nodes_affected=summary["nodes_affected"],
+                n_subsystems_affected=summary["subsystems_affected"],
+                n_violations=summary["violations"],
+                n_cross_domain_hops=summary["cross_domain_hops"],
+                cascade_depth=summary["cascade_depth"],
+                max_pct_change=summary["max_pct_change"],
+                sector=selected_sector,
+                duration_days=60,
+            )
+            _cost_pred = _predictor.predict(_change_req)
+
             # ── Result tabs ──────────────────────────────────────────
-            result_tab_names = ["Overview", "Cascade Flow", "Violations", "Cost & Schedule", "Comparison"]
+            result_tab_names = ["Overview", "Cascade Flow", "Violations",
+                                "Cost & Schedule", "Risk Assessment", "Comparison"]
             if _run_bayesian:
                 result_tab_names.append("Uncertainty")
             result_tabs = st.tabs(result_tab_names)
 
             # ── TAB: Overview ────────────────────────────────────────
             with result_tabs[0]:
-                m1, m2, m3, m4 = st.columns(4)
+                m1, m2, m3, m4, m5 = st.columns(5)
                 m1.metric("Parameters Affected", summary["nodes_affected"])
                 m2.metric("Subsystems Hit", summary["subsystems_affected"])
                 m3.metric("Cross-Domain Hops", summary["cross_domain_hops"])
@@ -763,6 +858,17 @@ with tab_system:
                 m4.metric("Violations", n_violations,
                            delta=f"{n_violations} cert issues" if n_violations > 0 else "Clean",
                            delta_color="inverse")
+                _tier_colors = {1: "normal", 2: "normal", 3: "inverse", 4: "inverse"}
+                m5.metric("Risk Tier", f"T{_cost_pred.risk_tier}",
+                          delta=_cost_pred.risk_label,
+                          delta_color=_tier_colors.get(_cost_pred.risk_tier, "normal"))
+
+                # Propagation score bar
+                st.markdown(
+                    f"**Propagation Score:** `{summary['propagation_score']:.2f}` / 1.00 "
+                    f"— {'Low' if summary['propagation_score'] < 0.3 else 'Moderate' if summary['propagation_score'] < 0.6 else 'High'} cascade severity"
+                )
+                st.progress(min(1.0, summary["propagation_score"]))
 
                 st.subheader("Cascade Waterfall")
                 st.caption("Each bar = change propagated. Red = violation. Orange = cross-domain hop.")
@@ -997,8 +1103,73 @@ with tab_system:
                 else:
                     st.info("No cost/schedule impact detected for this change.")
 
-            # ── TAB: Comparison ──────────────────────────────────────
+            # ── TAB: Risk Assessment ─────────────────────────────────
             with result_tabs[4]:
+                st.subheader("Risk Assessment & Cost Prediction")
+
+                # Risk tier banner
+                _tier_banner = {
+                    1: ("success", "Tier 1 — Fast-track. Low cost overrun risk. Proceed with standard approval."),
+                    2: ("info", "Tier 2 — Standard Review. Moderate overrun risk. Standard review process recommended."),
+                    3: ("warning", "Tier 3 — Senior Review. High overrun risk. Senior engineering review required."),
+                    4: ("error", "Tier 4 — Deep Analysis. Very high overrun risk. Detailed cost & schedule analysis needed."),
+                }
+                _banner_fn = {"success": st.success, "info": st.info, "warning": st.warning, "error": st.error}
+                _btype, _bmsg = _tier_banner[_cost_pred.risk_tier]
+                _banner_fn[_btype](_bmsg)
+
+                rc1, rc2, rc3, rc4 = st.columns(4)
+                rc1.metric("Predicted Overrun", f"{_cost_pred.predicted_variance_pct:.1f}%")
+                rc2.metric("Estimated Cost", f"${_estimated_cost:,.0f}")
+                rc3.metric("Predicted Actual", f"${_cost_pred.predicted_actual_cost:,.0f}")
+                rc4.metric("Model Confidence (R²)", f"{_cost_pred.confidence:.2f}")
+
+                # Feature importance
+                if _cost_pred.feature_importance:
+                    st.markdown("##### What drives the overrun prediction?")
+                    fi_labels = [k.replace("_", " ").title() for k in _cost_pred.feature_importance.keys()]
+                    fi_values = list(_cost_pred.feature_importance.values())
+                    fig_fi = go.Figure(go.Bar(
+                        x=fi_values, y=fi_labels, orientation="h",
+                        marker_color="#d4725c",
+                    ))
+                    fig_fi.update_layout(
+                        height=max(200, 35 * len(fi_labels)),
+                        xaxis_title="Feature Importance",
+                        margin=dict(l=200, r=40, t=20, b=40),
+                        yaxis=dict(autorange="reversed"),
+                    )
+                    st.plotly_chart(fig_fi, use_container_width=True)
+
+                # Propagation details
+                st.markdown("##### Cascade Severity Breakdown")
+                ps_col1, ps_col2, ps_col3, ps_col4 = st.columns(4)
+                ps_col1.metric("Propagation Score", f"{summary['propagation_score']:.2f}")
+                ps_col2.metric("Max Parameter Change", f"{summary['max_pct_change']:.1f}%")
+                ps_col3.metric("Cascade Depth", summary["cascade_depth"])
+                ps_col4.metric("Cross-Domain Hops", summary["cross_domain_hops"])
+
+                # Feedback capture
+                st.markdown("---")
+                st.markdown("##### Feedback (after implementation)")
+                st.caption("Record actual cost to improve future predictions.")
+                fb_col1, fb_col2 = st.columns(2)
+                with fb_col1:
+                    _actual_cost = st.number_input(
+                        "Actual cost ($) — fill in after implementation",
+                        value=0.0, min_value=0.0,
+                        step=1000.0, format="%.0f",
+                        key="actual_cost_feedback",
+                    )
+                with fb_col2:
+                    if _actual_cost > 0 and _estimated_cost > 0:
+                        _actual_variance = (_actual_cost - _estimated_cost) / _estimated_cost * 100
+                        _pred_error = _actual_variance - _cost_pred.predicted_variance_pct
+                        st.metric("Actual Variance", f"{_actual_variance:+.1f}%",
+                                  delta=f"Prediction error: {_pred_error:+.1f}%")
+
+            # ── TAB: Comparison ──────────────────────────────────────
+            with result_tabs[5]:
                 st.subheader("Parameter Comparison (Before -> After)")
                 table_data = []
                 for step in eng_steps:
@@ -1031,7 +1202,7 @@ with tab_system:
 
             # ── TAB: Uncertainty (Bayesian) ──────────────────────────
             if _run_bayesian:
-                with result_tabs[5]:
+                with result_tabs[6]:
                     st.subheader("Bayesian Uncertainty Analysis")
                     st.markdown(
                         f"Monte Carlo propagation with **{_mc_samples} samples**. "
@@ -1350,6 +1521,26 @@ Optional Monte Carlo mode samples edge sensitivities from uncertainty
 distributions, producing violation *probabilities* instead of point estimates.
 Useful for trade studies where manufacturing tolerances or material variability
 matter.
+""")
+
+        st.subheader("Cost Variance Prediction & Risk Tiering")
+        st.markdown("""
+An ML layer (Random Forest) predicts **how much actual cost will deviate from
+the estimate**, based on change characteristics and cascade results. Features
+include propagation score, violation count, cross-domain hops, change cause,
+severity, and regulatory involvement.
+
+**Risk Tiers:**
+
+| Tier | Predicted Overrun | Action |
+|------|------------------|--------|
+| 1 | < 15% | Fast-track |
+| 2 | 15–30% | Standard review |
+| 3 | 30–45% | Senior review |
+| 4 | > 45% | Deep analysis |
+
+The feedback loop captures actual cost after implementation
+to improve future predictions.
 """)
 
     # ── Supported Sectors ────────────────────────────────────────────
