@@ -370,73 +370,204 @@ with tab_system:
     from cascade_predict.physics_models.universal import list_materials, lookup_material
 
     # ── Change Context (drives cost/risk prediction) ─────────────────
-    with st.expander("Change Context (improves cost & risk prediction)", expanded=False):
+    # Auto-infer defaults from sector + part
+    _SECTOR_LOAD_DEFAULTS = {
+        "aerospace": "cyclic_fatigue", "naval": "cyclic_fatigue",
+        "automotive_ev": "vibration", "robotics": "cyclic_fatigue",
+    }
+    _SECTOR_LOCATION_DEFAULTS = {
+        "aerospace": "internal_structural", "naval": "external_exposed",
+        "automotive_ev": "internal_structural", "robotics": "internal_structural",
+    }
+    _SECTOR_TEMP_DEFAULTS = {
+        "aerospace": 40.0, "naval": 35.0, "automotive_ev": 45.0, "robotics": 30.0,
+    }
+
+    with st.expander("Change Context", expanded=True):
+        st.caption("Fill in what you know — the system infers the rest.")
+
         ctx_col1, ctx_col2, ctx_col3 = st.columns(3)
         with ctx_col1:
             _change_cause = st.selectbox(
                 "Why is this change happening?",
-                ["customer_requirement", "integration_issue",
-                 "supplier_innovation", "regulatory", "design_optimization"],
+                ["design_optimization", "customer_requirement", "integration_issue",
+                 "supplier_change", "regulatory", "field_failure",
+                 "cost_reduction", "performance_improvement", "not_sure"],
                 format_func=lambda x: x.replace("_", " ").title(),
                 key="change_cause",
             )
         with ctx_col2:
             _change_severity = st.selectbox(
-                "Severity / Scope",
-                ["medium", "high", "low"],
-                format_func=lambda x: x.title(),
+                "How big is this change?",
+                ["medium", "high", "low", "not_sure"],
+                format_func=lambda x: {"high": "Major — affects multiple systems",
+                                        "medium": "Moderate — affects nearby systems",
+                                        "low": "Minor — localized change",
+                                        "not_sure": "Not sure yet"}.get(x, x.title()),
                 key="change_severity",
             )
         with ctx_col3:
             _regulatory_involved = st.checkbox(
-                "Regulatory / Certification affected?",
+                "Might need re-certification?",
                 value=False,
                 key="regulatory_involved",
+                help="Check if this change could affect regulatory compliance (FAR, DNV, ISO, etc.)",
             )
 
-        st.markdown("##### Part Location & Environment")
-        loc_col1, loc_col2, loc_col3, loc_col4 = st.columns(4)
+        # ── Part Location & Environment ──────────────────────────
+        st.markdown("##### Where does this part live?")
+        loc_col1, loc_col2, loc_col3 = st.columns(3)
         with loc_col1:
+            _location_options = [
+                "not_sure",
+                "external_exposed", "external_submerged", "external_pressurized",
+                "internal_structural_primary", "internal_structural_secondary",
+                "internal_non_structural",
+                "interface_boundary", "moving_joint", "high_vibration_zone",
+            ]
+            _loc_labels = {
+                "not_sure": "Let the system figure it out",
+                "external_exposed": "External — exposed to environment",
+                "external_submerged": "External — submerged / underwater",
+                "external_pressurized": "External — pressurized zone",
+                "internal_structural_primary": "Internal — primary load path",
+                "internal_structural_secondary": "Internal — secondary structure",
+                "internal_non_structural": "Internal — non-structural (bracket, mount, cover)",
+                "interface_boundary": "Interface boundary (between subsystems)",
+                "moving_joint": "Moving joint / articulation point",
+                "high_vibration_zone": "High vibration zone (engine, rotor, motor)",
+            }
+            _default_loc = _SECTOR_LOCATION_DEFAULTS.get(selected_sector, "not_sure")
+            _default_loc_idx = _location_options.index(_default_loc) if _default_loc in _location_options else 0
             _part_location = st.selectbox(
-                "Where does this part sit?",
-                ["external_exposed", "internal_structural", "internal_non_structural",
-                 "interface_boundary", "submerged", "pressurized", "high_vibration"],
-                format_func=lambda x: x.replace("_", " ").title(),
+                "Location",
+                _location_options,
+                format_func=lambda x: _loc_labels.get(x, x.replace("_", " ").title()),
+                index=_default_loc_idx,
                 key="part_location",
             )
         with loc_col2:
             _operating_temp = st.number_input(
                 "Operating temp (°C)",
-                value=25.0, min_value=-60.0, max_value=500.0,
+                value=_SECTOR_TEMP_DEFAULTS.get(selected_sector, 25.0),
+                min_value=-60.0, max_value=500.0,
                 step=5.0, key="operating_temp",
+                help="Approximate. Leave default if unknown.",
             )
         with loc_col3:
+            _load_options = [
+                "not_sure", "static", "cyclic_fatigue", "impact",
+                "thermal_cycling", "pressure", "vibration", "torsion",
+                "combined", "none_negligible",
+            ]
+            _load_labels = {
+                "not_sure": "Not sure — infer from part type",
+                "static": "Static (constant load)",
+                "cyclic_fatigue": "Cyclic / Fatigue (repeated loading)",
+                "impact": "Impact / Shock",
+                "thermal_cycling": "Thermal cycling (hot-cold)",
+                "pressure": "Pressure (internal or external)",
+                "vibration": "Vibration / Dynamic",
+                "torsion": "Torsion / Twisting",
+                "combined": "Combined (multiple load types)",
+                "none_negligible": "None / Negligible loads",
+            }
+            _default_load = _SECTOR_LOAD_DEFAULTS.get(selected_sector, "not_sure")
+            _default_load_idx = _load_options.index(_default_load) if _default_load in _load_options else 0
             _load_type = st.selectbox(
-                "Primary load type",
-                ["static", "cyclic_fatigue", "impact", "thermal_cycling",
-                 "pressure", "vibration", "combined"],
-                format_func=lambda x: x.replace("_", " ").title(),
+                "Primary loads on this part",
+                _load_options,
+                format_func=lambda x: _load_labels.get(x, x.replace("_", " ").title()),
+                index=_default_load_idx,
                 key="load_type",
+                help="If you're not sure, leave on default — the system infers from sector and part type.",
             )
-        with loc_col4:
+
+        # If user said "not_sure" for load, auto-infer
+        if _load_type == "not_sure":
+            _load_type = _SECTOR_LOAD_DEFAULTS.get(selected_sector, "combined")
+        if _change_severity == "not_sure":
+            _change_severity = "medium"
+
+        # ── Supplier Details ─────────────────────────────────────
+        st.markdown("##### Supplier Information")
+        st.caption("Optional — helps estimate lead time, cost impact, and supply chain risk.")
+        sup_col1, sup_col2, sup_col3 = st.columns(3)
+        with sup_col1:
+            _current_supplier = st.text_input(
+                "Current supplier",
+                placeholder="e.g. Arconic, Timet, local shop...",
+                key="current_supplier",
+            )
+        with sup_col2:
+            _new_supplier = st.text_input(
+                "New / proposed supplier (if changing)",
+                placeholder="Leave blank if same supplier",
+                key="new_supplier",
+            )
+        with sup_col3:
+            _supplier_change_reason = st.selectbox(
+                "Supplier change reason",
+                ["no_change", "cost_reduction", "lead_time", "quality_issue",
+                 "sole_source_risk", "capacity", "customer_mandate", "other"],
+                format_func=lambda x: x.replace("_", " ").title() if x != "no_change" else "No supplier change",
+                key="supplier_reason",
+            )
+        _is_supplier_change = _change_cause == "supplier_change" or _new_supplier.strip() != ""
+
+        # ── Connected Systems (auto-inferred) ────────────────────
+        st.markdown("##### Connected Systems")
+        st.caption("Auto-selected based on your sector and part. Adjust if needed.")
+        _ALL_INTERFACES = [
+            "structural_frame", "cooling_system", "electrical_harness",
+            "hydraulic_lines", "control_system", "propulsion",
+            "sensors", "human_operator", "external_environment",
+            "adjacent_parts", "mounting_hardware", "seals_gaskets",
+            "thermal_management", "software_controls", "fuel_system",
+        ]
+        _SECTOR_DEFAULT_INTERFACES = {
+            "aerospace": ["structural_frame", "electrical_harness", "thermal_management", "control_system"],
+            "naval": ["structural_frame", "cooling_system", "electrical_harness", "external_environment", "hydraulic_lines"],
+            "automotive_ev": ["structural_frame", "cooling_system", "electrical_harness", "software_controls"],
+            "robotics": ["structural_frame", "electrical_harness", "control_system", "sensors", "mounting_hardware"],
+        }
+        _auto_interfaces = _SECTOR_DEFAULT_INTERFACES.get(selected_sector, ["structural_frame", "adjacent_parts"])
+        _interfaces = st.multiselect(
+            "Interfaces / connections",
+            _ALL_INTERFACES,
+            default=_auto_interfaces,
+            format_func=lambda x: x.replace("_", " ").title(),
+            key="part_interfaces",
+            help="Pre-filled from sector defaults. Add or remove as needed. It's OK to leave as-is if unsure.",
+        )
+
+        # ── Cost Estimation (auto-calculated) ────────────────────
+        st.markdown("##### Cost Estimate")
+        _cost_method = st.radio(
+            "How to estimate change cost?",
+            ["auto", "manual"],
+            format_func=lambda x: {
+                "auto": "Auto-estimate from material, mass, and sector rates",
+                "manual": "I have my own estimate",
+            }[x],
+            horizontal=True,
+            key="cost_method",
+        )
+        if _cost_method == "manual":
             _estimated_cost = st.number_input(
-                "Estimated change cost ($)",
+                "Your estimated change cost ($)",
                 value=10000.0, min_value=0.0,
                 step=1000.0, format="%.0f",
                 key="estimated_cost",
             )
-
-        st.markdown("##### Connected Systems")
-        _interfaces = st.multiselect(
-            "What does this part interface with?",
-            ["structural_frame", "cooling_system", "electrical_harness",
-             "hydraulic_lines", "control_system", "propulsion",
-             "sensors", "human_operator", "external_environment",
-             "adjacent_parts", "mounting_hardware", "seals_gaskets"],
-            default=[],
-            format_func=lambda x: x.replace("_", " ").title(),
-            key="part_interfaces",
-        )
+        else:
+            # Will be calculated after cascade runs, use sector-based default for now
+            _SECTOR_BASE_COST = {
+                "aerospace": 25000.0, "naval": 15000.0,
+                "automotive_ev": 5000.0, "robotics": 3000.0,
+            }
+            _estimated_cost = _SECTOR_BASE_COST.get(selected_sector, 10000.0)
+            st.caption(f"Base estimate: ${_estimated_cost:,.0f} (will be refined after cascade runs)")
 
     all_templates = list_templates()
     template_names = {t.template_id: f"{t.name} ({t.industry})" for t in all_templates}
@@ -568,22 +699,63 @@ with tab_system:
       # Handle custom component
       if selected_comp_id == "_custom":
           from cascade_predict.subsystems.component import Component as CompClass, ComponentProperty
-          st.markdown("##### Define Custom Component")
-          col_ccomp_name, col_ccomp_sub = st.columns(2)
+          st.markdown("##### Describe Your Component")
+          col_ccomp_name, col_ccomp_desc = st.columns(2)
           with col_ccomp_name:
-              custom_comp_name = st.text_input("Component name", placeholder="e.g. Sonar Dome", key="custom_comp_name")
-          with col_ccomp_sub:
-              # Let user pick which subsystem/graph node to attach to
-              graph_node_ids = sorted([nid for nid in graph.nodes.keys()
-                                        if nid not in {"material_cost", "manufacturing_cost", "tooling_cost",
-                                                        "total_cost_delta", "manufacturing_lead_time",
-                                                        "certification_time", "total_schedule_delta"}])
-              target_node = st.selectbox(
-                  "Drives which system parameter?",
-                  graph_node_ids,
-                  format_func=lambda x: f"{x.replace('_', ' ').title()} ({graph.nodes[x].value:.2f} {graph.nodes[x].unit})",
-                  key="custom_target_node",
+              custom_comp_name = st.text_input(
+                  "Component name",
+                  placeholder="e.g. Sonar Dome, Gearbox Housing, Cable Tray...",
+                  key="custom_comp_name",
               )
+          with col_ccomp_desc:
+              custom_comp_desc_text = st.text_input(
+                  "What does it do? (brief)",
+                  placeholder="e.g. Protects sonar array from seawater, supports 200kg radar...",
+                  key="custom_comp_desc_text",
+              )
+
+          # Smart parameter matching — guess from name/description, don't force selection
+          graph_node_ids = sorted([nid for nid in graph.nodes.keys()
+                                    if nid not in {"material_cost", "manufacturing_cost", "tooling_cost",
+                                                    "total_cost_delta", "manufacturing_lead_time",
+                                                    "certification_time", "total_schedule_delta"}])
+
+          # Auto-suggest: find nodes whose names overlap with user's description
+          _search_text = (custom_comp_name + " " + custom_comp_desc_text).lower()
+          _keyword_scores = {}
+          for nid in graph_node_ids:
+              node = graph.nodes[nid]
+              score = 0
+              for word in nid.split("_"):
+                  if len(word) > 2 and word in _search_text:
+                      score += 1
+              for word in node.description.lower().split():
+                  if len(word) > 3 and word in _search_text:
+                      score += 0.5
+              _keyword_scores[nid] = score
+          _sorted_nodes = sorted(graph_node_ids, key=lambda x: -_keyword_scores.get(x, 0))
+          _best_match = _sorted_nodes[0] if _keyword_scores.get(_sorted_nodes[0], 0) > 0 else graph_node_ids[0]
+
+          st.markdown("##### Which parameter does this affect?")
+          st.caption("Best guess is pre-selected. Change if needed, or describe below if none fit.")
+          _default_idx = _sorted_nodes.index(_best_match)
+          target_node = st.selectbox(
+              "Closest matching parameter",
+              _sorted_nodes,
+              format_func=lambda x: f"{x.replace('_', ' ').title()} — {graph.nodes[x].description} ({graph.nodes[x].value:.2f} {graph.nodes[x].unit})",
+              index=_default_idx,
+              key="custom_target_node",
+          )
+
+          # Free-text fallback for when nothing fits
+          _custom_param_desc = st.text_input(
+              "Or describe the parameter (if none of the above match)",
+              placeholder="e.g. I'm changing the mounting bolt torque from 50Nm to 80Nm...",
+              key="custom_param_freetext",
+          )
+          if _custom_param_desc:
+              st.info("Free-text parameters will be matched to the closest graph node. "
+                      "For best results, also select the nearest match above.")
 
           # Build a temporary component with a single editable property
           node = graph.nodes[target_node]
@@ -591,7 +763,7 @@ with tab_system:
               component_id="_custom",
               name=custom_comp_name or "Custom Component",
               subsystem=node.subsystem,
-              description="User-defined component",
+              description=custom_comp_desc_text or "User-defined component",
           )
           comp.add_property(
               target_node, node.value, node.unit,
@@ -634,6 +806,7 @@ with tab_system:
             )
 
     # Property selection and new value
+    st.markdown("##### What are you changing?")
     editable_props = {
         name: prop for name, prop in comp.properties.items()
         if name in comp.property_to_node
@@ -643,12 +816,24 @@ with tab_system:
         st.warning("This component has no graph-linked properties to change.")
         selected_prop = None
     else:
+        # Build descriptions for each property
+        _prop_descs = {}
+        for pname, pobj in editable_props.items():
+            gnode_id = comp.property_to_node.get(pname, "")
+            gnode = graph.nodes.get(gnode_id)
+            desc = gnode.description if gnode and gnode.description else ""
+            _prop_descs[pname] = desc
+
         col_prop, col_val = st.columns(2)
         with col_prop:
             selected_prop = st.selectbox(
-                "Property to Change",
+                "Property to change",
                 list(editable_props.keys()),
-                format_func=lambda x: f"{x} ({editable_props[x].value} {editable_props[x].unit})",
+                format_func=lambda x: (
+                    f"{x.replace('_', ' ').title()} "
+                    f"({editable_props[x].value} {editable_props[x].unit})"
+                    + (f" — {_prop_descs[x]}" if _prop_descs.get(x) else "")
+                ),
             )
         prop = editable_props[selected_prop]
         with col_val:
@@ -665,6 +850,22 @@ with tab_system:
             if abs(delta) > 1e-10:
                 pct = (delta / prop.value * 100) if prop.value != 0 else float("inf")
                 st.metric("Change", f"{delta:+.4f} {prop.unit}", f"{pct:+.1f}%")
+
+        # Describe a change not in the list
+        with st.expander("My change isn't listed above", expanded=False):
+            _unlisted_desc = st.text_area(
+                "Describe what you want to change",
+                placeholder="e.g. I'm changing the bolt pattern from 4x M10 to 6x M8, "
+                            "or switching adhesive from epoxy to polyurethane...",
+                key="unlisted_change",
+                height=80,
+            )
+            if _unlisted_desc:
+                st.info(
+                    "For now, pick the **closest matching property** above and adjust the value. "
+                    "The cascade will propagate from that parameter. Your description is noted "
+                    "and will improve future parameter matching."
+                )
 
     # ── CAD Models ───────────────────────────────────────────────────
     if selected_template_id in _ONSHAPE_MODELS:
@@ -822,6 +1023,11 @@ with tab_system:
                 compute_propagation_score,
             )
             _predictor = get_predictor()
+            # Auto-calculate cost from cascade if user didn't provide one
+            if _cost_method == "auto" and cost_steps:
+                _total_cost_step = [s for s in cost_steps if s.target_node == "total_cost_delta"]
+                if _total_cost_step:
+                    _estimated_cost = max(1000, abs(_total_cost_step[0].delta_output))
             _change_req = ChangeRequest(
                 change_type=comp.subsystem if comp else "structural",
                 affected_subsystems=list(set(s.target_subsystem for s in unique_steps)),
