@@ -361,6 +361,7 @@ with tab_system:
     st.markdown("---")
     st.header("3  Configure Cascade")
 
+    from cascade_predict.system_map import get_subtypes, get_system_map, get_zone_by_id
     from cascade_predict.graph_assembler import (
         assemble_graph as auto_assemble_graph,
         PartGeometry,
@@ -370,19 +371,6 @@ with tab_system:
     from cascade_predict.physics_models.universal import list_materials, lookup_material
 
     # ── Change Context (drives cost/risk prediction) ─────────────────
-    # Auto-infer defaults from sector + part
-    _SECTOR_LOAD_DEFAULTS = {
-        "aerospace": "cyclic_fatigue", "naval": "cyclic_fatigue",
-        "automotive_ev": "vibration", "robotics": "cyclic_fatigue",
-    }
-    _SECTOR_LOCATION_DEFAULTS = {
-        "aerospace": "internal_structural", "naval": "external_exposed",
-        "automotive_ev": "internal_structural", "robotics": "internal_structural",
-    }
-    _SECTOR_TEMP_DEFAULTS = {
-        "aerospace": 40.0, "naval": 35.0, "automotive_ev": 45.0, "robotics": 30.0,
-    }
-
     with st.expander("Change Context", expanded=True):
         st.caption("Fill in what you know — the system infers the rest.")
 
@@ -413,81 +401,154 @@ with tab_system:
                 key="regulatory_involved",
                 help="Check if this change could affect regulatory compliance (FAR, DNV, ISO, etc.)",
             )
-
-        # ── Part Location & Environment ──────────────────────────
-        st.markdown("##### Where does this part live?")
-        loc_col1, loc_col2, loc_col3 = st.columns(3)
-        with loc_col1:
-            _location_options = [
-                "not_sure",
-                "external_exposed", "external_submerged", "external_pressurized",
-                "internal_structural_primary", "internal_structural_secondary",
-                "internal_non_structural",
-                "interface_boundary", "moving_joint", "high_vibration_zone",
-            ]
-            _loc_labels = {
-                "not_sure": "Let the system figure it out",
-                "external_exposed": "External — exposed to environment",
-                "external_submerged": "External — submerged / underwater",
-                "external_pressurized": "External — pressurized zone",
-                "internal_structural_primary": "Internal — primary load path",
-                "internal_structural_secondary": "Internal — secondary structure",
-                "internal_non_structural": "Internal — non-structural (bracket, mount, cover)",
-                "interface_boundary": "Interface boundary (between subsystems)",
-                "moving_joint": "Moving joint / articulation point",
-                "high_vibration_zone": "High vibration zone (engine, rotor, motor)",
-            }
-            _default_loc = _SECTOR_LOCATION_DEFAULTS.get(selected_sector, "not_sure")
-            _default_loc_idx = _location_options.index(_default_loc) if _default_loc in _location_options else 0
-            _part_location = st.selectbox(
-                "Location",
-                _location_options,
-                format_func=lambda x: _loc_labels.get(x, x.replace("_", " ").title()),
-                index=_default_loc_idx,
-                key="part_location",
-            )
-        with loc_col2:
-            _operating_temp = st.number_input(
-                "Operating temp (°C)",
-                value=_SECTOR_TEMP_DEFAULTS.get(selected_sector, 25.0),
-                min_value=-60.0, max_value=500.0,
-                step=5.0, key="operating_temp",
-                help="Approximate. Leave default if unknown.",
-            )
-        with loc_col3:
-            _load_options = [
-                "not_sure", "static", "cyclic_fatigue", "impact",
-                "thermal_cycling", "pressure", "vibration", "torsion",
-                "combined", "none_negligible",
-            ]
-            _load_labels = {
-                "not_sure": "Not sure — infer from part type",
-                "static": "Static (constant load)",
-                "cyclic_fatigue": "Cyclic / Fatigue (repeated loading)",
-                "impact": "Impact / Shock",
-                "thermal_cycling": "Thermal cycling (hot-cold)",
-                "pressure": "Pressure (internal or external)",
-                "vibration": "Vibration / Dynamic",
-                "torsion": "Torsion / Twisting",
-                "combined": "Combined (multiple load types)",
-                "none_negligible": "None / Negligible loads",
-            }
-            _default_load = _SECTOR_LOAD_DEFAULTS.get(selected_sector, "not_sure")
-            _default_load_idx = _load_options.index(_default_load) if _default_load in _load_options else 0
-            _load_type = st.selectbox(
-                "Primary loads on this part",
-                _load_options,
-                format_func=lambda x: _load_labels.get(x, x.replace("_", " ").title()),
-                index=_default_load_idx,
-                key="load_type",
-                help="If you're not sure, leave on default — the system infers from sector and part type.",
-            )
-
-        # If user said "not_sure" for load, auto-infer
-        if _load_type == "not_sure":
-            _load_type = _SECTOR_LOAD_DEFAULTS.get(selected_sector, "combined")
         if _change_severity == "not_sure":
             _change_severity = "medium"
+
+        # ── System Sub-Type & Visual Zone Selector ───────────────
+        st.markdown("---")
+        st.markdown("##### Where does this part sit in the system?")
+
+        _subtypes = get_subtypes(selected_sector)
+        _subtype_col, _zone_col = st.columns([1, 2])
+        with _subtype_col:
+            _selected_subtype = st.selectbox(
+                "System type",
+                [k for k, _ in _subtypes],
+                format_func=lambda x: dict(_subtypes).get(x, x),
+                key="system_subtype",
+            )
+        _sys_map = get_system_map(_selected_subtype)
+
+        # Zone selection with visual layout
+        _selected_zone = None
+        _zone_data = None
+        if _sys_map:
+            with _zone_col:
+                _zone_options = [("not_sure", "I'm not sure / not listed")] + [
+                    (z.zone_id, f"{z.label} — {z.description}") for z in _sys_map.zones
+                ]
+                _selected_zone_id = st.selectbox(
+                    "Select zone",
+                    [k for k, _ in _zone_options],
+                    format_func=lambda x: dict(_zone_options).get(x, x),
+                    key="system_zone",
+                )
+                if _selected_zone_id != "not_sure":
+                    _zone_data = get_zone_by_id(_sys_map, _selected_zone_id)
+
+            # Draw the system map
+            _map_fig = go.Figure()
+
+            for z in _sys_map.zones:
+                _is_selected = z.zone_id == _selected_zone_id
+                _fill_color = "#d4725c" if _is_selected else z.color
+                _line_width = 3 if _is_selected else 1
+                _line_color = "#8b0000" if _is_selected else "#888"
+
+                _map_fig.add_shape(
+                    type="rect",
+                    x0=z.x - z.width/2, y0=1 - z.y - z.height/2,
+                    x1=z.x + z.width/2, y1=1 - z.y + z.height/2,
+                    fillcolor=_fill_color,
+                    line=dict(color=_line_color, width=_line_width),
+                    opacity=0.85,
+                )
+                _map_fig.add_annotation(
+                    x=z.x, y=1 - z.y,
+                    text=f"<b>{z.label}</b>",
+                    showarrow=False,
+                    font=dict(size=10, color="#2b2b2b"),
+                )
+
+            _map_fig.update_layout(
+                title=dict(text=f"{_sys_map.label}", font=dict(size=14)),
+                height=350,
+                xaxis=dict(range=[-0.05, 1.05], showgrid=False, zeroline=False,
+                           showticklabels=False),
+                yaxis=dict(range=[-0.05, 1.05], showgrid=False, zeroline=False,
+                           showticklabels=False, scaleanchor="x"),
+                margin=dict(l=10, r=10, t=40, b=10),
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)",
+            )
+            st.plotly_chart(_map_fig, use_container_width=True, key="system_map_chart")
+
+            # Show zone details when selected
+            if _zone_data:
+                zd = _zone_data
+                st.success(
+                    f"**{zd.label}** — {zd.description}  \n"
+                    f"Location: {zd.location_type.replace('_', ' ').title()} · "
+                    f"Loads: {', '.join(lt.replace('_', ' ') for lt in zd.load_types)} · "
+                    f"Temp: {zd.operating_temp_c}°C · "
+                    f"Environment: {zd.environment}"
+                )
+                if zd.standards:
+                    st.caption(f"Applicable standards: {', '.join(zd.standards)}")
+
+        # Pull values from zone or use defaults
+        if _zone_data:
+            _part_location = _zone_data.location_type
+            _load_type = _zone_data.load_types[0] if _zone_data.load_types else "combined"
+            _operating_temp = _zone_data.operating_temp_c
+            _auto_interfaces = _zone_data.interfaces
+        else:
+            _SECTOR_DEFAULTS = {
+                "aerospace": ("internal_structural_primary", "cyclic_fatigue", 40.0),
+                "naval": ("external_exposed", "cyclic_fatigue", 35.0),
+                "automotive_ev": ("internal_structural_primary", "vibration", 45.0),
+                "robotics": ("internal_structural_primary", "cyclic_fatigue", 30.0),
+            }
+            _def = _SECTOR_DEFAULTS.get(selected_sector, ("internal_structural_primary", "combined", 25.0))
+            _part_location, _load_type, _operating_temp = _def
+            _SECTOR_DEFAULT_INTERFACES = {
+                "aerospace": ["structural_frame", "electrical_harness", "thermal_management", "control_system"],
+                "naval": ["structural_frame", "cooling_system", "electrical_harness", "external_environment"],
+                "automotive_ev": ["structural_frame", "cooling_system", "electrical_harness", "software_controls"],
+                "robotics": ["structural_frame", "electrical_harness", "control_system", "sensors"],
+            }
+            _auto_interfaces = _SECTOR_DEFAULT_INTERFACES.get(selected_sector, ["structural_frame"])
+
+        # Show overridable details
+        with st.expander("Override auto-detected environment (optional)", expanded=False):
+            _ov_col1, _ov_col2, _ov_col3 = st.columns(3)
+            with _ov_col1:
+                _operating_temp = st.number_input(
+                    "Operating temp (°C)", value=_operating_temp,
+                    min_value=-60.0, max_value=500.0, step=5.0, key="operating_temp",
+                )
+            with _ov_col2:
+                _load_type = st.selectbox(
+                    "Primary loads",
+                    ["static", "cyclic_fatigue", "impact", "thermal_cycling",
+                     "pressure", "vibration", "torsion", "combined"],
+                    index=["static", "cyclic_fatigue", "impact", "thermal_cycling",
+                           "pressure", "vibration", "torsion", "combined"].index(
+                        _load_type if _load_type in ["static", "cyclic_fatigue", "impact",
+                        "thermal_cycling", "pressure", "vibration", "torsion", "combined"]
+                        else "combined"
+                    ),
+                    format_func=lambda x: x.replace("_", " ").title(),
+                    key="load_type_override",
+                )
+            with _ov_col3:
+                _part_location = st.selectbox(
+                    "Location type",
+                    ["external_exposed", "external_submerged", "external_pressurized",
+                     "internal_structural_primary", "internal_structural_secondary",
+                     "internal_non_structural", "interface_boundary", "moving_joint",
+                     "high_vibration_zone"],
+                    index=max(0, ["external_exposed", "external_submerged", "external_pressurized",
+                     "internal_structural_primary", "internal_structural_secondary",
+                     "internal_non_structural", "interface_boundary", "moving_joint",
+                     "high_vibration_zone"].index(_part_location)
+                     if _part_location in ["external_exposed", "external_submerged",
+                     "external_pressurized", "internal_structural_primary",
+                     "internal_structural_secondary", "internal_non_structural",
+                     "interface_boundary", "moving_joint", "high_vibration_zone"] else 3),
+                    format_func=lambda x: x.replace("_", " ").title(),
+                    key="location_override",
+                )
 
         # ── Supplier Details ─────────────────────────────────────
         st.markdown("##### Supplier Information")
@@ -515,9 +576,9 @@ with tab_system:
             )
         _is_supplier_change = _change_cause == "supplier_change" or _new_supplier.strip() != ""
 
-        # ── Connected Systems (auto-inferred) ────────────────────
+        # ── Connected Systems (auto-from zone or sector) ─────────
         st.markdown("##### Connected Systems")
-        st.caption("Auto-selected based on your sector and part. Adjust if needed.")
+        st.caption("Auto-selected from zone. Adjust if needed.")
         _ALL_INTERFACES = [
             "structural_frame", "cooling_system", "electrical_harness",
             "hydraulic_lines", "control_system", "propulsion",
@@ -525,20 +586,13 @@ with tab_system:
             "adjacent_parts", "mounting_hardware", "seals_gaskets",
             "thermal_management", "software_controls", "fuel_system",
         ]
-        _SECTOR_DEFAULT_INTERFACES = {
-            "aerospace": ["structural_frame", "electrical_harness", "thermal_management", "control_system"],
-            "naval": ["structural_frame", "cooling_system", "electrical_harness", "external_environment", "hydraulic_lines"],
-            "automotive_ev": ["structural_frame", "cooling_system", "electrical_harness", "software_controls"],
-            "robotics": ["structural_frame", "electrical_harness", "control_system", "sensors", "mounting_hardware"],
-        }
-        _auto_interfaces = _SECTOR_DEFAULT_INTERFACES.get(selected_sector, ["structural_frame", "adjacent_parts"])
         _interfaces = st.multiselect(
             "Interfaces / connections",
             _ALL_INTERFACES,
-            default=_auto_interfaces,
+            default=[i for i in _auto_interfaces if i in _ALL_INTERFACES],
             format_func=lambda x: x.replace("_", " ").title(),
             key="part_interfaces",
-            help="Pre-filled from sector defaults. Add or remove as needed. It's OK to leave as-is if unsure.",
+            help="Pre-filled from zone selection. Add or remove as needed.",
         )
 
         # ── Cost Estimation (auto-calculated) ────────────────────
@@ -561,7 +615,6 @@ with tab_system:
                 key="estimated_cost",
             )
         else:
-            # Will be calculated after cascade runs, use sector-based default for now
             _SECTOR_BASE_COST = {
                 "aerospace": 25000.0, "naval": 15000.0,
                 "automotive_ev": 5000.0, "robotics": 3000.0,
@@ -1014,8 +1067,20 @@ with tab_system:
             eng_steps = [s for s in unique_steps if s.target_node not in _COST_SCHEDULE_NODES]
             cost_steps = [s for s in unique_steps if s.target_node in _COST_SCHEDULE_NODES]
 
-            st.divider()
-            st.header("Cascade Results")
+            # ═════════════════════════════════════════════════════════
+            # RESULTS PAGE — visually separated from configuration
+            # ═════════════════════════════════════════════════════════
+            st.markdown("---")
+            st.markdown(
+                "<div style='background:#b8452a; padding:12px 20px; border-radius:8px; "
+                "margin:10px 0 20px 0;'>"
+                "<h2 style='color:white; margin:0;'>Cascade Prediction Results</h2>"
+                f"<p style='color:#ffe8d6; margin:4px 0 0 0;'>"
+                f"Change: <b>{selected_prop.replace('_',' ').title()}</b> on <b>{comp.name}</b> "
+                f"({prop.value:.4f} → {new_value:.4f} {prop.unit})</p>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
 
             # ── Cost Variance Prediction ─────────────────────────────
             from cascade_predict.cost_predictor import (
