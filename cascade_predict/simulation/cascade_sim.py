@@ -6,11 +6,25 @@ Supports both pure-physics and ML-augmented predictions for comparison.
 """
 
 import numpy as np
-import torch
+
+try:
+    import torch
+    _TORCH_AVAILABLE = True
+except ImportError:
+    _TORCH_AVAILABLE = False
+
+try:
+    from cascade_predict.ml.pinn import CascadePINN
+except ImportError:
+    CascadePINN = None
 
 from cascade_predict.physics import CellParams, CellState, PackGeometry
 from cascade_predict.physics.thermal import ThermalModel
-from cascade_predict.ml.pinn import CascadePINN
+
+
+def _no_grad(fn):
+    """No-op decorator when torch is unavailable."""
+    return fn
 
 
 class CascadeSimulator:
@@ -28,7 +42,7 @@ class CascadeSimulator:
         rows: int = 4,
         cols: int = 5,
         params: CellParams | None = None,
-        pinn_model: CascadePINN | None = None,
+        pinn_model=None,
     ):
         self.params = params or CellParams()
         self.pack = PackGeometry(rows=rows, cols=cols, params=self.params)
@@ -72,7 +86,6 @@ class CascadeSimulator:
         result["adjacency"] = self.pack.adjacency
         return result
 
-    @torch.no_grad()
     def run_pinn(
         self,
         trigger_cells: list[int],
@@ -82,6 +95,11 @@ class CascadeSimulator:
         t_end: float = 300.0,
     ) -> dict:
         """Run PINN-based prediction (step-by-step autoregressive)."""
+        if not _TORCH_AVAILABLE:
+            raise RuntimeError(
+                "PyTorch is not installed. PINN simulation is unavailable. "
+                "Use run_physics() instead."
+            )
         if self.pinn is None:
             raise ValueError("No PINN model loaded")
 
@@ -93,25 +111,23 @@ class CascadeSimulator:
         n_steps = int(t_end / dt) + 1
         temps = np.full((n_steps, self.pack.n_cells), self.params.t_ambient)
 
-        # Set trigger cells
         for tc in trigger_cells:
             temps[0, tc] = trigger_temp
 
         times = np.linspace(0, t_end, n_steps)
 
-        for step in range(n_steps - 1):
-            # Build input tensor
-            inp = np.zeros((1, self.pack.n_cells, 5))
-            inp[0, :, 0] = self.pack.positions[:, 0]
-            inp[0, :, 1] = self.pack.positions[:, 1]
-            inp[0, :, 2] = temps[step]
-            inp[0, :, 3] = soc_distribution
-            inp[0, :, 4] = times[step]
+        with torch.no_grad():
+            for step in range(n_steps - 1):
+                inp = np.zeros((1, self.pack.n_cells, 5))
+                inp[0, :, 0] = self.pack.positions[:, 0]
+                inp[0, :, 1] = self.pack.positions[:, 1]
+                inp[0, :, 2] = temps[step]
+                inp[0, :, 3] = soc_distribution
+                inp[0, :, 4] = times[step]
 
-            inp_tensor = torch.FloatTensor(inp)
-            pred = self.pinn(inp_tensor)
-
-            temps[step + 1] = pred[0, :, 0].numpy()
+                inp_tensor = torch.FloatTensor(inp)
+                pred = self.pinn(inp_tensor)
+                temps[step + 1] = pred[0, :, 0].numpy()
 
         runaway_times = np.full(self.pack.n_cells, np.inf)
         for i in range(self.pack.n_cells):
@@ -136,7 +152,6 @@ class CascadeSimulator:
         cells_affected = np.sum(np.isfinite(runaway_times))
         max_temp = result["temperatures"].max()
 
-        # Cascade speed: average time between consecutive runaway events
         finite_times = runaway_times[np.isfinite(runaway_times)]
         if len(finite_times) > 1:
             sorted_times = np.sort(finite_times)
