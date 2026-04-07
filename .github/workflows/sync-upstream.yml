@@ -1,0 +1,32 @@
+name: Sync Fork from Upstream
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          ref: claude/battery-cascade-prediction-mvp-kPvtd
+          fetch-depth: 0
+
+      - name: Sync from upstream
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/Nshg98/Cascade_1.git || true
+          git fetch upstream
+          git merge upstream/claude/battery-cascade-prediction-mvp-kPvtd --no-edit || {
+            echo "::warning::Merge conflict detected. Skipping sync."
+            git merge --abort
+            exit 0
+          }
+          git push origin claude/battery-cascade-prediction-mvp-kPvtd
