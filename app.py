@@ -90,9 +90,12 @@ with tab_system:
             components = {c.component_id: c for c in _assembled.components}
             constraints = _assembled.constraints
             comp = _assembled.components[0]
+            tmpl = None
         else:
             tmpl = get_template(_ci["template_id"])
             graph, components, constraints = tmpl.build()
+
+        failure_db = get_failure_db()
 
         if not _ci["using_auto"] and _ci["comp_id"] == "_custom":
             node = graph.nodes[_ci["target_node"]]
