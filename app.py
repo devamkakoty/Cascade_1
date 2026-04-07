@@ -38,7 +38,7 @@ _ONSHAPE_MODELS = {
 
 # ── App header ────────────────────────────────────────
 st.markdown("""
-<div style='padding-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.12); margin-bottom: 0.5rem;'>
+<div style='padding-bottom: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.12); margin-bottom: 0.5rem; text-align: center;'>
     <span style='font-size: 3rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1;'>Krama</span>
 </div>
 """, unsafe_allow_html=True)
