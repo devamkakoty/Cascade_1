@@ -1,0 +1,18 @@
+name: Keep App Alive
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:         # Manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Streamlit app
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.STREAMLIT_APP_URL }}")
+          echo "Response status: $STATUS"
+          if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 400 ]; then
+            echo "::warning::App returned status $STATUS"
+          fi
