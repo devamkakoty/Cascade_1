@@ -47,12 +47,6 @@ tab_system, tab_battery, tab_about = st.tabs([
 # TAB 1: SYSTEM CASCADE
 # =====================================================================
 with tab_system:
-    st.title("Design Change Cascade Prediction")
-    st.caption(
-        "Upload a spec document, select a system template, change a property, "
-        "and watch the cascade ripple across subsystems."
-    )
-
     from cascade_predict.templates import list_templates, get_template, get_failure_db
     from cascade_predict.graph import CascadeEngine
     from cascade_predict.spec_parser import parse_csv, parse_pdf, parse_text, extract_pdf_text
@@ -63,6 +57,647 @@ with tab_system:
         auto_suggest_part, build_custom_part_profile,
     )
     from cascade_predict.drawing_reader.parser import parse_drawing, DrawingParseResult
+
+    # ── Session state: separate results "page" ──────────────────────
+    if "cascade_inputs" not in st.session_state:
+        st.session_state.cascade_inputs = None
+
+    # ═════════════════════════════════════════════════════════════════
+    # RESULTS PAGE — shown when cascade has been run
+    # ═════════════════════════════════════════════════════════════════
+    if st.session_state.cascade_inputs is not None:
+        _ci = st.session_state.cascade_inputs
+
+        # Back button
+        _back_cols = st.columns([1, 5])
+        with _back_cols[0]:
+            if st.button("← Back to Configuration", key="back_to_config"):
+                st.session_state.cascade_inputs = None
+                st.rerun()
+
+        # Rebuild graph + compute results from stored inputs
+        if _ci["using_auto"]:
+            from cascade_predict.auto_assembler import auto_assemble_graph, PartGeometry
+            _assembled = auto_assemble_graph(
+                geometry=_ci["geo"], material_key=_ci["sel_mat"],
+                sector=_ci["sector"],
+                part_name=_ci["part_name"],
+                has_power_system=_ci["power_kw"] > 0,
+                power_kw=_ci["power_kw"],
+                speed_m_s=_ci["speed_ms"],
+                baseline_range=_ci["range_km"],
+            )
+            graph = _assembled.graph
+            components = {c.component_id: c for c in _assembled.components}
+            constraints = _assembled.constraints
+            comp = _assembled.components[0]
+        else:
+            tmpl = get_template(_ci["template_id"])
+            graph, components, constraints = tmpl.build()
+
+        if not _ci["using_auto"] and _ci["comp_id"] == "_custom":
+            node = graph.nodes[_ci["target_node"]]
+            from cascade_predict.subsystems.component import Component as CompClass
+            comp = CompClass("_custom", _ci["comp_name"], node.subsystem)
+            comp.add_property(_ci["target_node"], node.value, node.unit,
+                              graph_node_id=_ci["target_node"], source="custom")
+        elif not _ci["using_auto"]:
+            comp = components[_ci["comp_id"]]
+
+        selected_comp_id = _ci["comp_id"]
+        selected_prop = _ci["prop_name"]
+        new_value = _ci["new_value"]
+        selected_sector = _ci["sector"]
+        selected_template_id = _ci["template_id"]
+        _change_cause = _ci["change_cause"]
+        _change_severity = _ci["change_severity"]
+        _regulatory_involved = _ci["regulatory_involved"]
+        _estimated_cost = _ci["estimated_cost"]
+        _cost_method = _ci["cost_method"]
+        _run_bayesian = _ci["run_bayesian"]
+        _mc_samples = _ci["mc_samples"]
+        _using_auto = _ci["using_auto"]
+        prop = comp.properties[selected_prop]
+
+        # Apply constraint relaxations
+        if constraints and _ci.get("constraint_relaxations"):
+            for node_id, new_limit in _ci["constraint_relaxations"].items():
+                if node_id in graph.nodes:
+                    node = graph.nodes[node_id]
+                    if new_limit is None:
+                        node.regulatory_limit = None
+                        node.bounds = (float("-inf"), float("inf"))
+                    else:
+                        node.regulatory_limit = new_limit
+                        if node.bounds[1] != float("inf") and new_limit > node.bounds[1]:
+                            node.bounds = (node.bounds[0], new_limit)
+
+        deltas = comp.get_graph_deltas({selected_prop: new_value})
+        if not deltas:
+            st.error("No graph-linked deltas for this property change.")
+            st.stop()
+
+        engine = CascadeEngine(graph)
+        trigger_node = list(deltas.keys())[0]
+        trigger_delta = list(deltas.values())[0]
+        result = engine.propagate(trigger_node, trigger_delta, mode="single_pass")
+        summary = result.summary(total_graph_nodes=len(graph.nodes))
+
+        # Deduplicate steps
+        seen_targets = {}
+        for step in result.steps:
+            if step.target_node not in seen_targets:
+                seen_targets[step.target_node] = step
+            else:
+                if abs(step.delta_output) > abs(seen_targets[step.target_node].delta_output):
+                    seen_targets[step.target_node] = step
+        unique_steps = list(seen_targets.values())
+
+        # Split steps into engineering vs cost/schedule
+        _COST_SCHEDULE_NODES = {"material_cost", "manufacturing_cost", "tooling_cost",
+                                 "total_cost_delta", "manufacturing_lead_time",
+                                 "certification_time", "total_schedule_delta"}
+        eng_steps = [s for s in unique_steps if s.target_node not in _COST_SCHEDULE_NODES]
+        cost_steps = [s for s in unique_steps if s.target_node in _COST_SCHEDULE_NODES]
+        editable_props = {
+            name: p for name, p in comp.properties.items()
+            if name in comp.property_to_node
+        }
+
+        st.markdown(
+            "<div style='background:#b8452a; padding:12px 20px; border-radius:8px; "
+            "margin:10px 0 20px 0;'>"
+            "<h2 style='color:white; margin:0;'>Cascade Prediction Results</h2>"
+            f"<p style='color:#ffe8d6; margin:4px 0 0 0;'>"
+            f"Change: <b>{selected_prop.replace('_',' ').title()}</b> on <b>{comp.name}</b> "
+            f"({prop.value:.4f} → {new_value:.4f} {prop.unit})</p>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+        # ── Cost Variance Prediction ─────────────────────────────
+        from cascade_predict.cost_predictor import (
+            get_predictor, ChangeRequest, CostPrediction,
+            compute_propagation_score,
+        )
+        _predictor = get_predictor()
+        # Auto-calculate cost from cascade if user didn't provide one
+        if _cost_method == "auto" and cost_steps:
+            _total_cost_step = [s for s in cost_steps if s.target_node == "total_cost_delta"]
+            if _total_cost_step:
+                _estimated_cost = max(1000, abs(_total_cost_step[0].delta_output))
+        _change_req = ChangeRequest(
+            change_type=comp.subsystem if comp else "structural",
+            affected_subsystems=list(set(s.target_subsystem for s in unique_steps)),
+            change_cause=_change_cause,
+            severity=_change_severity,
+            regulatory_involved=_regulatory_involved,
+            estimated_cost=_estimated_cost,
+            propagation_score=summary["propagation_score"],
+            n_nodes_affected=summary["nodes_affected"],
+            n_subsystems_affected=summary["subsystems_affected"],
+            n_violations=summary["violations"],
+            n_cross_domain_hops=summary["cross_domain_hops"],
+            cascade_depth=summary["cascade_depth"],
+            max_pct_change=summary["max_pct_change"],
+            sector=selected_sector,
+            duration_days=60,
+        )
+        _cost_pred = _predictor.predict(_change_req)
+
+        # ── Result tabs ──────────────────────────────────────────
+        result_tab_names = ["Overview", "Cascade Flow", "Violations",
+                            "Cost & Schedule", "Risk Assessment", "Comparison"]
+        if _run_bayesian:
+            result_tab_names.append("Uncertainty")
+        result_tabs = st.tabs(result_tab_names)
+
+        # ── TAB: Overview ────────────────────────────────────────
+        with result_tabs[0]:
+            m1, m2, m3, m4, m5 = st.columns(5)
+            m1.metric("Parameters Affected", summary["nodes_affected"])
+            m2.metric("Subsystems Hit", summary["subsystems_affected"])
+            m3.metric("Cross-Domain Hops", summary["cross_domain_hops"])
+            n_violations = summary["violations"]
+            m4.metric("Violations", n_violations,
+                       delta=f"{n_violations} cert issues" if n_violations > 0 else "Clean",
+                       delta_color="inverse")
+            _tier_colors = {1: "normal", 2: "normal", 3: "inverse", 4: "inverse"}
+            m5.metric("Risk Tier", f"T{_cost_pred.risk_tier}",
+                      delta=_cost_pred.risk_label,
+                      delta_color=_tier_colors.get(_cost_pred.risk_tier, "normal"))
+
+            # Propagation score bar
+            st.markdown(
+                f"**Propagation Score:** `{summary['propagation_score']:.2f}` / 1.00 "
+                f"— {'Low' if summary['propagation_score'] < 0.3 else 'Moderate' if summary['propagation_score'] < 0.6 else 'High'} cascade severity"
+            )
+            st.progress(min(1.0, summary["propagation_score"]))
+
+            st.subheader("Cascade Waterfall")
+            st.caption("Each bar = change propagated. Red = violation. Orange = cross-domain hop.")
+
+            labels, pct_changes, colors, hover_texts = [], [], [], []
+            for step in eng_steps:
+                baseline = result.initial_state.get(step.target_node, step.old_value)
+                pct = (step.delta_output / baseline * 100) if abs(baseline) > 1e-10 else 0
+                node = graph.nodes[step.target_node]
+                label = step.target_node.replace("_", " ").title()
+                labels.append(label)
+                pct_changes.append(pct)
+                if step.causes_violation:
+                    colors.append("crimson")
+                elif step.is_cross_domain:
+                    colors.append("darkorange")
+                else:
+                    colors.append("steelblue")
+                hover = (
+                    f"<b>{label}</b><br>Subsystem: {step.target_subsystem}<br>"
+                    f"Change: {step.delta_output:+.4f} {node.unit}<br>"
+                    f"Before: {baseline:.4f} -> After: {step.new_value:.4f}<br>"
+                    f"% Change: {pct:+.2f}%<br>"
+                )
+                if step.causes_violation:
+                    hover += f"<b>VIOLATION: {step.violation_detail}</b><br>"
+                if step.edge.physics_equation:
+                    hover += f"Physics: {step.edge.physics_equation}"
+                hover_texts.append(hover)
+
+            fig_wf = go.Figure(go.Bar(
+                x=pct_changes, y=labels, orientation="h",
+                marker_color=colors, hovertext=hover_texts, hoverinfo="text",
+            ))
+            fig_wf.update_layout(
+                height=max(350, 28 * len(labels)),
+                xaxis_title="% Change from Baseline",
+                margin=dict(l=200, r=40, t=20, b=40),
+                yaxis=dict(autorange="reversed"),
+            )
+            fig_wf.add_vline(x=0, line_color="gray", line_width=1)
+            st.plotly_chart(fig_wf, use_container_width=True)
+
+        # ── TAB: Cascade Flow (Sankey) ───────────────────────────
+        with result_tabs[1]:
+            st.subheader("Cascade Flow (Engineering)")
+            with st.expander("How to read this graph", expanded=False):
+                st.markdown("""
+**Sankey Diagram — Reading Guide**
+
+- **Each node (vertical bar)** represents an engineering parameter (e.g. hull thickness, total mass, drag force).
+- **Each flow (link)** represents a physics coupling — energy, force, or material relationship that transmits a design change from one parameter to another.
+- **Flow width** is proportional to the magnitude of the change transmitted.
+- **Flow left to right** shows the propagation direction: the trigger parameter is on the far left, downstream effects flow rightward.
+
+**Color coding:**
+- **Blue flows** — same-subsystem propagation (e.g. structural → structural)
+- **Orange flows** — cross-domain hop (e.g. structural → thermal). These are the most important to watch — they indicate the change has jumped to a different engineering discipline.
+- **Red flows** — the downstream parameter **violates a certification limit** (regulatory, safety, or design constraint).
+
+**Node colors** correspond to subsystems (structural, thermal, electrical, performance, cost, etc.). The legend appears below the Comparison table.
+
+**What to look for:**
+1. **Wide red flows** = large violations triggered by your change
+2. **Many orange hops** = the change cascades across multiple disciplines
+3. **Fan-out points** = a single parameter driving many downstream effects (high coupling)
+""")
+
+            all_node_ids = [result.trigger_node]
+            for step in eng_steps:
+                if step.source_node not in all_node_ids:
+                    all_node_ids.append(step.source_node)
+                if step.target_node not in all_node_ids:
+                    all_node_ids.append(step.target_node)
+            node_idx = {nid: i for i, nid in enumerate(all_node_ids)}
+            sub_colors = _subsystem_color_map(graph.subsystems())
+            node_colors, node_labels = [], []
+            for nid in all_node_ids:
+                node = graph.nodes.get(nid)
+                if node:
+                    node_colors.append(sub_colors.get(node.subsystem, "rgba(200,200,200,0.8)"))
+                    node_labels.append(nid.replace("_", " ").title())
+                else:
+                    node_colors.append("rgba(200,200,200,0.8)")
+                    node_labels.append(nid)
+            s_src, s_tgt, s_val, s_col = [], [], [], []
+            for step in eng_steps:
+                if step.source_node in node_idx and step.target_node in node_idx:
+                    s_src.append(node_idx[step.source_node])
+                    s_tgt.append(node_idx[step.target_node])
+                    s_val.append(max(abs(step.delta_output), 0.01))
+                    if step.causes_violation:
+                        s_col.append("rgba(255, 0, 0, 0.5)")
+                    elif step.is_cross_domain:
+                        s_col.append("rgba(255, 165, 0, 0.4)")
+                    else:
+                        s_col.append("rgba(100, 149, 237, 0.3)")
+            fig_sk = go.Figure(go.Sankey(
+                node=dict(label=node_labels, color=node_colors, pad=15, thickness=20),
+                link=dict(source=s_src, target=s_tgt, value=s_val, color=s_col),
+            ))
+            fig_sk.update_layout(height=500, margin=dict(l=20, r=20, t=20, b=20))
+            st.plotly_chart(fig_sk, use_container_width=True)
+
+        # ── TAB: Violations ──────────────────────────────────────
+        with result_tabs[2]:
+            if result.violations:
+                st.subheader("Certification Violations")
+                for v in result.violations:
+                    node = graph.nodes[v["node_id"]]
+                    baseline = result.initial_state[v["node_id"]]
+                    st.error(
+                        f"**{v['regulatory_ref']}** -- {v['node_id'].replace('_', ' ').title()}  \n"
+                        f"Baseline: {baseline:.4f} {v['unit']} -> "
+                        f"After cascade: **{v['value']:.4f} {v['unit']}**  \n"
+                        f"Limit: {v['regulatory_limit']} {v['unit']}  \n"
+                        f"Margin: **{v['margin']:.4f}** (negative = violated)"
+                    )
+                    paths = graph.find_paths(result.trigger_node, v["node_id"])
+                    if paths:
+                        shortest = min(paths, key=len)
+                        path_str = " -> ".join(
+                            [result.trigger_node.replace("_", " ")] +
+                            [e.target_id.replace("_", " ") for e in shortest]
+                        )
+                        st.markdown(f"*Cascade path:* `{path_str}`")
+            else:
+                st.success("No certification violations detected.")
+
+            # Historic failure warnings
+            cascade_warnings = failure_db.check_cascade_result(
+                affected_node_ids=result.affected_nodes,
+                violated_node_ids=[v["node_id"] for v in result.violations],
+                product_type=tmpl.industry.lower() if tmpl else selected_sector,
+            )
+            if cascade_warnings:
+                st.subheader("Historic Failure Warnings")
+                st.caption("Past failures involving the same parameters affected by this cascade.")
+                for w in cascade_warnings:
+                    sev = w.failure.severity.value.upper()
+                    st.warning(
+                        f"**[{sev}] {w.failure.title}**  \n"
+                        f"{w.failure.root_cause[:300]}  \n\n"
+                        f"**Why relevant:** {w.match_reason}  \n"
+                        f"**Recommendation:** {w.recommendation}  \n"
+                        f"*Product: {w.failure.product_type} | "
+                        f"Source: {w.failure.source} ({w.failure.date})*"
+                    )
+
+        # ── TAB: Cost & Schedule ────────────────────────────────
+        with result_tabs[3]:
+            st.subheader("Cost & Schedule Impact")
+            if cost_steps:
+                # Separate cost vs schedule
+                _cost_nodes = {"material_cost", "manufacturing_cost", "tooling_cost", "total_cost_delta"}
+                _sched_nodes = {"manufacturing_lead_time", "certification_time", "total_schedule_delta"}
+                cost_only = [s for s in cost_steps if s.target_node in _cost_nodes]
+                sched_only = [s for s in cost_steps if s.target_node in _sched_nodes]
+
+                # Cost summary metrics
+                total_cost = sum(s.delta_output for s in cost_only if s.target_node == "total_cost_delta")
+                total_weeks = sum(s.delta_output for s in sched_only if s.target_node == "total_schedule_delta")
+                mc1, mc2 = st.columns(2)
+                mc1.metric("Total Cost Impact", f"${total_cost:+,.0f}")
+                mc2.metric("Total Schedule Impact", f"{total_weeks:+.1f} weeks")
+
+                # Cost breakdown table
+                st.markdown("##### Cost Breakdown")
+                cost_table = []
+                for step in cost_only:
+                    node = graph.nodes[step.target_node]
+                    cost_table.append({
+                        "Item": step.target_node.replace("_", " ").title(),
+                        "Change": f"${step.delta_output:+,.0f}",
+                        "After": f"${step.new_value:,.0f}",
+                        "Description": node.description,
+                    })
+                if cost_table:
+                    st.dataframe(cost_table, use_container_width=True, hide_index=True)
+
+                # Cost bar chart
+                if cost_only:
+                    cost_labels = [s.target_node.replace("_", " ").title() for s in cost_only]
+                    cost_values = [s.delta_output for s in cost_only]
+                    cost_colors = ["#e74c3c" if v > 0 else "#2ecc71" for v in cost_values]
+                    fig_cost = go.Figure(go.Bar(
+                        x=cost_values, y=cost_labels, orientation="h",
+                        marker_color=cost_colors,
+                        text=[f"${v:+,.0f}" for v in cost_values],
+                        textposition="outside",
+                    ))
+                    fig_cost.update_layout(
+                        height=max(200, 50 * len(cost_labels)),
+                        xaxis_title="Cost Change ($)",
+                        margin=dict(l=200, r=80, t=20, b=40),
+                    )
+                    fig_cost.add_vline(x=0, line_color="gray", line_width=1)
+                    st.plotly_chart(fig_cost, use_container_width=True)
+
+                # Schedule breakdown
+                st.markdown("##### Schedule Breakdown")
+                sched_table = []
+                for step in sched_only:
+                    node = graph.nodes[step.target_node]
+                    sched_table.append({
+                        "Item": step.target_node.replace("_", " ").title(),
+                        "Change": f"{step.delta_output:+.1f} weeks",
+                        "After": f"{step.new_value:.1f} weeks",
+                        "Description": node.description,
+                    })
+                if sched_table:
+                    st.dataframe(sched_table, use_container_width=True, hide_index=True)
+
+                # Schedule bar chart
+                if sched_only:
+                    sched_labels = [s.target_node.replace("_", " ").title() for s in sched_only]
+                    sched_values = [s.delta_output for s in sched_only]
+                    sched_colors = ["#e74c3c" if v > 0 else "#2ecc71" for v in sched_values]
+                    fig_sched = go.Figure(go.Bar(
+                        x=sched_values, y=sched_labels, orientation="h",
+                        marker_color=sched_colors,
+                        text=[f"{v:+.1f}w" for v in sched_values],
+                        textposition="outside",
+                    ))
+                    fig_sched.update_layout(
+                        height=max(200, 50 * len(sched_labels)),
+                        xaxis_title="Schedule Change (weeks)",
+                        margin=dict(l=200, r=80, t=20, b=40),
+                    )
+                    fig_sched.add_vline(x=0, line_color="gray", line_width=1)
+                    st.plotly_chart(fig_sched, use_container_width=True)
+            else:
+                st.info("No cost/schedule impact detected for this change.")
+
+        # ── TAB: Risk Assessment ─────────────────────────────────
+        with result_tabs[4]:
+            st.subheader("Risk Assessment & Cost Prediction")
+
+            # Risk tier banner
+            _tier_banner = {
+                1: ("success", "Tier 1 — Fast-track. Low cost overrun risk. Proceed with standard approval."),
+                2: ("info", "Tier 2 — Standard Review. Moderate overrun risk. Standard review process recommended."),
+                3: ("warning", "Tier 3 — Senior Review. High overrun risk. Senior engineering review required."),
+                4: ("error", "Tier 4 — Deep Analysis. Very high overrun risk. Detailed cost & schedule analysis needed."),
+            }
+            _banner_fn = {"success": st.success, "info": st.info, "warning": st.warning, "error": st.error}
+            _btype, _bmsg = _tier_banner[_cost_pred.risk_tier]
+            _banner_fn[_btype](_bmsg)
+
+            rc1, rc2, rc3, rc4 = st.columns(4)
+            rc1.metric("Predicted Overrun", f"{_cost_pred.predicted_variance_pct:.1f}%")
+            rc2.metric("Estimated Cost", f"${_estimated_cost:,.0f}")
+            rc3.metric("Predicted Actual", f"${_cost_pred.predicted_actual_cost:,.0f}")
+            rc4.metric("Model Confidence (R²)", f"{_cost_pred.confidence:.2f}")
+
+            # Feature importance
+            if _cost_pred.feature_importance:
+                st.markdown("##### What drives the overrun prediction?")
+                fi_labels = [k.replace("_", " ").title() for k in _cost_pred.feature_importance.keys()]
+                fi_values = list(_cost_pred.feature_importance.values())
+                fig_fi = go.Figure(go.Bar(
+                    x=fi_values, y=fi_labels, orientation="h",
+                    marker_color="#d4725c",
+                ))
+                fig_fi.update_layout(
+                    height=max(200, 35 * len(fi_labels)),
+                    xaxis_title="Feature Importance",
+                    margin=dict(l=200, r=40, t=20, b=40),
+                    yaxis=dict(autorange="reversed"),
+                )
+                st.plotly_chart(fig_fi, use_container_width=True)
+
+            # Propagation details
+            st.markdown("##### Cascade Severity Breakdown")
+            ps_col1, ps_col2, ps_col3, ps_col4 = st.columns(4)
+            ps_col1.metric("Propagation Score", f"{summary['propagation_score']:.2f}")
+            ps_col2.metric("Max Parameter Change", f"{summary['max_pct_change']:.1f}%")
+            ps_col3.metric("Cascade Depth", summary["cascade_depth"])
+            ps_col4.metric("Cross-Domain Hops", summary["cross_domain_hops"])
+
+            # Feedback capture
+            st.markdown("---")
+            st.markdown("##### Feedback (after implementation)")
+            st.caption("Record actual cost to improve future predictions.")
+            fb_col1, fb_col2 = st.columns(2)
+            with fb_col1:
+                _actual_cost = st.number_input(
+                    "Actual cost ($) — fill in after implementation",
+                    value=0.0, min_value=0.0,
+                    step=1000.0, format="%.0f",
+                    key="actual_cost_feedback",
+                )
+            with fb_col2:
+                if _actual_cost > 0 and _estimated_cost > 0:
+                    _actual_variance = (_actual_cost - _estimated_cost) / _estimated_cost * 100
+                    _pred_error = _actual_variance - _cost_pred.predicted_variance_pct
+                    st.metric("Actual Variance", f"{_actual_variance:+.1f}%",
+                              delta=f"Prediction error: {_pred_error:+.1f}%")
+
+        # ── TAB: Comparison ──────────────────────────────────────
+        with result_tabs[5]:
+            st.subheader("Parameter Comparison (Before -> After)")
+            table_data = []
+            for step in eng_steps:
+                node = graph.nodes[step.target_node]
+                baseline = result.initial_state.get(step.target_node, step.old_value)
+                pct = (step.delta_output / baseline * 100) if abs(baseline) > 1e-10 else 0
+                table_data.append({
+                    "Parameter": step.target_node.replace("_", " ").title(),
+                    "Subsystem": step.target_subsystem.upper(),
+                    "Before": f"{baseline:.4f}",
+                    "After": f"{step.new_value:.4f}",
+                    "Delta": f"{step.delta_output:+.4f}",
+                    "% Change": f"{pct:+.2f}%",
+                    "Unit": node.unit,
+                    "Violation": "YES" if step.causes_violation else "",
+                })
+            st.dataframe(table_data, use_container_width=True, hide_index=True)
+
+            legend_parts = []
+            for sub, color in sub_colors.items():
+                legend_parts.append(f"<span style='color:{color}'>{sub}</span>")
+            st.markdown(
+                "**Subsystems:** " + " . ".join(legend_parts) + "  \n"
+                "**Markers:** "
+                "<span style='color:steelblue'>Same-domain</span> . "
+                "<span style='color:darkorange'>Cross-domain hop</span> . "
+                "<span style='color:crimson'>Certification violation</span>",
+                unsafe_allow_html=True,
+            )
+
+        # ── TAB: Uncertainty (Bayesian) ──────────────────────────
+        if _run_bayesian:
+            with result_tabs[6]:
+                st.subheader("Bayesian Uncertainty Analysis")
+                st.markdown(
+                    f"Monte Carlo propagation with **{_mc_samples} samples**. "
+                    "Edge sensitivities sampled from uncertainty distributions."
+                )
+                from cascade_predict.bayesian import BayesianCascadeEngine
+                from cascade_predict.bayesian.uncertainty import (
+                    build_default_aircraft_uncertainty,
+                    build_default_ev_uncertainty,
+                )
+                _UNC_BUILDERS = {
+                    "electric_aircraft": build_default_aircraft_uncertainty,
+                    "ev_battery_pack": build_default_ev_uncertainty,
+                }
+                spec_builder = _UNC_BUILDERS.get(selected_template_id)
+                if spec_builder is None:
+                    st.info("No uncertainty spec defined for this template yet.")
+                else:
+                    spec = spec_builder()
+                    with st.spinner(f"Running {_mc_samples} Monte Carlo samples..."):
+                        bay_engine = BayesianCascadeEngine(
+                            tmpl.build, spec, n_samples=_mc_samples, seed=42,
+                        )
+                        bay_result = bay_engine.propagate(
+                            selected_comp_id, selected_prop, new_value,
+                        )
+                    bay_summary = bay_result.summary()
+
+                    bm1, bm2, bm3 = st.columns(3)
+                    bm1.metric("MC Samples", bay_summary["n_samples"])
+                    bm2.metric("Likely Violations (>50%)", bay_summary["likely_violations"])
+                    bm3.metric("Max P(violation)", f"{bay_summary['max_violation_probability']:.0%}")
+
+                    # Violation probability bars
+                    active_violations = [
+                        v for v in bay_result.violation_probabilities if v.probability > 0.0
+                    ]
+                    if active_violations:
+                        st.markdown("##### Violation Probabilities")
+                        vp_labels, vp_probs, vp_colors, vp_hover = [], [], [], []
+                        for v in active_violations:
+                            label = v.node_id.replace("_", " ").title()
+                            vp_labels.append(f"{label}\n({v.regulatory_ref})")
+                            vp_probs.append(v.probability * 100)
+                            if v.probability >= 0.8:
+                                vp_colors.append("crimson")
+                            elif v.probability >= 0.5:
+                                vp_colors.append("darkorange")
+                            elif v.probability >= 0.2:
+                                vp_colors.append("gold")
+                            else:
+                                vp_colors.append("steelblue")
+                            vp_hover.append(
+                                f"<b>{label}</b><br>"
+                                f"P(violation) = {v.probability:.1%}<br>"
+                                f"Mean: {v.mean_value:.2f} {v.unit}<br>"
+                                f"95th pct: {v.p95_value:.2f} {v.unit}<br>"
+                                f"Limit: {v.regulatory_limit} {v.unit}<br>"
+                                f"Mean margin: {v.mean_margin:+.4f}"
+                            )
+                        fig_vp = go.Figure(go.Bar(
+                            x=vp_probs, y=vp_labels, orientation="h",
+                            marker_color=vp_colors, hovertext=vp_hover, hoverinfo="text",
+                            text=[f"{p:.0f}%" for p in vp_probs], textposition="outside",
+                        ))
+                        fig_vp.add_vline(x=50, line_dash="dash", line_color="gray",
+                                         line_width=1, annotation_text="50%")
+                        fig_vp.update_layout(
+                            height=max(200, 60 * len(active_violations)),
+                            xaxis_title="Probability of Violation (%)",
+                            xaxis=dict(range=[0, 110]),
+                            margin=dict(l=200, r=60, t=20, b=40),
+                        )
+                        st.plotly_chart(fig_vp, use_container_width=True)
+
+                    # Parameter distributions
+                    st.markdown("##### Parameter Distributions (90% CI)")
+                    dist_items = sorted(
+                        bay_result.node_distributions.items(),
+                        key=lambda x: abs(x[1].mean_delta), reverse=True,
+                    )[:12]
+                    if dist_items:
+                        fig_box = go.Figure()
+                        for nid, dist in dist_items:
+                            label = nid.replace("_", " ").title()
+                            if abs(dist.baseline) > 1e-10:
+                                pct_samples = (dist.samples - dist.baseline) / abs(dist.baseline) * 100
+                            else:
+                                pct_samples = dist.samples - dist.baseline
+                            fig_box.add_trace(go.Box(
+                                x=pct_samples, name=label, boxpoints=False,
+                                marker_color="steelblue", line_color="steelblue",
+                            ))
+                        fig_box.update_layout(
+                            height=max(300, 35 * len(dist_items)),
+                            xaxis_title="% Change from Baseline",
+                            margin=dict(l=200, r=40, t=20, b=40),
+                            showlegend=False,
+                        )
+                        fig_box.add_vline(x=0, line_color="gray", line_width=1)
+                        st.plotly_chart(fig_box, use_container_width=True)
+
+                    # Uncertainty table
+                    st.markdown("##### Detailed Uncertainty Summary")
+                    unc_table = []
+                    for nid, dist in dist_items:
+                        node = graph.nodes.get(nid)
+                        reg_limit = node.regulatory_limit if node else None
+                        unc_table.append({
+                            "Parameter": nid.replace("_", " ").title(),
+                            "Baseline": f"{dist.baseline:.4f}",
+                            "Mean": f"{dist.mean:.4f}",
+                            "Std": f"{dist.std:.4f}",
+                            "5th %ile": f"{dist.p5:.4f}",
+                            "95th %ile": f"{dist.p95:.4f}",
+                            "Unit": dist.unit,
+                            "Limit": f"{reg_limit}" if reg_limit else "",
+                        })
+                    st.dataframe(unc_table, use_container_width=True, hide_index=True)
+
+
+
+        st.stop()
+
+
+
+    st.title("Design Change Cascade Prediction")
+    st.caption(
+        "Upload a spec document, select a system template, change a property, "
+        "and watch the cascade ripple across subsystems."
+    )
 
     # ── STEP 1: Upload Documents ─────────────────────────────────────
     st.header("1  Upload Spec / CAD / Drawing")
@@ -997,602 +1632,36 @@ with tab_system:
     run_clicked = st.button("Propagate Change", type="primary", use_container_width=True)
 
     # ═════════════════════════════════════════════════════════════════
-    # RESULTS — only after clicking Propagate
+    # STORE INPUTS & SWITCH TO RESULTS PAGE
     # ═════════════════════════════════════════════════════════════════
     if run_clicked and selected_prop and new_value is not None:
-        # Rebuild fresh graph
+        st.session_state.cascade_inputs = {
+            "template_id": selected_template_id,
+            "sector": selected_sector,
+            "using_auto": _using_auto,
+            "comp_id": selected_comp_id,
+            "comp_name": comp.name if comp else "Custom",
+            "prop_name": selected_prop,
+            "new_value": new_value,
+            "change_cause": _change_cause,
+            "change_severity": _change_severity,
+            "regulatory_involved": _regulatory_involved,
+            "estimated_cost": _estimated_cost,
+            "cost_method": _cost_method,
+            "run_bayesian": _run_bayesian,
+            "mc_samples": _mc_samples,
+            "constraint_relaxations": _constraint_relaxations,
+        }
+        # Store auto-assemble params if needed
         if _using_auto:
-            _assembled = auto_assemble_graph(
-                geometry=_geo, material_key=_sel_mat, sector=selected_sector,
-                part_name=_part_name, has_power_system=_power_kw > 0,
-                power_kw=_power_kw, speed_m_s=_speed_ms, baseline_range=_range_km,
-            )
-            graph = _assembled.graph
-            components = {c.component_id: c for c in _assembled.components}
-            constraints = _assembled.constraints
-            comp = _assembled.components[0]
-        else:
-            graph, components, constraints = tmpl.build()
-        if not _using_auto and selected_comp_id == "_custom":
-            # Rebuild the custom component against the fresh graph
-            node = graph.nodes[target_node]
-            from cascade_predict.subsystems.component import Component as CompClass
-            comp = CompClass("_custom", custom_comp_name or "Custom Component", node.subsystem)
-            comp.add_property(target_node, node.value, node.unit, graph_node_id=target_node, source="custom")
-            for ov in doc_overrides:
-                if ov.property_name in graph.nodes:
-                    ovn = graph.nodes[ov.property_name]
-                    comp.add_property(ov.property_name, ov.value, ov.unit or ovn.unit,
-                                      graph_node_id=ov.property_name, source=ov.source)
-        else:
-            comp = components[selected_comp_id]
-
-        # Apply constraint relaxations
-        if constraints and _constraint_relaxations:
-            for node_id, new_limit in _constraint_relaxations.items():
-                if node_id in graph.nodes:
-                    node = graph.nodes[node_id]
-                    if new_limit is None:
-                        node.regulatory_limit = None
-                        node.bounds = (float("-inf"), float("inf"))
-                    else:
-                        node.regulatory_limit = new_limit
-                        if node.bounds[1] != float("inf") and new_limit > node.bounds[1]:
-                            node.bounds = (node.bounds[0], new_limit)
-
-        deltas = comp.get_graph_deltas({selected_prop: new_value})
-        if not deltas:
-            st.error("No graph-linked deltas for this property change.")
-        else:
-            engine = CascadeEngine(graph)
-            trigger_node = list(deltas.keys())[0]
-            trigger_delta = list(deltas.values())[0]
-            result = engine.propagate(trigger_node, trigger_delta, mode="single_pass")
-            summary = result.summary(total_graph_nodes=len(graph.nodes))
-
-            # Deduplicate steps
-            seen_targets = {}
-            for step in result.steps:
-                if step.target_node not in seen_targets:
-                    seen_targets[step.target_node] = step
-                else:
-                    if abs(step.delta_output) > abs(seen_targets[step.target_node].delta_output):
-                        seen_targets[step.target_node] = step
-            unique_steps = list(seen_targets.values())
-
-            # Split steps into engineering vs cost/schedule
-            _COST_SCHEDULE_NODES = {"material_cost", "manufacturing_cost", "tooling_cost",
-                                     "total_cost_delta", "manufacturing_lead_time",
-                                     "certification_time", "total_schedule_delta"}
-            eng_steps = [s for s in unique_steps if s.target_node not in _COST_SCHEDULE_NODES]
-            cost_steps = [s for s in unique_steps if s.target_node in _COST_SCHEDULE_NODES]
-
-            # ═════════════════════════════════════════════════════════
-            # RESULTS PAGE — visually separated from configuration
-            # ═════════════════════════════════════════════════════════
-            st.markdown("---")
-            st.markdown(
-                "<div style='background:#b8452a; padding:12px 20px; border-radius:8px; "
-                "margin:10px 0 20px 0;'>"
-                "<h2 style='color:white; margin:0;'>Cascade Prediction Results</h2>"
-                f"<p style='color:#ffe8d6; margin:4px 0 0 0;'>"
-                f"Change: <b>{selected_prop.replace('_',' ').title()}</b> on <b>{comp.name}</b> "
-                f"({prop.value:.4f} → {new_value:.4f} {prop.unit})</p>"
-                "</div>",
-                unsafe_allow_html=True,
-            )
-
-            # ── Cost Variance Prediction ─────────────────────────────
-            from cascade_predict.cost_predictor import (
-                get_predictor, ChangeRequest, CostPrediction,
-                compute_propagation_score,
-            )
-            _predictor = get_predictor()
-            # Auto-calculate cost from cascade if user didn't provide one
-            if _cost_method == "auto" and cost_steps:
-                _total_cost_step = [s for s in cost_steps if s.target_node == "total_cost_delta"]
-                if _total_cost_step:
-                    _estimated_cost = max(1000, abs(_total_cost_step[0].delta_output))
-            _change_req = ChangeRequest(
-                change_type=comp.subsystem if comp else "structural",
-                affected_subsystems=list(set(s.target_subsystem for s in unique_steps)),
-                change_cause=_change_cause,
-                severity=_change_severity,
-                regulatory_involved=_regulatory_involved,
-                estimated_cost=_estimated_cost,
-                propagation_score=summary["propagation_score"],
-                n_nodes_affected=summary["nodes_affected"],
-                n_subsystems_affected=summary["subsystems_affected"],
-                n_violations=summary["violations"],
-                n_cross_domain_hops=summary["cross_domain_hops"],
-                cascade_depth=summary["cascade_depth"],
-                max_pct_change=summary["max_pct_change"],
-                sector=selected_sector,
-                duration_days=60,
-            )
-            _cost_pred = _predictor.predict(_change_req)
-
-            # ── Result tabs ──────────────────────────────────────────
-            result_tab_names = ["Overview", "Cascade Flow", "Violations",
-                                "Cost & Schedule", "Risk Assessment", "Comparison"]
-            if _run_bayesian:
-                result_tab_names.append("Uncertainty")
-            result_tabs = st.tabs(result_tab_names)
-
-            # ── TAB: Overview ────────────────────────────────────────
-            with result_tabs[0]:
-                m1, m2, m3, m4, m5 = st.columns(5)
-                m1.metric("Parameters Affected", summary["nodes_affected"])
-                m2.metric("Subsystems Hit", summary["subsystems_affected"])
-                m3.metric("Cross-Domain Hops", summary["cross_domain_hops"])
-                n_violations = summary["violations"]
-                m4.metric("Violations", n_violations,
-                           delta=f"{n_violations} cert issues" if n_violations > 0 else "Clean",
-                           delta_color="inverse")
-                _tier_colors = {1: "normal", 2: "normal", 3: "inverse", 4: "inverse"}
-                m5.metric("Risk Tier", f"T{_cost_pred.risk_tier}",
-                          delta=_cost_pred.risk_label,
-                          delta_color=_tier_colors.get(_cost_pred.risk_tier, "normal"))
-
-                # Propagation score bar
-                st.markdown(
-                    f"**Propagation Score:** `{summary['propagation_score']:.2f}` / 1.00 "
-                    f"— {'Low' if summary['propagation_score'] < 0.3 else 'Moderate' if summary['propagation_score'] < 0.6 else 'High'} cascade severity"
-                )
-                st.progress(min(1.0, summary["propagation_score"]))
-
-                st.subheader("Cascade Waterfall")
-                st.caption("Each bar = change propagated. Red = violation. Orange = cross-domain hop.")
-
-                labels, pct_changes, colors, hover_texts = [], [], [], []
-                for step in eng_steps:
-                    baseline = result.initial_state.get(step.target_node, step.old_value)
-                    pct = (step.delta_output / baseline * 100) if abs(baseline) > 1e-10 else 0
-                    node = graph.nodes[step.target_node]
-                    label = step.target_node.replace("_", " ").title()
-                    labels.append(label)
-                    pct_changes.append(pct)
-                    if step.causes_violation:
-                        colors.append("crimson")
-                    elif step.is_cross_domain:
-                        colors.append("darkorange")
-                    else:
-                        colors.append("steelblue")
-                    hover = (
-                        f"<b>{label}</b><br>Subsystem: {step.target_subsystem}<br>"
-                        f"Change: {step.delta_output:+.4f} {node.unit}<br>"
-                        f"Before: {baseline:.4f} -> After: {step.new_value:.4f}<br>"
-                        f"% Change: {pct:+.2f}%<br>"
-                    )
-                    if step.causes_violation:
-                        hover += f"<b>VIOLATION: {step.violation_detail}</b><br>"
-                    if step.edge.physics_equation:
-                        hover += f"Physics: {step.edge.physics_equation}"
-                    hover_texts.append(hover)
-
-                fig_wf = go.Figure(go.Bar(
-                    x=pct_changes, y=labels, orientation="h",
-                    marker_color=colors, hovertext=hover_texts, hoverinfo="text",
-                ))
-                fig_wf.update_layout(
-                    height=max(350, 28 * len(labels)),
-                    xaxis_title="% Change from Baseline",
-                    margin=dict(l=200, r=40, t=20, b=40),
-                    yaxis=dict(autorange="reversed"),
-                )
-                fig_wf.add_vline(x=0, line_color="gray", line_width=1)
-                st.plotly_chart(fig_wf, use_container_width=True)
-
-            # ── TAB: Cascade Flow (Sankey) ───────────────────────────
-            with result_tabs[1]:
-                st.subheader("Cascade Flow (Engineering)")
-                with st.expander("How to read this graph", expanded=False):
-                    st.markdown("""
-**Sankey Diagram — Reading Guide**
-
-- **Each node (vertical bar)** represents an engineering parameter (e.g. hull thickness, total mass, drag force).
-- **Each flow (link)** represents a physics coupling — energy, force, or material relationship that transmits a design change from one parameter to another.
-- **Flow width** is proportional to the magnitude of the change transmitted.
-- **Flow left to right** shows the propagation direction: the trigger parameter is on the far left, downstream effects flow rightward.
-
-**Color coding:**
-- **Blue flows** — same-subsystem propagation (e.g. structural → structural)
-- **Orange flows** — cross-domain hop (e.g. structural → thermal). These are the most important to watch — they indicate the change has jumped to a different engineering discipline.
-- **Red flows** — the downstream parameter **violates a certification limit** (regulatory, safety, or design constraint).
-
-**Node colors** correspond to subsystems (structural, thermal, electrical, performance, cost, etc.). The legend appears below the Comparison table.
-
-**What to look for:**
-1. **Wide red flows** = large violations triggered by your change
-2. **Many orange hops** = the change cascades across multiple disciplines
-3. **Fan-out points** = a single parameter driving many downstream effects (high coupling)
-""")
-
-                all_node_ids = [result.trigger_node]
-                for step in eng_steps:
-                    if step.source_node not in all_node_ids:
-                        all_node_ids.append(step.source_node)
-                    if step.target_node not in all_node_ids:
-                        all_node_ids.append(step.target_node)
-                node_idx = {nid: i for i, nid in enumerate(all_node_ids)}
-                sub_colors = _subsystem_color_map(graph.subsystems())
-                node_colors, node_labels = [], []
-                for nid in all_node_ids:
-                    node = graph.nodes.get(nid)
-                    if node:
-                        node_colors.append(sub_colors.get(node.subsystem, "rgba(200,200,200,0.8)"))
-                        node_labels.append(nid.replace("_", " ").title())
-                    else:
-                        node_colors.append("rgba(200,200,200,0.8)")
-                        node_labels.append(nid)
-                s_src, s_tgt, s_val, s_col = [], [], [], []
-                for step in eng_steps:
-                    if step.source_node in node_idx and step.target_node in node_idx:
-                        s_src.append(node_idx[step.source_node])
-                        s_tgt.append(node_idx[step.target_node])
-                        s_val.append(max(abs(step.delta_output), 0.01))
-                        if step.causes_violation:
-                            s_col.append("rgba(255, 0, 0, 0.5)")
-                        elif step.is_cross_domain:
-                            s_col.append("rgba(255, 165, 0, 0.4)")
-                        else:
-                            s_col.append("rgba(100, 149, 237, 0.3)")
-                fig_sk = go.Figure(go.Sankey(
-                    node=dict(label=node_labels, color=node_colors, pad=15, thickness=20),
-                    link=dict(source=s_src, target=s_tgt, value=s_val, color=s_col),
-                ))
-                fig_sk.update_layout(height=500, margin=dict(l=20, r=20, t=20, b=20))
-                st.plotly_chart(fig_sk, use_container_width=True)
-
-            # ── TAB: Violations ──────────────────────────────────────
-            with result_tabs[2]:
-                if result.violations:
-                    st.subheader("Certification Violations")
-                    for v in result.violations:
-                        node = graph.nodes[v["node_id"]]
-                        baseline = result.initial_state[v["node_id"]]
-                        st.error(
-                            f"**{v['regulatory_ref']}** -- {v['node_id'].replace('_', ' ').title()}  \n"
-                            f"Baseline: {baseline:.4f} {v['unit']} -> "
-                            f"After cascade: **{v['value']:.4f} {v['unit']}**  \n"
-                            f"Limit: {v['regulatory_limit']} {v['unit']}  \n"
-                            f"Margin: **{v['margin']:.4f}** (negative = violated)"
-                        )
-                        paths = graph.find_paths(result.trigger_node, v["node_id"])
-                        if paths:
-                            shortest = min(paths, key=len)
-                            path_str = " -> ".join(
-                                [result.trigger_node.replace("_", " ")] +
-                                [e.target_id.replace("_", " ") for e in shortest]
-                            )
-                            st.markdown(f"*Cascade path:* `{path_str}`")
-                else:
-                    st.success("No certification violations detected.")
-
-                # Historic failure warnings
-                cascade_warnings = failure_db.check_cascade_result(
-                    affected_node_ids=result.affected_nodes,
-                    violated_node_ids=[v["node_id"] for v in result.violations],
-                    product_type=tmpl.industry.lower() if tmpl else selected_sector,
-                )
-                if cascade_warnings:
-                    st.subheader("Historic Failure Warnings")
-                    st.caption("Past failures involving the same parameters affected by this cascade.")
-                    for w in cascade_warnings:
-                        sev = w.failure.severity.value.upper()
-                        st.warning(
-                            f"**[{sev}] {w.failure.title}**  \n"
-                            f"{w.failure.root_cause[:300]}  \n\n"
-                            f"**Why relevant:** {w.match_reason}  \n"
-                            f"**Recommendation:** {w.recommendation}  \n"
-                            f"*Product: {w.failure.product_type} | "
-                            f"Source: {w.failure.source} ({w.failure.date})*"
-                        )
-
-            # ── TAB: Cost & Schedule ────────────────────────────────
-            with result_tabs[3]:
-                st.subheader("Cost & Schedule Impact")
-                if cost_steps:
-                    # Separate cost vs schedule
-                    _cost_nodes = {"material_cost", "manufacturing_cost", "tooling_cost", "total_cost_delta"}
-                    _sched_nodes = {"manufacturing_lead_time", "certification_time", "total_schedule_delta"}
-                    cost_only = [s for s in cost_steps if s.target_node in _cost_nodes]
-                    sched_only = [s for s in cost_steps if s.target_node in _sched_nodes]
-
-                    # Cost summary metrics
-                    total_cost = sum(s.delta_output for s in cost_only if s.target_node == "total_cost_delta")
-                    total_weeks = sum(s.delta_output for s in sched_only if s.target_node == "total_schedule_delta")
-                    mc1, mc2 = st.columns(2)
-                    mc1.metric("Total Cost Impact", f"${total_cost:+,.0f}")
-                    mc2.metric("Total Schedule Impact", f"{total_weeks:+.1f} weeks")
-
-                    # Cost breakdown table
-                    st.markdown("##### Cost Breakdown")
-                    cost_table = []
-                    for step in cost_only:
-                        node = graph.nodes[step.target_node]
-                        cost_table.append({
-                            "Item": step.target_node.replace("_", " ").title(),
-                            "Change": f"${step.delta_output:+,.0f}",
-                            "After": f"${step.new_value:,.0f}",
-                            "Description": node.description,
-                        })
-                    if cost_table:
-                        st.dataframe(cost_table, use_container_width=True, hide_index=True)
-
-                    # Cost bar chart
-                    if cost_only:
-                        cost_labels = [s.target_node.replace("_", " ").title() for s in cost_only]
-                        cost_values = [s.delta_output for s in cost_only]
-                        cost_colors = ["#e74c3c" if v > 0 else "#2ecc71" for v in cost_values]
-                        fig_cost = go.Figure(go.Bar(
-                            x=cost_values, y=cost_labels, orientation="h",
-                            marker_color=cost_colors,
-                            text=[f"${v:+,.0f}" for v in cost_values],
-                            textposition="outside",
-                        ))
-                        fig_cost.update_layout(
-                            height=max(200, 50 * len(cost_labels)),
-                            xaxis_title="Cost Change ($)",
-                            margin=dict(l=200, r=80, t=20, b=40),
-                        )
-                        fig_cost.add_vline(x=0, line_color="gray", line_width=1)
-                        st.plotly_chart(fig_cost, use_container_width=True)
-
-                    # Schedule breakdown
-                    st.markdown("##### Schedule Breakdown")
-                    sched_table = []
-                    for step in sched_only:
-                        node = graph.nodes[step.target_node]
-                        sched_table.append({
-                            "Item": step.target_node.replace("_", " ").title(),
-                            "Change": f"{step.delta_output:+.1f} weeks",
-                            "After": f"{step.new_value:.1f} weeks",
-                            "Description": node.description,
-                        })
-                    if sched_table:
-                        st.dataframe(sched_table, use_container_width=True, hide_index=True)
-
-                    # Schedule bar chart
-                    if sched_only:
-                        sched_labels = [s.target_node.replace("_", " ").title() for s in sched_only]
-                        sched_values = [s.delta_output for s in sched_only]
-                        sched_colors = ["#e74c3c" if v > 0 else "#2ecc71" for v in sched_values]
-                        fig_sched = go.Figure(go.Bar(
-                            x=sched_values, y=sched_labels, orientation="h",
-                            marker_color=sched_colors,
-                            text=[f"{v:+.1f}w" for v in sched_values],
-                            textposition="outside",
-                        ))
-                        fig_sched.update_layout(
-                            height=max(200, 50 * len(sched_labels)),
-                            xaxis_title="Schedule Change (weeks)",
-                            margin=dict(l=200, r=80, t=20, b=40),
-                        )
-                        fig_sched.add_vline(x=0, line_color="gray", line_width=1)
-                        st.plotly_chart(fig_sched, use_container_width=True)
-                else:
-                    st.info("No cost/schedule impact detected for this change.")
-
-            # ── TAB: Risk Assessment ─────────────────────────────────
-            with result_tabs[4]:
-                st.subheader("Risk Assessment & Cost Prediction")
-
-                # Risk tier banner
-                _tier_banner = {
-                    1: ("success", "Tier 1 — Fast-track. Low cost overrun risk. Proceed with standard approval."),
-                    2: ("info", "Tier 2 — Standard Review. Moderate overrun risk. Standard review process recommended."),
-                    3: ("warning", "Tier 3 — Senior Review. High overrun risk. Senior engineering review required."),
-                    4: ("error", "Tier 4 — Deep Analysis. Very high overrun risk. Detailed cost & schedule analysis needed."),
-                }
-                _banner_fn = {"success": st.success, "info": st.info, "warning": st.warning, "error": st.error}
-                _btype, _bmsg = _tier_banner[_cost_pred.risk_tier]
-                _banner_fn[_btype](_bmsg)
-
-                rc1, rc2, rc3, rc4 = st.columns(4)
-                rc1.metric("Predicted Overrun", f"{_cost_pred.predicted_variance_pct:.1f}%")
-                rc2.metric("Estimated Cost", f"${_estimated_cost:,.0f}")
-                rc3.metric("Predicted Actual", f"${_cost_pred.predicted_actual_cost:,.0f}")
-                rc4.metric("Model Confidence (R²)", f"{_cost_pred.confidence:.2f}")
-
-                # Feature importance
-                if _cost_pred.feature_importance:
-                    st.markdown("##### What drives the overrun prediction?")
-                    fi_labels = [k.replace("_", " ").title() for k in _cost_pred.feature_importance.keys()]
-                    fi_values = list(_cost_pred.feature_importance.values())
-                    fig_fi = go.Figure(go.Bar(
-                        x=fi_values, y=fi_labels, orientation="h",
-                        marker_color="#d4725c",
-                    ))
-                    fig_fi.update_layout(
-                        height=max(200, 35 * len(fi_labels)),
-                        xaxis_title="Feature Importance",
-                        margin=dict(l=200, r=40, t=20, b=40),
-                        yaxis=dict(autorange="reversed"),
-                    )
-                    st.plotly_chart(fig_fi, use_container_width=True)
-
-                # Propagation details
-                st.markdown("##### Cascade Severity Breakdown")
-                ps_col1, ps_col2, ps_col3, ps_col4 = st.columns(4)
-                ps_col1.metric("Propagation Score", f"{summary['propagation_score']:.2f}")
-                ps_col2.metric("Max Parameter Change", f"{summary['max_pct_change']:.1f}%")
-                ps_col3.metric("Cascade Depth", summary["cascade_depth"])
-                ps_col4.metric("Cross-Domain Hops", summary["cross_domain_hops"])
-
-                # Feedback capture
-                st.markdown("---")
-                st.markdown("##### Feedback (after implementation)")
-                st.caption("Record actual cost to improve future predictions.")
-                fb_col1, fb_col2 = st.columns(2)
-                with fb_col1:
-                    _actual_cost = st.number_input(
-                        "Actual cost ($) — fill in after implementation",
-                        value=0.0, min_value=0.0,
-                        step=1000.0, format="%.0f",
-                        key="actual_cost_feedback",
-                    )
-                with fb_col2:
-                    if _actual_cost > 0 and _estimated_cost > 0:
-                        _actual_variance = (_actual_cost - _estimated_cost) / _estimated_cost * 100
-                        _pred_error = _actual_variance - _cost_pred.predicted_variance_pct
-                        st.metric("Actual Variance", f"{_actual_variance:+.1f}%",
-                                  delta=f"Prediction error: {_pred_error:+.1f}%")
-
-            # ── TAB: Comparison ──────────────────────────────────────
-            with result_tabs[5]:
-                st.subheader("Parameter Comparison (Before -> After)")
-                table_data = []
-                for step in eng_steps:
-                    node = graph.nodes[step.target_node]
-                    baseline = result.initial_state.get(step.target_node, step.old_value)
-                    pct = (step.delta_output / baseline * 100) if abs(baseline) > 1e-10 else 0
-                    table_data.append({
-                        "Parameter": step.target_node.replace("_", " ").title(),
-                        "Subsystem": step.target_subsystem.upper(),
-                        "Before": f"{baseline:.4f}",
-                        "After": f"{step.new_value:.4f}",
-                        "Delta": f"{step.delta_output:+.4f}",
-                        "% Change": f"{pct:+.2f}%",
-                        "Unit": node.unit,
-                        "Violation": "YES" if step.causes_violation else "",
-                    })
-                st.dataframe(table_data, use_container_width=True, hide_index=True)
-
-                legend_parts = []
-                for sub, color in sub_colors.items():
-                    legend_parts.append(f"<span style='color:{color}'>{sub}</span>")
-                st.markdown(
-                    "**Subsystems:** " + " . ".join(legend_parts) + "  \n"
-                    "**Markers:** "
-                    "<span style='color:steelblue'>Same-domain</span> . "
-                    "<span style='color:darkorange'>Cross-domain hop</span> . "
-                    "<span style='color:crimson'>Certification violation</span>",
-                    unsafe_allow_html=True,
-                )
-
-            # ── TAB: Uncertainty (Bayesian) ──────────────────────────
-            if _run_bayesian:
-                with result_tabs[6]:
-                    st.subheader("Bayesian Uncertainty Analysis")
-                    st.markdown(
-                        f"Monte Carlo propagation with **{_mc_samples} samples**. "
-                        "Edge sensitivities sampled from uncertainty distributions."
-                    )
-                    from cascade_predict.bayesian import BayesianCascadeEngine
-                    from cascade_predict.bayesian.uncertainty import (
-                        build_default_aircraft_uncertainty,
-                        build_default_ev_uncertainty,
-                    )
-                    _UNC_BUILDERS = {
-                        "electric_aircraft": build_default_aircraft_uncertainty,
-                        "ev_battery_pack": build_default_ev_uncertainty,
-                    }
-                    spec_builder = _UNC_BUILDERS.get(selected_template_id)
-                    if spec_builder is None:
-                        st.info("No uncertainty spec defined for this template yet.")
-                    else:
-                        spec = spec_builder()
-                        with st.spinner(f"Running {_mc_samples} Monte Carlo samples..."):
-                            bay_engine = BayesianCascadeEngine(
-                                tmpl.build, spec, n_samples=_mc_samples, seed=42,
-                            )
-                            bay_result = bay_engine.propagate(
-                                selected_comp_id, selected_prop, new_value,
-                            )
-                        bay_summary = bay_result.summary()
-
-                        bm1, bm2, bm3 = st.columns(3)
-                        bm1.metric("MC Samples", bay_summary["n_samples"])
-                        bm2.metric("Likely Violations (>50%)", bay_summary["likely_violations"])
-                        bm3.metric("Max P(violation)", f"{bay_summary['max_violation_probability']:.0%}")
-
-                        # Violation probability bars
-                        active_violations = [
-                            v for v in bay_result.violation_probabilities if v.probability > 0.0
-                        ]
-                        if active_violations:
-                            st.markdown("##### Violation Probabilities")
-                            vp_labels, vp_probs, vp_colors, vp_hover = [], [], [], []
-                            for v in active_violations:
-                                label = v.node_id.replace("_", " ").title()
-                                vp_labels.append(f"{label}\n({v.regulatory_ref})")
-                                vp_probs.append(v.probability * 100)
-                                if v.probability >= 0.8:
-                                    vp_colors.append("crimson")
-                                elif v.probability >= 0.5:
-                                    vp_colors.append("darkorange")
-                                elif v.probability >= 0.2:
-                                    vp_colors.append("gold")
-                                else:
-                                    vp_colors.append("steelblue")
-                                vp_hover.append(
-                                    f"<b>{label}</b><br>"
-                                    f"P(violation) = {v.probability:.1%}<br>"
-                                    f"Mean: {v.mean_value:.2f} {v.unit}<br>"
-                                    f"95th pct: {v.p95_value:.2f} {v.unit}<br>"
-                                    f"Limit: {v.regulatory_limit} {v.unit}<br>"
-                                    f"Mean margin: {v.mean_margin:+.4f}"
-                                )
-                            fig_vp = go.Figure(go.Bar(
-                                x=vp_probs, y=vp_labels, orientation="h",
-                                marker_color=vp_colors, hovertext=vp_hover, hoverinfo="text",
-                                text=[f"{p:.0f}%" for p in vp_probs], textposition="outside",
-                            ))
-                            fig_vp.add_vline(x=50, line_dash="dash", line_color="gray",
-                                             line_width=1, annotation_text="50%")
-                            fig_vp.update_layout(
-                                height=max(200, 60 * len(active_violations)),
-                                xaxis_title="Probability of Violation (%)",
-                                xaxis=dict(range=[0, 110]),
-                                margin=dict(l=200, r=60, t=20, b=40),
-                            )
-                            st.plotly_chart(fig_vp, use_container_width=True)
-
-                        # Parameter distributions
-                        st.markdown("##### Parameter Distributions (90% CI)")
-                        dist_items = sorted(
-                            bay_result.node_distributions.items(),
-                            key=lambda x: abs(x[1].mean_delta), reverse=True,
-                        )[:12]
-                        if dist_items:
-                            fig_box = go.Figure()
-                            for nid, dist in dist_items:
-                                label = nid.replace("_", " ").title()
-                                if abs(dist.baseline) > 1e-10:
-                                    pct_samples = (dist.samples - dist.baseline) / abs(dist.baseline) * 100
-                                else:
-                                    pct_samples = dist.samples - dist.baseline
-                                fig_box.add_trace(go.Box(
-                                    x=pct_samples, name=label, boxpoints=False,
-                                    marker_color="steelblue", line_color="steelblue",
-                                ))
-                            fig_box.update_layout(
-                                height=max(300, 35 * len(dist_items)),
-                                xaxis_title="% Change from Baseline",
-                                margin=dict(l=200, r=40, t=20, b=40),
-                                showlegend=False,
-                            )
-                            fig_box.add_vline(x=0, line_color="gray", line_width=1)
-                            st.plotly_chart(fig_box, use_container_width=True)
-
-                        # Uncertainty table
-                        st.markdown("##### Detailed Uncertainty Summary")
-                        unc_table = []
-                        for nid, dist in dist_items:
-                            node = graph.nodes.get(nid)
-                            reg_limit = node.regulatory_limit if node else None
-                            unc_table.append({
-                                "Parameter": nid.replace("_", " ").title(),
-                                "Baseline": f"{dist.baseline:.4f}",
-                                "Mean": f"{dist.mean:.4f}",
-                                "Std": f"{dist.std:.4f}",
-                                "5th %ile": f"{dist.p5:.4f}",
-                                "95th %ile": f"{dist.p95:.4f}",
-                                "Unit": dist.unit,
-                                "Limit": f"{reg_limit}" if reg_limit else "",
-                            })
-                        st.dataframe(unc_table, use_container_width=True, hide_index=True)
+            st.session_state.cascade_inputs.update({
+                "geo": _geo, "sel_mat": _sel_mat, "part_name": _part_name,
+                "power_kw": _power_kw, "speed_ms": _speed_ms, "range_km": _range_km,
+            })
+        # Store custom comp params if needed
+        if selected_comp_id == "_custom":
+            st.session_state.cascade_inputs["target_node"] = target_node
+        st.rerun()
 
 
 # =====================================================================
