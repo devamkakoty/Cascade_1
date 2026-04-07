@@ -15,7 +15,7 @@ import streamlit.components.v1 as st_components
 import numpy as np
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Cascade Prediction", layout="wide")
+st.set_page_config(page_title="Krama", layout="wide")
 
 # ── Palette ──────────────────────────────────────────────────────────
 _PALETTE = [
@@ -695,6 +695,7 @@ with tab_system:
 
 
 
+    st.markdown("# Krama")
     st.title("Design Change Cascade Prediction")
     st.caption(
         "Upload a spec document, select a system template, change a property, "
