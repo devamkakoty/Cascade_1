@@ -37,9 +37,8 @@ _ONSHAPE_MODELS = {
 }
 
 # ── Top-level tabs ───────────────────────────────────────────────────
-tab_system, tab_battery, tab_about = st.tabs([
-    "System Cascade (Cross-Subsystem)",
-    "Battery Thermal Cascade",
+tab_system, tab_about = st.tabs([
+    "Cascade Prediction",
     "How It Works",
 ])
 
@@ -1663,285 +1662,278 @@ with tab_system:
             st.session_state.cascade_inputs["target_node"] = target_node
         st.rerun()
 
+    # ═════════════════════════════════════════════════════════════════
+    # BATTERY THERMAL CASCADE (inline section)
+    # ═════════════════════════════════════════════════════════════════
+    st.markdown("---")
+    with st.expander("Battery Thermal Runaway Simulation", expanded=False):
+        st.caption(
+            "Cell-level thermal runaway propagation in a battery pack. "
+            "Trigger a cell and watch the cascade spread."
+        )
+
+        from cascade_predict.physics import CellParams, PackGeometry
+        from cascade_predict.simulation import CascadeSimulator
+
+        col_r, col_c, col_s, col_d = st.columns(4)
+        with col_r:
+            rows = st.slider("Rows", 2, 8, 4, key="bat_rows")
+        with col_c:
+            cols = st.slider("Columns", 2, 8, 5, key="bat_cols")
+        with col_s:
+            soc_mean = st.slider("Mean SOC", 0.3, 1.0, 0.8, step=0.05, key="bat_soc")
+        with col_d:
+            t_end = st.slider("Duration (s)", 120, 1200, 900, step=60, key="bat_tend")
+
+        params = CellParams()
+        pack = PackGeometry(rows=rows, cols=cols, params=params)
+        n_cells = pack.n_cells
+
+        trigger_cell = st.selectbox("Trigger Cell", list(range(n_cells)), key="bat_trigger")
+
+        rng = np.random.RandomState(42)
+        soc_distribution = np.clip(rng.normal(soc_mean, 0.1, n_cells), 0.1, 1.0)
+
+        if st.button("Run Battery Cascade", type="primary", use_container_width=True, key="bat_run"):
+            sim = CascadeSimulator(rows=rows, cols=cols, params=params)
+            with st.spinner("Running thermal simulation..."):
+                result = sim.run_physics(
+                    trigger_cells=[trigger_cell],
+                    soc_distribution=soc_distribution,
+                    trigger_temp=523.15,
+                    dt=0.5,
+                    t_end=t_end,
+                )
+            bsummary = sim.cascade_summary(result)
+
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Cells Affected", f"{bsummary['cells_affected']}/{bsummary['total_cells']}")
+            m2.metric("Cascade Fraction", f"{bsummary['cascade_fraction']:.0%}")
+            m3.metric("Peak Temp", f"{bsummary['max_temperature_C']:.0f} C")
+            m4.metric("Avg Delay", f"{bsummary['avg_propagation_delay_s']:.1f}s")
+
+            times = result["times"]
+            temps_c = result["temperatures"] - 273.15
+            runaway_times = result["runaway_times"]
+
+            fig_temp = go.Figure()
+            max_rt = np.max(runaway_times[np.isfinite(runaway_times)]) if np.any(np.isfinite(runaway_times)) else 1.0
+            for i in range(n_cells):
+                if i == trigger_cell:
+                    color, width = "red", 3
+                elif np.isfinite(runaway_times[i]):
+                    frac = runaway_times[i] / max_rt
+                    color = f"rgb({int(255*(1-frac))}, {int(100*frac)}, 50)"
+                    width = 2
+                else:
+                    color, width = "lightblue", 1
+                fig_temp.add_trace(go.Scatter(
+                    x=times, y=temps_c[:, i], mode="lines",
+                    name=f"Cell {i}", line=dict(color=color, width=width),
+                ))
+            fig_temp.add_hline(y=params.t_runaway - 273.15, line_dash="dash",
+                               line_color="red", annotation_text="Runaway Threshold")
+            fig_temp.update_layout(height=400, xaxis_title="Time (s)", yaxis_title="Temperature (C)")
+            st.plotly_chart(fig_temp, use_container_width=True)
+
+            finite_mask = np.isfinite(runaway_times)
+            if np.any(finite_mask):
+                order = np.argsort(runaway_times)
+                timeline_cells = [i for i in order if np.isfinite(runaway_times[i])]
+                fig_tl = go.Figure(go.Bar(
+                    x=[runaway_times[i] for i in timeline_cells],
+                    y=[f"Cell {i}" for i in timeline_cells],
+                    orientation="h",
+                    marker_color=["red" if i == trigger_cell else "orange" for i in timeline_cells],
+                    text=[f"{runaway_times[i]:.1f}s" for i in timeline_cells],
+                    textposition="outside",
+                ))
+                fig_tl.update_layout(
+                    height=max(200, 30 * len(timeline_cells)),
+                    xaxis_title="Time to Runaway (s)",
+                )
+                st.plotly_chart(fig_tl, use_container_width=True)
 
 # =====================================================================
-# TAB 2: BATTERY THERMAL CASCADE
-# =====================================================================
-with tab_battery:
-    st.title("Battery Thermal Runaway Cascade")
-    st.caption(
-        "Cell-level thermal runaway propagation in a battery pack. "
-        "Trigger a cell and watch the cascade spread."
-    )
-
-    from cascade_predict.physics import CellParams, PackGeometry
-    from cascade_predict.simulation import CascadeSimulator
-
-    st.header("Pack Configuration")
-    col_r, col_c, col_s, col_d = st.columns(4)
-    with col_r:
-        rows = st.slider("Rows", 2, 8, 4, key="bat_rows")
-    with col_c:
-        cols = st.slider("Columns", 2, 8, 5, key="bat_cols")
-    with col_s:
-        soc_mean = st.slider("Mean SOC", 0.3, 1.0, 0.8, step=0.05, key="bat_soc")
-    with col_d:
-        t_end = st.slider("Duration (s)", 120, 1200, 900, step=60, key="bat_tend")
-
-    params = CellParams()
-    pack = PackGeometry(rows=rows, cols=cols, params=params)
-    n_cells = pack.n_cells
-
-    trigger_cell = st.selectbox("Trigger Cell", list(range(n_cells)), key="bat_trigger")
-
-    rng = np.random.RandomState(42)
-    soc_distribution = np.clip(rng.normal(soc_mean, 0.1, n_cells), 0.1, 1.0)
-
-    if st.button("Run Battery Cascade", type="primary", use_container_width=True, key="bat_run"):
-        sim = CascadeSimulator(rows=rows, cols=cols, params=params)
-        with st.spinner("Running thermal simulation..."):
-            result = sim.run_physics(
-                trigger_cells=[trigger_cell],
-                soc_distribution=soc_distribution,
-                trigger_temp=523.15,
-                dt=0.5,
-                t_end=t_end,
-            )
-        bsummary = sim.cascade_summary(result)
-
-        m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Cells Affected", f"{bsummary['cells_affected']}/{bsummary['total_cells']}")
-        m2.metric("Cascade Fraction", f"{bsummary['cascade_fraction']:.0%}")
-        m3.metric("Peak Temp", f"{bsummary['max_temperature_C']:.0f} C")
-        m4.metric("Avg Delay", f"{bsummary['avg_propagation_delay_s']:.1f}s")
-
-        times = result["times"]
-        temps_c = result["temperatures"] - 273.15
-        runaway_times = result["runaway_times"]
-
-        fig_temp = go.Figure()
-        max_rt = np.max(runaway_times[np.isfinite(runaway_times)]) if np.any(np.isfinite(runaway_times)) else 1.0
-        for i in range(n_cells):
-            if i == trigger_cell:
-                color, width = "red", 3
-            elif np.isfinite(runaway_times[i]):
-                frac = runaway_times[i] / max_rt
-                color = f"rgb({int(255*(1-frac))}, {int(100*frac)}, 50)"
-                width = 2
-            else:
-                color, width = "lightblue", 1
-            fig_temp.add_trace(go.Scatter(
-                x=times, y=temps_c[:, i], mode="lines",
-                name=f"Cell {i}", line=dict(color=color, width=width),
-            ))
-        fig_temp.add_hline(y=params.t_runaway - 273.15, line_dash="dash",
-                           line_color="red", annotation_text="Runaway Threshold")
-        fig_temp.update_layout(height=400, xaxis_title="Time (s)", yaxis_title="Temperature (C)")
-        st.plotly_chart(fig_temp, use_container_width=True)
-
-        finite_mask = np.isfinite(runaway_times)
-        if np.any(finite_mask):
-            order = np.argsort(runaway_times)
-            timeline_cells = [i for i in order if np.isfinite(runaway_times[i])]
-            fig_tl = go.Figure(go.Bar(
-                x=[runaway_times[i] for i in timeline_cells],
-                y=[f"Cell {i}" for i in timeline_cells],
-                orientation="h",
-                marker_color=["red" if i == trigger_cell else "orange" for i in timeline_cells],
-                text=[f"{runaway_times[i]:.1f}s" for i in timeline_cells],
-                textposition="outside",
-            ))
-            fig_tl.update_layout(
-                height=max(200, 30 * len(timeline_cells)),
-                xaxis_title="Time to Runaway (s)",
-            )
-            st.plotly_chart(fig_tl, use_container_width=True)
-
-# =====================================================================
-# TAB 3: HOW IT WORKS
+# HOW IT WORKS
 # =====================================================================
 with tab_about:
     st.title("How It Works")
-    st.caption("Overview of the prediction methodology and data sources powering this platform.")
 
-    about_tab1, about_tab2, about_tab3, about_tab4 = st.tabs([
-        "Methodology", "Data Sources", "Supported Sectors", "Architecture",
-    ])
+    _has_run = st.session_state.get("cascade_inputs") is not None
 
-    # ── Methodology ──────────────────────────────────────────────────
-    with about_tab1:
-        st.subheader("Deterministic Cascade Propagation")
+    if not _has_run:
+        st.info("Run a cascade prediction first, then come back here to see exactly how the calculation was done.")
         st.markdown("""
-This platform predicts the downstream engineering impact of a design change
-using **deterministic physics-based graph propagation** — no LLMs, no
-machine learning in the cascade path.
+**In brief:** This platform predicts what happens downstream when you change a design parameter.
+It uses physics-based engineering equations — not AI guessing — so every result is
+**deterministic, reproducible, and fully traceable** back to the equation that produced it.
 
-**How it works:**
-
-1. **Directed Graph** — Every system is modeled as a directed acyclic graph (DAG).
-   Nodes are engineering parameters (mass, stress, temperature, drag, cost, etc.).
-   Edges encode physics coupling equations.
-
-2. **Breadth-First Propagation** — When you change a parameter, the engine walks
-   the graph layer by layer. Each edge applies a parameterized physics equation
-   (e.g. `Δmass = ρ × A × Δt` for thickness→mass) to compute the downstream delta.
-
-3. **Constraint Checking** — After propagation, every node is checked against
-   regulatory limits (e.g. DNV, FAR 25, ISO 10218). Violations are flagged with
-   the specific standard and section.
-
-4. **Cost & Schedule Roll-up** — Engineering deltas feed into cost models
-   (material, manufacturing, tooling) and schedule models (lead time, certification).
-
-**Key properties:**
-- Fully reproducible — same input always produces same output
-- Transparent — every edge has a named physics equation you can inspect
-- Fast — single-pass DAG traversal, sub-second for typical systems
+Run a prediction, then this tab will show you:
+- The exact equations used in your cascade
+- How each parameter was computed step-by-step
+- Which standards were checked and why
+- How cost and risk estimates were derived
 """)
 
-        st.subheader("Universal Physics Library")
-        st.markdown("""
-The platform includes a library of **parameterized physics models** that work
-across sectors. These are classical engineering equations — not trained models:
+    else:
+        # ── Rebuild the cascade to show the computation trace ────────
+        _ci = st.session_state.cascade_inputs
+        from cascade_predict.templates import get_template as _get_tmpl
+        from cascade_predict.graph import CascadeEngine as _CE
 
-| Category | Examples |
-|----------|----------|
-| **Mass** | Plate mass (ρ×A×t), tube mass, volume-based |
-| **Structural** | Section modulus, bending stress, fatigue life (S-N) |
-| **Thermal** | Fourier conduction, heat capacity, resistive heating |
-| **Fluid** | Drag force, power-to-overcome-drag, fuel consumption |
-| **Performance** | Range estimation, power balance |
+        if _ci["using_auto"]:
+            from cascade_predict.auto_assembler import auto_assemble_graph as _aag, PartGeometry as _PG
+            _hw_assembled = _aag(
+                geometry=_ci["geo"], material_key=_ci["sel_mat"],
+                sector=_ci["sector"], part_name=_ci["part_name"],
+                has_power_system=_ci["power_kw"] > 0,
+                power_kw=_ci["power_kw"], speed_m_s=_ci["speed_ms"],
+                baseline_range=_ci["range_km"],
+            )
+            _hw_graph = _hw_assembled.graph
+            _hw_comp = _hw_assembled.components[0]
+        else:
+            _hw_tmpl = _get_tmpl(_ci["template_id"])
+            _hw_graph, _hw_components, _ = _hw_tmpl.build()
+            if _ci["comp_id"] != "_custom":
+                _hw_comp = _hw_components[_ci["comp_id"]]
+            else:
+                _hw_node = _hw_graph.nodes[_ci["target_node"]]
+                from cascade_predict.subsystems.component import Component as _CComp
+                _hw_comp = _CComp("_custom", _ci["comp_name"], _hw_node.subsystem)
+                _hw_comp.add_property(_ci["target_node"], _hw_node.value, _hw_node.unit,
+                                      graph_node_id=_ci["target_node"], source="custom")
 
-Each model takes material properties from a built-in database
-(12 materials including steels, aluminum alloys, titanium, composites, copper, Inconel).
-""")
+        _hw_deltas = _hw_comp.get_graph_deltas({_ci["prop_name"]: _ci["new_value"]})
+        if _hw_deltas:
+            _hw_engine = _CE(_hw_graph)
+            _hw_trigger = list(_hw_deltas.keys())[0]
+            _hw_result = _hw_engine.propagate(_hw_trigger, list(_hw_deltas.values())[0], mode="single_pass")
 
-        st.subheader("Graph Auto-Assembly")
-        st.markdown("""
-For parts without a pre-built template, the platform can **auto-assemble** a
-cascade graph from:
+            # Deduplicate
+            _hw_seen = {}
+            for _s in _hw_result.steps:
+                if _s.target_node not in _hw_seen or abs(_s.delta_output) > abs(_hw_seen[_s.target_node].delta_output):
+                    _hw_seen[_s.target_node] = _s
+            _hw_steps = list(_hw_seen.values())
 
-- **Geometry** — extracted from CAD files (STL/STEP) or 2D drawings (via OCR)
-- **Material** — selected from the material database
-- **Sector** — determines safety factors, temperature limits, and constraint standards
+            st.caption(
+                f"Showing computation trace for: **{_ci['prop_name'].replace('_',' ').title()}** "
+                f"on **{_ci['comp_name']}** ({_ci['new_value']})"
+            )
 
-The assembler classifies the part shape (plate, cylinder, tube, etc.), selects
-applicable physics models, and wires them into a DAG with sector-appropriate
-constraints — all without human intervention or AI generation.
-""")
+            hw_tab1, hw_tab2, hw_tab3 = st.tabs([
+                "Step-by-Step Computation", "Standards Checked", "Cost & Risk Method",
+            ])
 
-    # ── Data Sources ─────────────────────────────────────────────────
-    with about_tab2:
-        st.subheader("Data Sources & Pipeline")
-        st.markdown("""
-The platform supports multiple data input channels, from immediate use
-to future integration:
+            # ── Step-by-step computation trace ───────────────────────
+            with hw_tab1:
+                st.subheader("How Each Parameter Was Computed")
+                st.markdown(
+                    "Every row below shows one step of the cascade. "
+                    "The **equation** column is the exact physics relationship used — "
+                    "no black boxes, no approximations hidden from you."
+                )
 
-**Available Now:**
-- **CAD Geometry** (STL, STEP) — automatic dimension extraction
-- **2D Engineering Drawings** (PNG, JPEG, PDF) — OCR-based dimension and tolerance extraction
-- **Spec Documents** (CSV, PDF, text) — parameter override extraction
-- **Sample Library** — 9 pre-built models across all sectors for quick testing
+                for i, step in enumerate(_hw_steps, 1):
+                    _hw_node = _hw_graph.nodes.get(step.target_node)
+                    _src_label = step.source_node.replace("_", " ").title()
+                    _tgt_label = step.target_node.replace("_", " ").title()
+                    _eq = step.edge.physics_equation or ""
+                    _model_desc = ""
+                    if hasattr(step.edge, "model") and step.edge.model:
+                        _model_desc = getattr(step.edge.model, "desc", "")
 
-**In Pipeline:**
-- **Engineering Change Records (ECRs)** — historical change-impact data used to
-  calibrate coupling coefficients via least-squares fitting. The platform includes
-  synthetic ECR generators for naval, aerospace, automotive EV, and robotics sectors.
-- **Simulation Surrogates** — response surfaces fitted from FEA/CFD/modal analysis
-  results. Linear and quadratic surrogate models can be dropped into the graph
-  as physics model replacements where analytical equations are insufficient.
-- **Operational Sensor Data** — real-time or historical sensor streams mapped to
-  graph nodes. Drift detection identifies when in-service parameters deviate from
-  design values, triggering cascade re-evaluation.
-""")
+                    _baseline = _hw_result.initial_state.get(step.target_node, step.old_value)
+                    _unit = _hw_node.unit if _hw_node else ""
 
-        st.subheader("Bayesian Uncertainty")
-        st.markdown("""
-Optional Monte Carlo mode samples edge sensitivities from uncertainty
-distributions, producing violation *probabilities* instead of point estimates.
-Useful for trade studies where manufacturing tolerances or material variability
-matter.
-""")
+                    _violation_tag = ""
+                    if step.causes_violation:
+                        _violation_tag = " **VIOLATION**"
+                    _cross_tag = ""
+                    if step.is_cross_domain:
+                        _cross_tag = " *(cross-domain)*"
 
-        st.subheader("Cost Variance Prediction & Risk Tiering")
-        st.markdown("""
-An ML layer (Random Forest) predicts **how much actual cost will deviate from
-the estimate**, based on change characteristics and cascade results. Features
-include propagation score, violation count, cross-domain hops, change cause,
+                    with st.container():
+                        st.markdown(
+                            f"**Step {i}.** {_src_label} --> {_tgt_label}{_cross_tag}{_violation_tag}\n\n"
+                            f"- Equation: `{_eq}`" + (f"\n- Detail: {_model_desc}" if _model_desc else "") +
+                            f"\n- Input delta: `{step.delta_input:+.6f}`"
+                            f"\n- Output delta: `{step.delta_output:+.6f} {_unit}`"
+                            f"\n- Result: `{_baseline:.4f}` --> `{step.new_value:.4f} {_unit}`"
+                        )
+                        st.markdown("---")
+
+            # ── Standards checked ────────────────────────────────────
+            with hw_tab2:
+                st.subheader("Regulatory & Safety Standards Checked")
+                st.markdown(
+                    "After computing all downstream effects, every parameter was checked "
+                    "against applicable certification limits."
+                )
+
+                _hw_violations = _hw_result.violations
+                if _hw_violations:
+                    st.error(f"**{len(_hw_violations)} violation(s) detected:**")
+                    for v in _hw_violations:
+                        _v_node = _hw_graph.nodes.get(v.get("node_id", ""))
+                        st.markdown(
+                            f"- **{v.get('node_id', '').replace('_', ' ').title()}** "
+                            f"= `{v.get('value', '')}` {v.get('unit', '')} "
+                            f"(limit: `{v.get('regulatory_limit', '')}` per "
+                            f"*{v.get('regulatory_ref', 'standard')}*)"
+                        )
+                else:
+                    st.success("All parameters within regulatory limits.")
+
+                # Show all regulatory nodes
+                st.markdown("##### All Checked Limits")
+                _reg_nodes = [
+                    n for n in _hw_graph.nodes.values()
+                    if n.regulatory_limit is not None
+                ]
+                if _reg_nodes:
+                    _reg_table = []
+                    for n in _reg_nodes:
+                        _final = _hw_result.final_state.get(n.node_id, n.value)
+                        _margin = ((n.regulatory_limit - _final) / n.regulatory_limit * 100) if n.regulatory_limit != 0 else 0
+                        _reg_table.append({
+                            "Parameter": n.node_id.replace("_", " ").title(),
+                            "Final Value": f"{_final:.4f} {n.unit}",
+                            "Limit": f"{n.regulatory_limit} {n.unit}",
+                            "Margin": f"{_margin:+.1f}%",
+                            "Standard": n.regulatory_ref or "",
+                            "Status": "PASS" if abs(_margin) > 0 and _final <= n.regulatory_limit else "FAIL",
+                        })
+                    st.dataframe(_reg_table, use_container_width=True, hide_index=True)
+
+            # ── Cost & risk method ───────────────────────────────────
+            with hw_tab3:
+                st.subheader("How Cost & Risk Were Estimated")
+                st.markdown("""
+**Cost estimation** uses sector-specific rates applied to the engineering
+deltas from the cascade:
+- Material cost scales with mass change
+- Manufacturing cost scales with mass and complexity
+- Tooling cost depends on whether geometry changed
+- Certification cost depends on number of violations
+
+**Risk tiering** combines multiple signals from the cascade into a single
+score, then maps it to an approval tier:
+
+| Signal | What It Measures |
+|--------|-----------------|
+| Parameters affected | Breadth of the change |
+| Cross-domain hops | Whether the change jumps disciplines |
+| Violations triggered | Safety/regulatory exposure |
+| Max parameter shift | Severity of the largest effect |
+
+The combined score determines the risk tier (1-4), which maps directly
+to your engineering change approval workflow.
+
+**Cost variance prediction** uses historical change patterns to predict
+how much actual cost tends to deviate from initial estimates for changes
+with similar characteristics. The prediction accounts for change cause,
 severity, and regulatory involvement.
-
-**Risk Tiers:**
-
-| Tier | Predicted Overrun | Action |
-|------|------------------|--------|
-| 1 | < 15% | Fast-track |
-| 2 | 15–30% | Standard review |
-| 3 | 30–45% | Senior review |
-| 4 | > 45% | Deep analysis |
-
-The feedback loop captures actual cost after implementation
-to improve future predictions.
-""")
-
-    # ── Supported Sectors ────────────────────────────────────────────
-    with about_tab3:
-        st.subheader("Sectors & Templates")
-
-        col_s1, col_s2 = st.columns(2)
-        with col_s1:
-            st.markdown("""
-**Naval / Marine**
-- Hull plate, deck stiffener, propulsion, sonar dome
-- DNV GL structural rules
-- Templates: hull thickness cascade
-
-**Aerospace**
-- Fuselage panel, wing spar, engine mount, landing gear
-- FAR 25 / CS-25 certification
-- Templates: electric aircraft cross-subsystem
-""")
-        with col_s2:
-            st.markdown("""
-**Automotive EV**
-- Battery cell, cooling plate, BMS, motor, chassis
-- UN R100, ISO 6469 safety
-- Templates: EV battery pack cascade
-
-**Robotics**
-- 6-DOF arm links, joint actuators, end effectors, sensors
-- ISO 10218, ISO 9283, IEC 60034
-- Templates: robotic arm cascade (33 nodes, 37 edges)
-""")
-
-        st.info("Custom parts can use the **Auto-Assemble** path — no template required.")
-
-    # ── Architecture ─────────────────────────────────────────────────
-    with about_tab4:
-        st.subheader("System Architecture")
-        st.markdown("""
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Streamlit UI Layer                     │
-│  Upload → Identify → Configure → Propagate → Results     │
-├─────────────────────────────────────────────────────────┤
-│                   Cascade Engine                         │
-│  BFS propagation · Constraint checking · Cost roll-up    │
-├──────────────┬──────────────┬───────────────────────────┤
-│ Graph Builder│ Physics Lib  │  Material DB              │
-│ Templates or │ 20+ models   │  12 materials             │
-│ Auto-Assemble│ parameterized│  with full properties     │
-├──────────────┴──────────────┴───────────────────────────┤
-│                    Input Parsers                          │
-│  CAD (STL/STEP) · 2D Drawing (OCR) · Spec (CSV/PDF)     │
-├─────────────────────────────────────────────────────────┤
-│                  Data Pipeline (future)                   │
-│  ECR fitting · Simulation surrogates · Sensor streams    │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Key design decisions:**
-- No LLMs in the propagation path — deterministic, auditable results
-- Physics models are parameterized by material, not hard-coded per application
-- Auto-assembly enables new parts without writing templates
-- Sector-specific constraints loaded from standards databases
 """)
